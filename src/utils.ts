@@ -347,6 +347,31 @@ export function parsePath(fullPath: string): {
 // ========================================
 
 /**
+ * Extracts or derives project ID from BaseBase API key
+ */
+export function getProjectIdFromApiKey(apiKey: string): string {
+  if (!apiKey || typeof apiKey !== "string") {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "API key must be a non-empty string"
+    );
+  }
+
+  // If API key follows format bb_projectId_... extract the project ID
+  if (apiKey.startsWith("bb_")) {
+    const parts = apiKey.split("_");
+    if (parts.length >= 3 && parts[1]) {
+      return parts[1]; // Extract project ID from bb_projectId_rest
+    }
+  }
+
+  // Fallback: Create a consistent project identifier from the API key
+  // Use a portion of the API key to ensure consistency across sessions
+  const hash = apiKey.replace(/[^a-zA-Z0-9]/g, "");
+  return hash.substring(0, Math.min(hash.length, 16));
+}
+
+/**
  * Generates a random document ID
  */
 export function generateId(): string {

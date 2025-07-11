@@ -12,6 +12,7 @@ import {
   DEFAULT_BASE_URL,
 } from "./types";
 import { validateStoredToken } from "./auth";
+import { getProjectIdFromApiKey } from "./utils";
 
 // ========================================
 // App Registry
@@ -39,25 +40,10 @@ export function initializeApp(
     );
   }
 
-  if (!config.projectId) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Project ID is required in BaseBase configuration"
-    );
-  }
-
   if (!config.apiKey) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
       "API key is required in BaseBase configuration"
-    );
-  }
-
-  // Validate project ID format
-  if (typeof config.projectId !== "string" || config.projectId.trim() === "") {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Project ID must be a non-empty string"
     );
   }
 
@@ -69,6 +55,9 @@ export function initializeApp(
     );
   }
 
+  // Derive project ID from API key if not provided
+  const projectId = config.projectId || getProjectIdFromApiKey(config.apiKey);
+
   // Check if app already exists
   if (appRegistry.has(name)) {
     throw new BasebaseError(
@@ -79,7 +68,7 @@ export function initializeApp(
 
   // Create normalized configuration
   const normalizedConfig: BasebaseConfig = {
-    projectId: config.projectId.trim(),
+    projectId: projectId,
     apiKey: config.apiKey.trim(),
     baseUrl: config.baseUrl?.trim() || DEFAULT_BASE_URL,
   };
@@ -162,9 +151,13 @@ function createBasebaseInstance(app: BasebaseApp): Basebase {
   // Validate stored authentication token
   validateStoredToken();
 
+  // Ensure projectId is always available (derive from apiKey if needed)
+  const projectId =
+    app.options.projectId || getProjectIdFromApiKey(app.options.apiKey);
+
   return {
     app,
-    projectId: app.options.projectId,
+    projectId: projectId,
     apiKey: app.options.apiKey,
     baseUrl: app.options.baseUrl || DEFAULT_BASE_URL,
   };
@@ -185,7 +178,7 @@ export function validateConfig(config: BasebaseConfig): void {
     );
   }
 
-  const requiredFields = ["projectId", "apiKey"];
+  const requiredFields = ["apiKey"];
   const missingFields = requiredFields.filter(
     (field) => !config[field as keyof BasebaseConfig]
   );
@@ -209,20 +202,22 @@ export function validateConfig(config: BasebaseConfig): void {
     }
   }
 
-  // Validate project ID format (similar to Firebase project IDs)
-  const projectIdRegex = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
-  if (config.projectId.length < 3 || config.projectId.length > 30) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Project ID must be between 3 and 30 characters"
-    );
-  }
+  // Validate project ID format if provided (similar to Firebase project IDs)
+  if (config.projectId) {
+    const projectIdRegex = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+    if (config.projectId.length < 3 || config.projectId.length > 30) {
+      throw new BasebaseError(
+        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+        "Project ID must be between 3 and 30 characters"
+      );
+    }
 
-  if (!projectIdRegex.test(config.projectId)) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Project ID must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen"
-    );
+    if (!projectIdRegex.test(config.projectId)) {
+      throw new BasebaseError(
+        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+        "Project ID must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen"
+      );
+    }
   }
 
   // Validate API key format (BaseBase API keys start with 'bb_')
@@ -314,8 +309,7 @@ export function isDevelopment(): boolean {
  */
 export function getEnvironmentBaseUrl(): string {
   if (isDevelopment()) {
-    // Use localhost for development
-    return "http://localhost:3000";
+    return "https://app.basebase.us";
   }
 
   return DEFAULT_BASE_URL;

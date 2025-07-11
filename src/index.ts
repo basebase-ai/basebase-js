@@ -173,8 +173,16 @@ export { DEFAULT_BASE_URL, BASEBASE_ERROR_CODES } from "./types";
 // Default Export for Convenient Imports
 // ========================================
 
-import { initializeApp } from "./app";
-import { requestCode, verifyCode } from "./auth";
+import { initializeApp, getBasebase, getApp, getApps, deleteApp } from "./app";
+import {
+  requestCode,
+  verifyCode,
+  signOut,
+  getAuthState,
+  isAuthenticated,
+  getUser,
+  onAuthStateChanged,
+} from "./auth";
 import {
   doc,
   collection,
@@ -196,10 +204,19 @@ import { query, where, orderBy, limit } from "./query";
 const basebase = {
   // App functions
   initializeApp,
+  getBasebase,
+  getApp,
+  getApps,
+  deleteApp,
 
   // Auth functions
   requestCode,
   verifyCode,
+  signOut,
+  getAuthState,
+  isAuthenticated,
+  getUser,
+  onAuthStateChanged,
 
   // Document functions
   doc,
@@ -232,7 +249,7 @@ export const VERSION = "1.0.0";
 
 // Register BaseBase on window object for script tag usage
 if (typeof window !== "undefined") {
-  (window as any).BaseBase = basebase;
+  (window as any).BasebaseSDK = basebase;
 }
 
 // ========================================

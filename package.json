@@ -2,6 +2,7 @@
   "name": "basebase-js-sdk",
   "version": "1.0.0",
   "description": "BaseBase SDK for Javascript/Typescript - Firebase-like API for BaseBase server",
+  "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",

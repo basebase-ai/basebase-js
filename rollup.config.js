@@ -40,6 +40,21 @@ export default [
     external,
     plugins,
   },
+  // Browser UMD build (for script tag usage)
+  {
+    input: "src/index.ts",
+    output: {
+      file: "dist/index.umd.js",
+      format: "umd",
+      name: "BasebaseSDK",
+      sourcemap: true,
+      globals: {
+        "js-cookie": "Cookies",
+      },
+    },
+    external,
+    plugins,
+  },
   // Auth module ES build
   {
     input: "src/auth.ts",

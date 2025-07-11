@@ -37,13 +37,13 @@ export interface BasebaseDocumentData {
 // ========================================
 
 export interface BasebaseConfig {
-  projectId: string;
+  projectId?: string;
   apiKey: string;
   baseUrl?: string;
 }
 
 export interface RequestCodeRequest {
-  username: string;
+  name: string;
   phone: string;
 }
 
@@ -60,7 +60,7 @@ export interface VerifyCodeRequest {
 
 export interface BasebaseUser {
   id: string;
-  username: string;
+  name: string;
   phone: string;
 }
 
@@ -100,6 +100,10 @@ export interface DocumentReference {
   path: string;
   basebase: Basebase;
   parent: CollectionReference;
+  get(): Promise<DocumentSnapshot>;
+  set(data: BasebaseDocumentData, options?: SetOptions): Promise<WriteResult>;
+  update(data: UpdateData): Promise<WriteResult>;
+  delete(): Promise<WriteResult>;
 }
 
 export interface CollectionReference {
@@ -107,6 +111,8 @@ export interface CollectionReference {
   path: string;
   basebase: Basebase;
   parent?: DocumentReference;
+  get(): Promise<QuerySnapshot>;
+  add(data: BasebaseDocumentData): Promise<DocumentReference>;
 }
 
 export interface DocumentSnapshot {

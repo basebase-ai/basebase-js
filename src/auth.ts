@@ -3,7 +3,7 @@
  * Handles phone verification and JWT token management
  */
 
-import * as Cookies from "js-cookie";
+import Cookies from "js-cookie";
 import {
   RequestCodeRequest,
   RequestCodeResponse,
@@ -67,7 +67,8 @@ export function getToken(): string | null {
   // Fallback to localStorage
   if (!token) {
     try {
-      token = localStorage.getItem(TOKEN_STORAGE_KEY);
+      const storedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+      token = storedToken || undefined;
     } catch (error) {
       console.warn("Failed to get token from localStorage:", error);
     }
@@ -162,6 +163,10 @@ export function decodeTokenPayload(token: string): any {
     }
 
     const payload = parts[1];
+    if (!payload) {
+      throw new Error("Missing token payload");
+    }
+
     const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
     return JSON.parse(decoded);
   } catch (error) {
@@ -214,19 +219,19 @@ export function validateStoredToken(): boolean {
  * Requests a verification code to be sent to the phone number
  */
 export async function requestCode(
-  username: string,
+  name: string,
   phone: string,
   baseUrl: string = DEFAULT_BASE_URL
 ): Promise<RequestCodeResponse> {
-  if (!username || !phone) {
+  if (!name || !phone) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Username and phone number are required"
+      "Name and phone number are required"
     );
   }
 
   const request: RequestCodeRequest = {
-    username: username.trim(),
+    name: name.trim(),
     phone: phone.trim(),
   };
 

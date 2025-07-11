@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BaseBase SDK Test</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+
+      .header {
+        background: #2d3748;
+        color: white;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+
+      .header p {
+        opacity: 0.8;
+        font-size: 14px;
+      }
+
+      .content {
+        padding: 30px;
+      }
+
+      .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #f7fafc;
+      }
+
+      .section h2 {
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #4a5568;
+      }
+
+      input[type="text"],
+      input[type="tel"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #cbd5e0;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+        margin-right: 10px;
+        margin-bottom: 10px;
+      }
+
+      button:hover:not(:disabled) {
+        background: #5a67d8;
+      }
+
+      button:disabled {
+        background: #a0aec0;
+        cursor: not-allowed;
+      }
+
+      .success {
+        color: #38a169;
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        padding: 10px;
+        border-radius: 6px;
+        margin: 10px 0;
+      }
+
+      .error {
+        color: #e53e3e;
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        padding: 10px;
+        border-radius: 6px;
+        margin: 10px 0;
+      }
+
+      .status {
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 6px;
+        font-weight: 500;
+      }
+
+      .status.authenticated {
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+        color: #38a169;
+      }
+
+      .status.unauthenticated {
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+        color: #e53e3e;
+      }
+
+      .data-list {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .data-item {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .data-item:last-child {
+        border-bottom: none;
+      }
+
+      .data-key {
+        font-weight: 500;
+        color: #2d3748;
+      }
+
+      .data-value {
+        color: #4a5568;
+        margin-left: 15px;
+        flex-grow: 1;
+      }
+
+      .delete-btn {
+        background: #e53e3e;
+        padding: 4px 8px;
+        font-size: 12px;
+      }
+
+      .delete-btn:hover {
+        background: #c53030;
+      }
+
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      .config-section {
+        background: #edf2f7;
+        border: 1px solid #cbd5e0;
+      }
+
+      .config-input {
+        font-family: monospace;
+        font-size: 13px;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          margin: 10px;
+        }
+
+        .content {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🚀 BaseBase SDK Test</h1>
+        <p>Test authentication and data operations with BaseBase</p>
+      </div>
+
+      <div class="content">
+        <!-- Configuration Section -->
+        <div class="section config-section">
+          <h2>⚙️ Configuration</h2>
+          <div class="form-group">
+            <label for="apiKey">API Key:</label>
+            <input
+              type="text"
+              id="apiKey"
+              class="config-input"
+              placeholder="your_api_key_here"
+              value="test-api-key-123"
+            />
+          </div>
+          <div class="form-group">
+            <label for="baseUrl">Base URL (optional):</label>
+            <input
+              type="text"
+              id="baseUrl"
+              class="config-input"
+              placeholder="https://app.basebase.us"
+              value="https://app.basebase.us"
+            />
+          </div>
+          <button onclick="initializeSDK()">Initialize SDK</button>
+          <div id="initStatus"></div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="section">
+          <h2>🔐 Authentication</h2>
+          <div id="authStatus" class="status unauthenticated">
+            Not authenticated
+          </div>
+
+          <div id="authForms">
+            <div class="form-group">
+              <label for="name">Full Name:</label>
+              <input type="text" id="name" placeholder="John Doe" value="" />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number:</label>
+              <input
+                type="tel"
+                id="phone"
+                placeholder="+1234567890"
+                value="+1234567890"
+              />
+            </div>
+            <button onclick="requestCode()">Request Code</button>
+
+            <div class="form-group" style="margin-top: 20px">
+              <label for="code">Verification Code:</label>
+              <input
+                type="text"
+                id="code"
+                placeholder="123456"
+                value="123456"
+              />
+            </div>
+            <button onclick="verifyCode()">Verify Code</button>
+            <button onclick="signOut()">Sign Out</button>
+          </div>
+
+          <div id="authMessage"></div>
+        </div>
+
+        <!-- Data Operations Section -->
+        <div class="section">
+          <h2>📝 Data Operations (test collection)</h2>
+
+          <div class="form-group">
+            <label for="key">Key:</label>
+            <input type="text" id="key" placeholder="my_key" />
+          </div>
+          <div class="form-group">
+            <label for="value">Value:</label>
+            <input type="text" id="value" placeholder="my_value" />
+          </div>
+          <button onclick="setData()">Set Data</button>
+          <button onclick="loadData()">Load All Data</button>
+          <button onclick="clearData()">Clear All Data</button>
+
+          <div id="dataMessage"></div>
+
+          <div id="dataList" class="data-list" style="margin-top: 15px">
+            <!-- Data items will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Include dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+
+    <!-- Include the BaseBase SDK -->
+    <script src="./dist/index.umd.js"></script>
+    <script>
+      let app = null;
+      let basebase = null;
+
+      // Initialize the SDK
+      window.initializeSDK = function initializeSDK() {
+        const apiKey = document.getElementById("apiKey").value.trim();
+        const baseUrl = document.getElementById("baseUrl").value.trim();
+        const statusEl = document.getElementById("initStatus");
+
+        if (!apiKey) {
+          showMessage(statusEl, "Please enter an API key", "error");
+          return;
+        }
+
+        try {
+          const config = { apiKey };
+          if (baseUrl) {
+            config.baseUrl = baseUrl;
+          }
+
+          app = window.BasebaseSDK.initializeApp(config);
+          basebase = window.BasebaseSDK.getBasebase(app);
+
+          showMessage(statusEl, "SDK initialized successfully!", "success");
+          updateAuthStatus();
+        } catch (error) {
+          showMessage(
+            statusEl,
+            `Failed to initialize: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Update authentication status
+      window.updateAuthStatus = function updateAuthStatus() {
+        const authState = window.BasebaseSDK.getAuthState();
+        const statusEl = document.getElementById("authStatus");
+
+        if (authState.isAuthenticated) {
+          statusEl.className = "status authenticated";
+          statusEl.textContent = `Authenticated as ${authState.user?.name} (${authState.user?.phone})`;
+        } else {
+          statusEl.className = "status unauthenticated";
+          statusEl.textContent = "Not authenticated";
+        }
+      };
+
+      // Request verification code
+      window.requestCode = async function requestCode() {
+        if (!app) {
+          showMessage(
+            document.getElementById("authMessage"),
+            "Please initialize SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const name = document.getElementById("name").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        const baseUrl =
+          document.getElementById("baseUrl").value.trim() || undefined;
+
+        if (!name || !phone) {
+          showMessage(
+            document.getElementById("authMessage"),
+            "Please enter name and phone",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const response = await window.BasebaseSDK.requestCode(
+            name,
+            phone,
+            baseUrl
+          );
+          showMessage(
+            document.getElementById("authMessage"),
+            "Verification code sent!",
+            "success"
+          );
+        } catch (error) {
+          showMessage(
+            document.getElementById("authMessage"),
+            `Failed to send code: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Verify code and authenticate
+      window.verifyCode = async function verifyCode() {
+        if (!app) {
+          showMessage(
+            document.getElementById("authMessage"),
+            "Please initialize SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const phone = document.getElementById("phone").value.trim();
+        const code = document.getElementById("code").value.trim();
+        const apiKey = document.getElementById("apiKey").value.trim();
+        const baseUrl =
+          document.getElementById("baseUrl").value.trim() || undefined;
+
+        if (!phone || !code) {
+          showMessage(
+            document.getElementById("authMessage"),
+            "Please enter phone and code",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const result = await window.BasebaseSDK.verifyCode(
+            phone,
+            code,
+            apiKey,
+            baseUrl
+          );
+          showMessage(
+            document.getElementById("authMessage"),
+            "Authentication successful!",
+            "success"
+          );
+          updateAuthStatus();
+          loadData(); // Load data after authentication
+        } catch (error) {
+          showMessage(
+            document.getElementById("authMessage"),
+            `Authentication failed: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Sign out
+      window.signOut = function signOut() {
+        window.BasebaseSDK.signOut();
+        updateAuthStatus();
+        showMessage(
+          document.getElementById("authMessage"),
+          "Signed out successfully",
+          "success"
+        );
+        clearDataDisplay();
+      };
+
+      // Set data in the test collection
+      window.setData = async function setData() {
+        if (!basebase) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please initialize SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const key = document.getElementById("key").value.trim();
+        const value = document.getElementById("value").value.trim();
+
+        if (!key || !value) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter both key and value",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const docRef = window.BasebaseSDK.doc(basebase, `test/${key}`);
+          await window.BasebaseSDK.setDoc(docRef, {
+            value: value,
+            timestamp: new Date().toISOString(),
+          });
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Data saved successfully!",
+            "success"
+          );
+          document.getElementById("key").value = "";
+          document.getElementById("value").value = "";
+          loadData(); // Refresh the data list
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to save: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Load all data from the test collection
+      window.loadData = async function loadData() {
+        if (!basebase) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please initialize SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          clearDataDisplay();
+          return;
+        }
+
+        try {
+          const collectionRef = window.BasebaseSDK.collection(basebase, "test");
+          const snapshot = await window.BasebaseSDK.getDocs(collectionRef);
+
+          displayData(snapshot);
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Loaded ${snapshot.size} items`,
+            "success"
+          );
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to load: ${error.message}`,
+            "error"
+          );
+          clearDataDisplay();
+        }
+      };
+
+      // Delete a specific item
+      window.deleteItem = async function deleteItem(key) {
+        if (!basebase) return;
+
+        try {
+          const docRef = window.BasebaseSDK.doc(basebase, `test/${key}`);
+          await window.BasebaseSDK.deleteDoc(docRef);
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Deleted "${key}"`,
+            "success"
+          );
+          loadData(); // Refresh the data list
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to delete "${key}": ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Clear all data
+      window.clearData = async function clearData() {
+        if (
+          !confirm(
+            "Are you sure you want to delete all data in the test collection?"
+          )
+        ) {
+          return;
+        }
+
+        if (!basebase) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please initialize SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const collectionRef = window.BasebaseSDK.collection(basebase, "test");
+          const snapshot = await window.BasebaseSDK.getDocs(collectionRef);
+
+          // Delete all documents
+          const deletePromises = [];
+          snapshot.forEach((doc) => {
+            const docRef = window.BasebaseSDK.doc(basebase, `test/${doc.id}`);
+            deletePromises.push(window.BasebaseSDK.deleteDoc(docRef));
+          });
+
+          await Promise.all(deletePromises);
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Deleted ${snapshot.size} items`,
+            "success"
+          );
+          clearDataDisplay();
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to clear data: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Display data in the UI
+      window.displayData = function displayData(snapshot) {
+        const dataList = document.getElementById("dataList");
+        dataList.innerHTML = "";
+
+        if (snapshot.empty) {
+          dataList.innerHTML =
+            '<div class="data-item" style="justify-content: center; color: #a0aec0;">No data found</div>';
+          return;
+        }
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const item = document.createElement("div");
+          item.className = "data-item";
+          item.innerHTML = `
+                    <span class="data-key">${doc.id}</span>
+                    <span class="data-value">${data.value}</span>
+                    <button class="delete-btn" onclick="deleteItem('${doc.id}')">Delete</button>
+                `;
+          dataList.appendChild(item);
+        });
+      };
+
+      // Clear data display
+      window.clearDataDisplay = function clearDataDisplay() {
+        const dataList = document.getElementById("dataList");
+        dataList.innerHTML =
+          '<div class="data-item" style="justify-content: center; color: #a0aec0;">No data</div>';
+      };
+
+      // Show message helper
+      window.showMessage = function showMessage(element, message, type) {
+        element.className = type;
+        element.textContent = message;
+      };
+
+      // Initialize on page load
+      window.addEventListener("load", function () {
+        updateAuthStatus();
+        clearDataDisplay();
+      });
+    </script>
+  </body>
+</html>

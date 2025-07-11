@@ -1,10 +1,10 @@
 # BaseBase JavaScript SDK
 
-A Firebase-compatible SDK for BaseBase server interactions. Build web applications that can easily migrate between Firebase/Firestore and BaseBase with minimal code changes.
+An SDK for BaseBase server interactions, patterned after the Firebase/Firestore SDK. Build web applications that use BaseBase as a backend server.
 
 ## 🚀 Features
 
-- **Firebase-compatible API** - Drop-in replacement for Firebase/Firestore
+- **Firebase-like API** - Drop-in replacement for Firebase/Firestore
 - **Phone verification authentication** - SMS-based auth with JWT tokens
 - **Real-time data operations** - CRUD operations with collections and documents
 - **Advanced querying** - where, orderBy, limit constraints
@@ -33,12 +33,15 @@ import { initializeApp, getBasebase } from "basebase-js-sdk";
 
 // Initialize your BaseBase app
 const app = initializeApp({
-  projectId: "my-project",
-  apiKey: "bb_your_api_key_here", // Get this from BaseBase console
-  baseUrl: "https://app.basebase.us", // Optional, defaults to production
+  apiKey: "bb_your_api_key_here",
 });
 
 const basebase = getBasebase(app);
+
+// Or use the shorthand
+const basebase = initializeBasebase({
+  apiKey: "bb_your_api_key_here",
+});
 ```
 
 ### 2. Authentication
@@ -123,7 +126,6 @@ Initialize a BaseBase application.
 ```typescript
 const app = initializeApp(
   {
-    projectId: "your-project-id",
     apiKey: "bb_your_api_key",
     baseUrl: "https://app.basebase.us", // optional
   },
@@ -141,7 +143,7 @@ const basebase = getBasebase(app);
 
 ### Authentication
 
-#### `requestCode(username, phone, baseUrl?)`
+#### `requestCode(name, phone, baseUrl?)`
 
 Request an SMS verification code.
 
@@ -302,6 +304,35 @@ Limit the number of results.
 limit(10);
 ```
 
+## 🧪 Testing
+
+A simple test webapp is included at `test.html` to demonstrate SDK functionality:
+
+1. **Build the SDK:**
+
+   ```bash
+   npm install
+   npm run build
+   ```
+
+2. **Open the test webapp:**
+   Open `test.html` in your browser (requires internet connection for js-cookie CDN). The webapp includes:
+
+   - SDK configuration with API key and base URL
+   - Phone verification authentication flow
+   - Key-value data operations on a "test" collection
+   - Real-time UI updates
+
+3. **Test workflow:**
+   - Configure your API key and BaseBase server URL
+   - Initialize the SDK
+   - Request SMS verification code
+   - Verify code to authenticate
+   - Add/view/delete key-value pairs
+   - Test sign out functionality
+
+> **Note:** The test webapp uses the UMD build (`dist/index.umd.js`) for browser compatibility and loads js-cookie from CDN. It defaults to `https://app.basebase.us`. Adjust the configuration for your BaseBase server instance.
+
 ## 🔧 Configuration
 
 ### Environment Variables
@@ -309,9 +340,9 @@ limit(10);
 Create a `.env` file in your project:
 
 ```bash
-BASEBASE_PROJECT_ID=your-project-id
 BASEBASE_API_KEY=bb_your_api_key
-BASEBASE_BASE_URL=https://app.basebase.us
+BASEBASE_BASE_URL=https://app.basebase.us  # optional
+BASEBASE_PROJECT_ID=your-project-id        # optional, derived from API key if not provided
 ```
 
 ### TypeScript Configuration
@@ -341,7 +372,7 @@ const userData = userSnap.data() as User;
 
 ### Authentication Flow
 
-1. User provides phone number and username
+1. User provides phone number and full name
 2. SMS verification code is sent
 3. User enters code to get JWT token
 4. Token is stored in cookies and localStorage

@@ -436,6 +436,13 @@ export function doc(basebase: Basebase, path: string): DocumentReference {
   }
 
   const documentId = pathSegments[pathSegments.length - 1];
+  if (!documentId) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Document ID cannot be empty"
+    );
+  }
+
   validateDocumentId(documentId);
 
   const collectionPath = pathSegments.slice(0, -1).join("/");
