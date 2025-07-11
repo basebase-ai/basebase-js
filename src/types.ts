@@ -64,9 +64,15 @@ export interface BasebaseUser {
   phone: string;
 }
 
+export interface BasebaseProject {
+  id: string;
+  name: string;
+}
+
 export interface VerifyCodeResponse {
   token: string;
   user: BasebaseUser;
+  project: BasebaseProject;
 }
 
 export interface AuthState {

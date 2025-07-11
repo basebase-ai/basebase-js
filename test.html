@@ -250,6 +250,21 @@
           </div>
           <button onclick="initializeSDK()">Initialize SDK</button>
           <div id="initStatus"></div>
+
+          <div
+            id="projectInfo"
+            style="
+              margin-top: 15px;
+              padding: 10px;
+              background: #f8f9fa;
+              border-radius: 4px;
+              font-size: 13px;
+              color: #6c757d;
+            "
+          >
+            <strong>Current Project:</strong>
+            <span id="currentProject">Not set</span>
+          </div>
         </div>
 
         <!-- Authentication Section -->
@@ -266,23 +281,13 @@
             </div>
             <div class="form-group">
               <label for="phone">Phone Number:</label>
-              <input
-                type="tel"
-                id="phone"
-                placeholder="+1234567890"
-                value="+1234567890"
-              />
+              <input type="tel" id="phone" placeholder="+1234567890" value="" />
             </div>
             <button onclick="requestCode()">Request Code</button>
 
             <div class="form-group" style="margin-top: 20px">
               <label for="code">Verification Code:</label>
-              <input
-                type="text"
-                id="code"
-                placeholder="123456"
-                value="123456"
-              />
+              <input type="text" id="code" placeholder="123456" value="" />
             </div>
             <button onclick="verifyCode()">Verify Code</button>
             <button onclick="signOut()">Sign Out</button>
@@ -293,17 +298,36 @@
 
         <!-- Data Operations Section -->
         <div class="section">
-          <h2>📝 Data Operations (test collection)</h2>
+          <h2>📝 Data Operations</h2>
 
           <div class="form-group">
-            <label for="key">Key:</label>
-            <input type="text" id="key" placeholder="my_key" />
+            <label for="targetProject">Project Name (optional):</label>
+            <input
+              type="text"
+              id="targetProject"
+              placeholder="Leave empty for current project"
+            />
           </div>
           <div class="form-group">
-            <label for="value">Value:</label>
-            <input type="text" id="value" placeholder="my_value" />
+            <label for="collectionName">Collection Name:</label>
+            <input
+              type="text"
+              id="collectionName"
+              placeholder="test"
+              value="test"
+            />
           </div>
-          <button onclick="setData()">Set Data</button>
+          <div class="form-group">
+            <label for="jsonData">JSON Data:</label>
+            <textarea
+              id="jsonData"
+              placeholder='{"name": "John Doe", "age": 30}'
+              style="height: 80px; font-family: monospace; font-size: 13px"
+            >
+{"name": "John Doe", "age": 30, "timestamp": "2024-01-01T00:00:00.000Z"}</textarea
+            >
+          </div>
+          <button onclick="addData()">Add Document</button>
           <button onclick="loadData()">Load All Data</button>
           <button onclick="clearData()">Clear All Data</button>
 
@@ -347,6 +371,7 @@
 
           showMessage(statusEl, "SDK initialized successfully!", "success");
           updateAuthStatus();
+          updateProjectInfo();
         } catch (error) {
           showMessage(
             statusEl,
@@ -367,6 +392,25 @@
         } else {
           statusEl.className = "status unauthenticated";
           statusEl.textContent = "Not authenticated";
+        }
+
+        // Update project information display
+        updateProjectInfo();
+      };
+
+      // Update project information display
+      window.updateProjectInfo = function updateProjectInfo() {
+        const projectEl = document.getElementById("currentProject");
+        if (!basebase) {
+          projectEl.textContent = "SDK not initialized";
+          return;
+        }
+
+        const storedProject = window.BasebaseSDK.getProject();
+        if (storedProject) {
+          projectEl.textContent = `${storedProject.name} (from authentication)`;
+        } else {
+          projectEl.textContent = `${basebase.projectId} (from API key)`;
         }
       };
 
@@ -448,12 +492,18 @@
             apiKey,
             baseUrl
           );
+
+          // Debug: log the authentication result
+          console.log("Authentication result:", result);
+          console.log("Stored project:", window.BasebaseSDK.getProject());
+
           showMessage(
             document.getElementById("authMessage"),
             "Authentication successful!",
             "success"
           );
           updateAuthStatus();
+          updateProjectInfo(); // Update project info after authentication
           loadData(); // Load data after authentication
         } catch (error) {
           showMessage(
@@ -476,8 +526,8 @@
         clearDataDisplay();
       };
 
-      // Set data in the test collection
-      window.setData = async function setData() {
+      // Add document to the specified collection
+      window.addData = async function addData() {
         if (!basebase) {
           showMessage(
             document.getElementById("dataMessage"),
@@ -497,43 +547,61 @@
           return;
         }
 
-        const key = document.getElementById("key").value.trim();
-        const value = document.getElementById("value").value.trim();
+        const targetProject =
+          document.getElementById("targetProject").value.trim() || undefined;
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+        const jsonData = document.getElementById("jsonData").value.trim();
 
-        if (!key || !value) {
+        if (!collectionName || !jsonData) {
           showMessage(
             document.getElementById("dataMessage"),
-            "Please enter both key and value",
+            "Please enter collection name and JSON data",
             "error"
           );
           return;
         }
 
         try {
-          const docRef = window.BasebaseSDK.doc(basebase, `test/${key}`);
-          await window.BasebaseSDK.setDoc(docRef, {
-            value: value,
-            timestamp: new Date().toISOString(),
-          });
+          const data = JSON.parse(jsonData);
+          const collectionRef = window.BasebaseSDK.collection(
+            basebase,
+            collectionName,
+            targetProject
+          );
+          const docRef = await window.BasebaseSDK.addDoc(collectionRef, data);
 
+          const projectDisplay = targetProject
+            ? ` in project "${targetProject}"`
+            : "";
           showMessage(
             document.getElementById("dataMessage"),
-            "Data saved successfully!",
+            `Document added successfully${projectDisplay}! ID: ${docRef.id}`,
             "success"
           );
-          document.getElementById("key").value = "";
-          document.getElementById("value").value = "";
+          // Clear the textarea
+          document.getElementById("jsonData").value =
+            '{"name": "John Doe", "age": 30, "timestamp": "2024-01-01T00:00:00.000Z"}';
           loadData(); // Refresh the data list
         } catch (error) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Failed to save: ${error.message}`,
-            "error"
-          );
+          if (error.message.includes("JSON")) {
+            showMessage(
+              document.getElementById("dataMessage"),
+              "Invalid JSON format",
+              "error"
+            );
+          } else {
+            showMessage(
+              document.getElementById("dataMessage"),
+              `Failed to add document: ${error.message}`,
+              "error"
+            );
+          }
         }
       };
 
-      // Load all data from the test collection
+      // Load all data from the specified collection
       window.loadData = async function loadData() {
         if (!basebase) {
           showMessage(
@@ -550,14 +618,36 @@
           return;
         }
 
+        const targetProject =
+          document.getElementById("targetProject").value.trim() || undefined;
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+
+        if (!collectionName) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter collection name",
+            "error"
+          );
+          return;
+        }
+
         try {
-          const collectionRef = window.BasebaseSDK.collection(basebase, "test");
+          const collectionRef = window.BasebaseSDK.collection(
+            basebase,
+            collectionName,
+            targetProject
+          );
           const snapshot = await window.BasebaseSDK.getDocs(collectionRef);
 
           displayData(snapshot);
+          const projectDisplay = targetProject
+            ? ` from project "${targetProject}"`
+            : "";
           showMessage(
             document.getElementById("dataMessage"),
-            `Loaded ${snapshot.size} items`,
+            `Loaded ${snapshot.size} items${projectDisplay}`,
             "success"
           );
         } catch (error) {
@@ -574,8 +664,17 @@
       window.deleteItem = async function deleteItem(key) {
         if (!basebase) return;
 
+        const targetProject =
+          document.getElementById("targetProject").value.trim() || undefined;
+        const collectionName =
+          document.getElementById("collectionName").value.trim() || "test";
+
         try {
-          const docRef = window.BasebaseSDK.doc(basebase, `test/${key}`);
+          const docRef = window.BasebaseSDK.doc(
+            basebase,
+            `${collectionName}/${key}`,
+            targetProject
+          );
           await window.BasebaseSDK.deleteDoc(docRef);
 
           showMessage(
@@ -595,9 +694,17 @@
 
       // Clear all data
       window.clearData = async function clearData() {
+        const targetProject =
+          document.getElementById("targetProject").value.trim() || undefined;
+        const collectionName =
+          document.getElementById("collectionName").value.trim() || "test";
+
+        const projectDisplay = targetProject
+          ? ` in project "${targetProject}"`
+          : "";
         if (
           !confirm(
-            "Are you sure you want to delete all data in the test collection?"
+            `Are you sure you want to delete all data in the "${collectionName}" collection${projectDisplay}?`
           )
         ) {
           return;
@@ -622,14 +729,31 @@
           return;
         }
 
+        if (!collectionName) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter collection name",
+            "error"
+          );
+          return;
+        }
+
         try {
-          const collectionRef = window.BasebaseSDK.collection(basebase, "test");
+          const collectionRef = window.BasebaseSDK.collection(
+            basebase,
+            collectionName,
+            targetProject
+          );
           const snapshot = await window.BasebaseSDK.getDocs(collectionRef);
 
           // Delete all documents
           const deletePromises = [];
           snapshot.forEach((doc) => {
-            const docRef = window.BasebaseSDK.doc(basebase, `test/${doc.id}`);
+            const docRef = window.BasebaseSDK.doc(
+              basebase,
+              `${collectionName}/${doc.id}`,
+              targetProject
+            );
             deletePromises.push(window.BasebaseSDK.deleteDoc(docRef));
           });
 
@@ -637,7 +761,7 @@
 
           showMessage(
             document.getElementById("dataMessage"),
-            `Deleted ${snapshot.size} items`,
+            `Deleted ${snapshot.size} items${projectDisplay}`,
             "success"
           );
           clearDataDisplay();
@@ -665,10 +789,20 @@
           const data = doc.data();
           const item = document.createElement("div");
           item.className = "data-item";
+          item.style.flexDirection = "column";
+          item.style.alignItems = "flex-start";
           item.innerHTML = `
-                    <span class="data-key">${doc.id}</span>
-                    <span class="data-value">${data.value}</span>
-                    <button class="delete-btn" onclick="deleteItem('${doc.id}')">Delete</button>
+                    <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
+                      <span class="data-key">ID: ${doc.id}</span>
+                      <button class="delete-btn" onclick="deleteItem('${
+                        doc.id
+                      }')">Delete</button>
+                    </div>
+                    <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
+                      data,
+                      null,
+                      2
+                    )}</pre>
                 `;
           dataList.appendChild(item);
         });

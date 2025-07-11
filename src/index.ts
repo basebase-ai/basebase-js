@@ -56,8 +56,10 @@ export {
   onAuthStateChanged,
   getToken,
   getUser,
+  getProject,
   setToken,
   setUser,
+  setProject,
   removeToken,
   getAuthHeader,
   validateStoredToken,
@@ -120,6 +122,7 @@ export type {
   VerifyCodeRequest,
   VerifyCodeResponse,
   BasebaseUser,
+  BasebaseProject,
   AuthState,
 
   // Data types
@@ -181,6 +184,7 @@ import {
   getAuthState,
   isAuthenticated,
   getUser,
+  getProject,
   onAuthStateChanged,
 } from "./auth";
 import {
@@ -216,6 +220,7 @@ const basebase = {
   getAuthState,
   isAuthenticated,
   getUser,
+  getProject,
   onAuthStateChanged,
 
   // Document functions

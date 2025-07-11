@@ -11,7 +11,7 @@ import {
   BASEBASE_ERROR_CODES,
   DEFAULT_BASE_URL,
 } from "./types";
-import { validateStoredToken } from "./auth";
+import { validateStoredToken, getProject } from "./auth";
 import { getProjectIdFromApiKey } from "./utils";
 
 // ========================================
@@ -55,8 +55,12 @@ export function initializeApp(
     );
   }
 
-  // Derive project ID from API key if not provided
-  const projectId = config.projectId || getProjectIdFromApiKey(config.apiKey);
+  // Get project ID from stored authentication data first, then fall back to config or API key
+  const storedProject = getProject();
+  const projectId =
+    storedProject?.name ||
+    config.projectId ||
+    getProjectIdFromApiKey(config.apiKey);
 
   // Check if app already exists
   if (appRegistry.has(name)) {
@@ -151,9 +155,12 @@ function createBasebaseInstance(app: BasebaseApp): Basebase {
   // Validate stored authentication token
   validateStoredToken();
 
-  // Ensure projectId is always available (derive from apiKey if needed)
+  // Get project ID from stored authentication data first, then fall back to config or API key
+  const storedProject = getProject();
   const projectId =
-    app.options.projectId || getProjectIdFromApiKey(app.options.apiKey);
+    storedProject?.name ||
+    app.options.projectId ||
+    getProjectIdFromApiKey(app.options.apiKey);
 
   return {
     app,

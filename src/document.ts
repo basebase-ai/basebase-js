@@ -25,10 +25,10 @@ import {
   fromBasebaseDocument,
   validatePath,
   validateDocumentId,
-  buildPath,
   generateId,
   deepClone,
   getNestedProperty,
+  validatePathSegments,
 } from "./utils";
 import { getAuthHeader } from "./auth";
 
@@ -58,7 +58,7 @@ class DocumentReferenceImpl implements DocumentReference {
    * Gets the full API path for this document
    */
   private getApiPath(): string {
-    return buildPath(this.basebase.projectId, this.path);
+    return this.path; // path already includes project ID
   }
 
   /**
@@ -87,7 +87,7 @@ class DocumentReferenceImpl implements DocumentReference {
   }
 
   /**
-   * Sets the document data
+   * Sets the document data (only updates existing documents)
    */
   async set(
     data: BasebaseDocumentData,
@@ -116,19 +116,15 @@ class DocumentReferenceImpl implements DocumentReference {
           writeTime: response.updateTime || new Date().toISOString(),
         };
       } else {
-        // For set operations, use POST with documentId parameter
-        const queryParam = `?documentId=${encodeURIComponent(this.id)}`;
-        const response = await makeHttpRequest<BasebaseDocument>(
-          `${url}${queryParam}`,
-          {
-            method: "POST",
-            headers: getAuthHeader(),
-            body: document,
-          }
-        );
+        // For set operations, use PUT to update existing document
+        const response = await makeHttpRequest<BasebaseDocument>(url, {
+          method: "PUT",
+          headers: getAuthHeader(),
+          body: document,
+        });
 
         return {
-          writeTime: response.createTime || new Date().toISOString(),
+          writeTime: response.updateTime || new Date().toISOString(),
         };
       }
     } catch (error) {
@@ -230,7 +226,7 @@ class CollectionReferenceImpl implements CollectionReference {
    * Gets the full API path for this collection
    */
   private getApiPath(): string {
-    return buildPath(this.basebase.projectId, this.path);
+    return this.path; // path already includes project ID
   }
 
   /**
@@ -286,12 +282,36 @@ class CollectionReferenceImpl implements CollectionReference {
   }
 
   /**
-   * Adds a new document with auto-generated ID
+   * Adds a new document with server-generated ID
    */
   async add(data: BasebaseDocumentData): Promise<DocumentReference> {
-    const docRef = this.doc();
-    await docRef.set(data);
-    return docRef;
+    if (!data || typeof data !== "object") {
+      throw new BasebaseError(
+        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+        "Document data must be an object"
+      );
+    }
+
+    const document = toBasebaseDocument(data);
+    const url = `${this.basebase.baseUrl}/${this.getApiPath()}`;
+
+    try {
+      // POST to collection endpoint without documentId - server assigns ID
+      const response = await makeHttpRequest<BasebaseDocument>(url, {
+        method: "POST",
+        headers: getAuthHeader(),
+        body: document,
+      });
+
+      // Extract the server-assigned ID from the response
+      const serverId = this.extractDocumentId(response, 0);
+
+      // Create a new document reference with the server-assigned ID
+      const docPath = `${this.path}/${serverId}`;
+      return new DocumentReferenceImpl(this.basebase, docPath, serverId, this);
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**
@@ -424,16 +444,18 @@ class QuerySnapshotImpl implements QuerySnapshot {
 /**
  * Creates a document reference
  */
-export function doc(basebase: Basebase, path: string): DocumentReference {
+export function doc(
+  basebase: Basebase,
+  path: string,
+  projectName?: string
+): DocumentReference {
   validatePath(path);
 
+  // Use specified project or default to the current project
+  const targetProjectId = projectName || basebase.projectId;
+
   const pathSegments = path.split("/");
-  if (pathSegments.length % 2 === 0) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Document path must have an odd number of segments"
-    );
-  }
+  validatePathSegments(pathSegments, true); // true for document
 
   const documentId = pathSegments[pathSegments.length - 1];
   if (!documentId) {
@@ -446,9 +468,17 @@ export function doc(basebase: Basebase, path: string): DocumentReference {
   validateDocumentId(documentId);
 
   const collectionPath = pathSegments.slice(0, -1).join("/");
-  const collectionRef = collection(basebase, collectionPath);
+  const collectionRef = collection(basebase, collectionPath, projectName);
 
-  return new DocumentReferenceImpl(basebase, path, documentId, collectionRef);
+  // Build the full path for API calls
+  const fullPath = `${targetProjectId}/${path}`;
+
+  return new DocumentReferenceImpl(
+    basebase,
+    fullPath,
+    documentId,
+    collectionRef
+  );
 }
 
 /**
@@ -456,25 +486,27 @@ export function doc(basebase: Basebase, path: string): DocumentReference {
  */
 export function collection(
   basebase: Basebase,
-  path: string
+  path: string,
+  projectName?: string
 ): CollectionReference {
   validatePath(path);
 
+  // Use specified project or default to the current project
+  const targetProjectId = projectName || basebase.projectId;
+
   const pathSegments = path.split("/");
-  if (pathSegments.length % 2 === 1) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Collection path must have an even number of segments"
-    );
-  }
+  validatePathSegments(pathSegments, false); // false for collection
 
   let parent: DocumentReference | undefined;
   if (pathSegments.length > 1) {
     const parentPath = pathSegments.slice(0, -1).join("/");
-    parent = doc(basebase, parentPath);
+    parent = doc(basebase, parentPath, projectName);
   }
 
-  return new CollectionReferenceImpl(basebase, path, parent);
+  // Build the full path for API calls
+  const fullPath = `${targetProjectId}/${path}`;
+
+  return new CollectionReferenceImpl(basebase, fullPath, parent);
 }
 
 /**

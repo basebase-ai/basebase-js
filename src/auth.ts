@@ -10,6 +10,7 @@ import {
   VerifyCodeRequest,
   VerifyCodeResponse,
   BasebaseUser,
+  BasebaseProject,
   AuthState,
   BasebaseError,
   BASEBASE_ERROR_CODES,
@@ -24,6 +25,7 @@ import { makeHttpRequest, isBrowser } from "./utils";
 const TOKEN_COOKIE_NAME = "basebase_token";
 const TOKEN_STORAGE_KEY = "basebase_token";
 const USER_STORAGE_KEY = "basebase_user";
+const PROJECT_STORAGE_KEY = "basebase_project";
 const TOKEN_EXPIRY_DAYS = 30;
 
 // ========================================
@@ -94,6 +96,7 @@ export function removeToken(): void {
   try {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
+    localStorage.removeItem(PROJECT_STORAGE_KEY);
   } catch (error) {
     console.warn("Failed to remove token from localStorage:", error);
   }
@@ -123,6 +126,34 @@ export function getUser(): BasebaseUser | null {
     return userStr ? JSON.parse(userStr) : null;
   } catch (error) {
     console.warn("Failed to get user from localStorage:", error);
+    return null;
+  }
+}
+
+/**
+ * Sets project data in localStorage
+ */
+export function setProject(project: BasebaseProject): void {
+  if (!isBrowser()) return;
+
+  try {
+    localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(project));
+  } catch (error) {
+    console.warn("Failed to set project in localStorage:", error);
+  }
+}
+
+/**
+ * Gets project data from localStorage
+ */
+export function getProject(): BasebaseProject | null {
+  if (!isBrowser()) return null;
+
+  try {
+    const projectStr = localStorage.getItem(PROJECT_STORAGE_KEY);
+    return projectStr ? JSON.parse(projectStr) : null;
+  } catch (error) {
+    console.warn("Failed to get project from localStorage:", error);
     return null;
   }
 }
@@ -292,10 +323,11 @@ export async function verifyCode(
       }
     );
 
-    // Store the token and user data
-    if (response.token && response.user) {
+    // Store the token, user data, and project information
+    if (response.token && response.user && response.project) {
       setToken(response.token);
       setUser(response.user);
+      setProject(response.project);
     }
 
     return response;

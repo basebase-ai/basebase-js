@@ -315,14 +315,39 @@ export function validateDocumentId(id: string): void {
 }
 
 /**
- * Builds a full path from project ID and relative path
+ * Checks if a path is absolute (contains project ID) or relative
  */
-export function buildPath(projectId: string, path: string): string {
-  return `${projectId}/${path}`;
+export function isAbsolutePath(path: string): boolean {
+  const segments = path.split("/");
+  // Simple rule: if path has 3+ segments, it's likely absolute (projectId/collection/document)
+  // if path has exactly 2 segments, it's likely relative (collection/document)
+  return segments.length >= 3;
 }
 
 /**
- * Extracts project ID and path from a full path
+ * Resolves a path to absolute format, handling both relative and absolute paths
+ */
+export function resolvePath(defaultProjectId: string, path: string): string {
+  validatePath(path);
+
+  // If the path looks absolute (3+ segments), use as-is
+  if (isAbsolutePath(path)) {
+    return path;
+  }
+
+  // Otherwise, treat as relative and prepend the default project ID
+  return `${defaultProjectId}/${path}`;
+}
+
+/**
+ * Builds a full path from project ID and relative path (legacy function)
+ */
+export function buildPath(projectId: string, path: string): string {
+  return resolvePath(projectId, path);
+}
+
+/**
+ * Extracts project ID and path from a full absolute path
  */
 export function parsePath(fullPath: string): {
   projectId: string;
@@ -340,6 +365,32 @@ export function parsePath(fullPath: string): {
     projectId: parts[0],
     path: parts.slice(1).join("/"),
   };
+}
+
+/**
+ * Validates path segments for document or collection paths
+ */
+export function validatePathSegments(
+  segments: string[],
+  isDocument: boolean
+): void {
+  if (isDocument) {
+    // Document paths should have even number of segments (collection/doc, collection/doc/subcol/doc, etc.)
+    if (segments.length % 2 !== 0) {
+      throw new BasebaseError(
+        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+        "Document path must have an even number of segments (collection/document)"
+      );
+    }
+  } else {
+    // Collection paths should have odd number of segments (collection, collection/doc/subcol, etc.)
+    if (segments.length % 2 !== 1) {
+      throw new BasebaseError(
+        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+        "Collection path must have an odd number of segments"
+      );
+    }
+  }
 }
 
 // ========================================
