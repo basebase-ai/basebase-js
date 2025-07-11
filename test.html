@@ -337,6 +337,77 @@
             <!-- Data items will be populated here -->
           </div>
         </div>
+
+        <!-- Get Document Section -->
+        <div class="section">
+          <h2>🔍 Get Document</h2>
+          <div class="form-group">
+            <label for="getDocProject">Project Name (optional):</label>
+            <input
+              type="text"
+              id="getDocProject"
+              placeholder="Leave empty for current project"
+            />
+          </div>
+          <div class="form-group">
+            <label for="getDocCollection">Collection Name:</label>
+            <input
+              type="text"
+              id="getDocCollection"
+              placeholder="test"
+              value="test"
+            />
+          </div>
+          <div class="form-group">
+            <label for="getDocId">Document ID:</label>
+            <input type="text" id="getDocId" placeholder="document-id-123" />
+          </div>
+          <button onclick="getDocument()">Get Document</button>
+
+          <div id="getDocMessage"></div>
+          <div id="getDocResult" class="data-list" style="margin-top: 15px">
+            <!-- Document result will be populated here -->
+          </div>
+        </div>
+
+        <!-- Update Document Section -->
+        <div class="section">
+          <h2>✏️ Update Document</h2>
+          <div class="form-group">
+            <label for="updateDocProject">Project Name (optional):</label>
+            <input
+              type="text"
+              id="updateDocProject"
+              placeholder="Leave empty for current project"
+            />
+          </div>
+          <div class="form-group">
+            <label for="updateDocCollection">Collection Name:</label>
+            <input
+              type="text"
+              id="updateDocCollection"
+              placeholder="test"
+              value="test"
+            />
+          </div>
+          <div class="form-group">
+            <label for="updateDocId">Document ID:</label>
+            <input type="text" id="updateDocId" placeholder="document-id-123" />
+          </div>
+          <div class="form-group">
+            <label for="updateDocData">Update Data (JSON):</label>
+            <textarea
+              id="updateDocData"
+              placeholder='{"name": "Updated Name", "status": "modified"}'
+              style="height: 80px; font-family: monospace; font-size: 13px"
+            >
+{"name": "Updated Name", "lastModified": "2024-01-01T00:00:00.000Z"}</textarea
+            >
+          </div>
+          <button onclick="updateDocument()">Update Document</button>
+
+          <div id="updateDocMessage"></div>
+        </div>
       </div>
     </div>
 
@@ -815,6 +886,183 @@
           '<div class="data-item" style="justify-content: center; color: #a0aec0;">No data</div>';
       };
 
+      // Get a specific document by ID
+      window.getDocument = async function getDocument() {
+        if (!basebase) {
+          showMessage(
+            document.getElementById("getDocMessage"),
+            "Please initialize SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("getDocMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const targetProject =
+          document.getElementById("getDocProject").value.trim() || undefined;
+        const collectionName = document
+          .getElementById("getDocCollection")
+          .value.trim();
+        const docId = document.getElementById("getDocId").value.trim();
+
+        if (!collectionName || !docId) {
+          showMessage(
+            document.getElementById("getDocMessage"),
+            "Please enter collection name and document ID",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const docRef = window.BasebaseSDK.doc(
+            basebase,
+            `${collectionName}/${docId}`,
+            targetProject
+          );
+          const docSnapshot = await window.BasebaseSDK.getDoc(docRef);
+
+          if (docSnapshot.exists) {
+            const data = docSnapshot.data();
+            const resultEl = document.getElementById("getDocResult");
+            resultEl.innerHTML = `
+              <div class="data-item" style="flex-direction: column; align-items: flex-start;">
+                <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
+                  <span class="data-key">ID: ${docSnapshot.id}</span>
+                  <span style="color: #38a169; font-weight: 500;">Found</span>
+                </div>
+                <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
+                  data,
+                  null,
+                  2
+                )}</pre>
+              </div>
+            `;
+
+            const projectDisplay = targetProject
+              ? ` from project "${targetProject}"`
+              : "";
+            showMessage(
+              document.getElementById("getDocMessage"),
+              `Document found${projectDisplay}`,
+              "success"
+            );
+          } else {
+            document.getElementById("getDocResult").innerHTML =
+              '<div class="data-item" style="justify-content: center; color: #e53e3e;">Document not found</div>';
+            showMessage(
+              document.getElementById("getDocMessage"),
+              "Document not found",
+              "error"
+            );
+          }
+        } catch (error) {
+          showMessage(
+            document.getElementById("getDocMessage"),
+            `Failed to get document: ${error.message}`,
+            "error"
+          );
+          document.getElementById("getDocResult").innerHTML =
+            '<div class="data-item" style="justify-content: center; color: #e53e3e;">Error loading document</div>';
+        }
+      };
+
+      // Update a specific document by ID
+      window.updateDocument = async function updateDocument() {
+        if (!basebase) {
+          showMessage(
+            document.getElementById("updateDocMessage"),
+            "Please initialize SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("updateDocMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const targetProject =
+          document.getElementById("updateDocProject").value.trim() || undefined;
+        const collectionName = document
+          .getElementById("updateDocCollection")
+          .value.trim();
+        const docId = document.getElementById("updateDocId").value.trim();
+        const updateData = document
+          .getElementById("updateDocData")
+          .value.trim();
+
+        if (!collectionName || !docId || !updateData) {
+          showMessage(
+            document.getElementById("updateDocMessage"),
+            "Please enter collection name, document ID, and update data",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const data = JSON.parse(updateData);
+          const docRef = window.BasebaseSDK.doc(
+            basebase,
+            `${collectionName}/${docId}`,
+            targetProject
+          );
+
+          await window.BasebaseSDK.updateDoc(docRef, data);
+
+          const projectDisplay = targetProject
+            ? ` in project "${targetProject}"`
+            : "";
+          showMessage(
+            document.getElementById("updateDocMessage"),
+            `Document updated successfully${projectDisplay}!`,
+            "success"
+          );
+
+          // Clear the textarea
+          document.getElementById("updateDocData").value =
+            '{"name": "Updated Name", "lastModified": "2024-01-01T00:00:00.000Z"}';
+
+          // Refresh the main data list if it's showing the same collection
+          const mainCollectionName = document
+            .getElementById("collectionName")
+            .value.trim();
+          if (mainCollectionName === collectionName) {
+            loadData();
+          }
+        } catch (error) {
+          if (error.message.includes("JSON")) {
+            showMessage(
+              document.getElementById("updateDocMessage"),
+              "Invalid JSON format",
+              "error"
+            );
+          } else {
+            showMessage(
+              document.getElementById("updateDocMessage"),
+              `Failed to update document: ${error.message}`,
+              "error"
+            );
+          }
+        }
+      };
+
       // Show message helper
       window.showMessage = function showMessage(element, message, type) {
         element.className = type;
@@ -825,6 +1073,9 @@
       window.addEventListener("load", function () {
         updateAuthStatus();
         clearDataDisplay();
+        // Initialize empty states for new sections
+        document.getElementById("getDocResult").innerHTML =
+          '<div class="data-item" style="justify-content: center; color: #a0aec0;">No document loaded</div>';
       });
     </script>
   </body>

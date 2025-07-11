@@ -79,8 +79,8 @@ if (userSnap.exists) {
   console.log("User not found");
 }
 
-// Set document data
-await setDoc(userRef, {
+// Add a new document to a collection
+const newUserRef = await addDoc(collection(basebase, "users"), {
   name: "John Doe",
   email: "john@example.com",
   age: 30,
@@ -215,17 +215,6 @@ const snapshot = await getDocs(collectionRef);
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
 });
-```
-
-#### `setDoc(docRef, data, options?)`
-
-Set document data.
-
-```typescript
-await setDoc(docRef, { name: "John", age: 30 });
-
-// Merge with existing data
-await setDoc(docRef, { email: "john@example.com" }, { merge: true });
 ```
 
 #### `updateDoc(docRef, data)`

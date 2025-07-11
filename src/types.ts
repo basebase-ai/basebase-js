@@ -107,7 +107,6 @@ export interface DocumentReference {
   basebase: Basebase;
   parent: CollectionReference;
   get(): Promise<DocumentSnapshot>;
-  set(data: BasebaseDocumentData, options?: SetOptions): Promise<WriteResult>;
   update(data: UpdateData): Promise<WriteResult>;
   delete(): Promise<WriteResult>;
 }

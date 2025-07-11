@@ -87,52 +87,6 @@ class DocumentReferenceImpl implements DocumentReference {
   }
 
   /**
-   * Sets the document data (only updates existing documents)
-   */
-  async set(
-    data: BasebaseDocumentData,
-    options?: SetOptions
-  ): Promise<WriteResult> {
-    if (!data || typeof data !== "object") {
-      throw new BasebaseError(
-        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-        "Document data must be an object"
-      );
-    }
-
-    const document = toBasebaseDocument(data);
-    const url = `${this.basebase.baseUrl}/${this.getApiPath()}`;
-
-    try {
-      if (options?.merge) {
-        // For merge operations, use PATCH
-        const response = await makeHttpRequest<BasebaseDocument>(url, {
-          method: "PATCH",
-          headers: getAuthHeader(),
-          body: document,
-        });
-
-        return {
-          writeTime: response.updateTime || new Date().toISOString(),
-        };
-      } else {
-        // For set operations, use PUT to update existing document
-        const response = await makeHttpRequest<BasebaseDocument>(url, {
-          method: "PUT",
-          headers: getAuthHeader(),
-          body: document,
-        });
-
-        return {
-          writeTime: response.updateTime || new Date().toISOString(),
-        };
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
    * Updates specific fields in the document
    */
   async update(data: UpdateData): Promise<WriteResult> {
@@ -525,17 +479,6 @@ export async function getDocs(
   collectionRef: CollectionReference
 ): Promise<QuerySnapshot> {
   return collectionRef.get();
-}
-
-/**
- * Sets document data
- */
-export async function setDoc(
-  docRef: DocumentReference,
-  data: BasebaseDocumentData,
-  options?: SetOptions
-): Promise<WriteResult> {
-  return docRef.set(data, options);
 }
 
 /**
