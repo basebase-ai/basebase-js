@@ -32,7 +32,7 @@ export default [
   {
     input: "src/index.ts",
     output: {
-      file: "dist/index.js",
+      file: "dist/index.cjs",
       format: "cjs",
       sourcemap: true,
       exports: "named",
@@ -70,7 +70,7 @@ export default [
   {
     input: "src/auth.ts",
     output: {
-      file: "dist/auth.js",
+      file: "dist/auth.cjs",
       format: "cjs",
       sourcemap: true,
       exports: "named",

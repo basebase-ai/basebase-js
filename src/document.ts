@@ -28,7 +28,6 @@ import {
   generateId,
   deepClone,
   getNestedProperty,
-  validatePathSegments,
   validateObjectId,
   isValidObjectId,
 } from "./utils";
@@ -499,7 +498,14 @@ export function doc(
   const targetProjectId = projectName || basebase.projectId;
 
   const pathSegments = path.split("/");
-  validatePathSegments(pathSegments, true); // true for document
+
+  // Document paths need at least 2 segments: collection/document
+  if (pathSegments.length < 2) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Document path must include both collection and document ID (e.g., 'users/user123')"
+    );
+  }
 
   const documentId = pathSegments[pathSegments.length - 1];
   if (!documentId) {
@@ -539,7 +545,14 @@ export function collection(
   const targetProjectId = projectName || basebase.projectId;
 
   const pathSegments = path.split("/");
-  validatePathSegments(pathSegments, false); // false for collection
+
+  // Collection paths need at least 1 segment: collection
+  if (pathSegments.length < 1 || pathSegments[pathSegments.length - 1] === "") {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Collection path must include a collection name (e.g., 'users' or 'users/user123/posts')"
+    );
+  }
 
   let parent: DocumentReference | undefined;
   if (pathSegments.length > 1) {

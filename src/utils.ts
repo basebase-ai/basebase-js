@@ -405,32 +405,6 @@ export function parsePath(fullPath: string): {
   };
 }
 
-/**
- * Validates path segments for document or collection paths
- */
-export function validatePathSegments(
-  segments: string[],
-  isDocument: boolean
-): void {
-  if (isDocument) {
-    // Document paths should have even number of segments (collection/doc, collection/doc/subcol/doc, etc.)
-    if (segments.length % 2 !== 0) {
-      throw new BasebaseError(
-        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-        "Document path must have an even number of segments (collection/document)"
-      );
-    }
-  } else {
-    // Collection paths should have odd number of segments (collection, collection/doc/subcol, etc.)
-    if (segments.length % 2 !== 1) {
-      throw new BasebaseError(
-        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-        "Collection path must have an odd number of segments"
-      );
-    }
-  }
-}
-
 // ========================================
 // Miscellaneous Utilities
 // ========================================

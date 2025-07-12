@@ -3,18 +3,18 @@
   "version": "0.1.0",
   "description": "BaseBase SDK for Javascript/Typescript - Firebase-like API for BaseBase server",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.esm.js",
-      "require": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
     },
     "./auth": {
       "import": "./dist/auth.esm.js",
-      "require": "./dist/auth.js",
+      "require": "./dist/auth.cjs",
       "types": "./dist/auth.d.ts"
     }
   },
