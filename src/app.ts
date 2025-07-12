@@ -11,7 +11,12 @@ import {
   BASEBASE_ERROR_CODES,
   DEFAULT_BASE_URL,
 } from "./types";
-import { validateStoredToken, getProject, setDirectToken } from "./auth";
+import {
+  validateStoredToken,
+  getProject,
+  setDirectToken,
+  getDirectToken,
+} from "./auth";
 import { getProjectIdFromApiKey } from "./utils";
 
 // ========================================
@@ -75,6 +80,7 @@ export function initializeApp(
     projectId: projectId,
     apiKey: config.apiKey.trim(),
     baseUrl: config.baseUrl?.trim() || DEFAULT_BASE_URL,
+    token: config.token, // Include token for server environments
   };
 
   // Create app instance
@@ -155,10 +161,11 @@ function createBasebaseInstance(app: BasebaseApp): Basebase {
   // Set the token directly if provided in configuration (for server environments)
   if (app.options.token) {
     setDirectToken(app.options.token);
+  } else if (!getDirectToken()) {
+    // Only validate stored tokens if no direct token is already set
+    // This prevents removing user-provided tokens that may not be standard JWTs
+    validateStoredToken();
   }
-
-  // Validate stored authentication token
-  validateStoredToken();
 
   // Get project ID from stored authentication data first, then fall back to config or API key
   const storedProject = getProject();
