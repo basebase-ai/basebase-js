@@ -68,34 +68,50 @@ console.log("Token:", authResult.token);
 // Token is automatically stored in cookies and localStorage
 ```
 
-### 3. Working with Documents
+### 3. Document Operations
 
 ```typescript
-import { doc, getDoc, setDoc, collection, getDocs } from "basebase-js";
+import {
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+} from "basebase-js";
 
-// Get a document
+// Get a single document
 const userRef = doc(basebase, "users/user123");
 const userSnap = await getDoc(userRef);
-
 if (userSnap.exists) {
   console.log("User data:", userSnap.data());
-} else {
-  console.log("User not found");
 }
-
-// Add a new document to a collection
-const newUserRef = await addDoc(collection(basebase, "users"), {
-  name: "John Doe",
-  email: "john@example.com",
-  age: 30,
-});
 
 // Get all documents in a collection
 const usersRef = collection(basebase, "users");
 const snapshot = await getDocs(usersRef);
-
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
+});
+
+// Add document with auto-generated ID
+const newUserRef = await addDoc(collection(basebase, "users"), {
+  name: "Jane Doe",
+  email: "jane@example.com",
+});
+
+// Set document with specific ID (great for consistent IDs across collections)
+const userId = "507f1f77bcf86cd799439011";
+await setDoc(doc(basebase, `users/${userId}`), {
+  name: "John Doe",
+  email: "john@example.com",
+});
+
+// Update specific fields
+await updateDoc(doc(basebase, "users/user123"), {
+  age: 31,
+  "profile.lastLogin": new Date().toISOString(),
 });
 ```
 
@@ -204,9 +220,10 @@ const collectionRef = collection(basebase, "users");
 Get a document snapshot.
 
 ```typescript
+const docRef = doc(basebase, "users/user123");
 const snapshot = await getDoc(docRef);
 if (snapshot.exists) {
-  console.log(snapshot.data());
+  console.log("User data:", snapshot.data());
 }
 ```
 
@@ -215,29 +232,11 @@ if (snapshot.exists) {
 Get all documents in a collection.
 
 ```typescript
+const collectionRef = collection(basebase, "users");
 const snapshot = await getDocs(collectionRef);
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
 });
-```
-
-#### `updateDoc(docRef, data)`
-
-Update specific fields in a document.
-
-```typescript
-await updateDoc(docRef, {
-  age: 31,
-  "profile.lastLogin": new Date().toISOString(),
-});
-```
-
-#### `deleteDoc(docRef)`
-
-Delete a document.
-
-```typescript
-await deleteDoc(docRef);
 ```
 
 #### `addDoc(collectionRef, data)`
@@ -250,6 +249,43 @@ const docRef = await addDoc(collection(basebase, "users"), {
   email: "jane@example.com",
 });
 console.log("New document ID:", docRef.id);
+```
+
+#### `setDoc(docRef, data, options?)`
+
+Set a document with a specific ID, optionally merging with existing data.
+
+```typescript
+const userId = "507f1f77bcf86cd799439011";
+const userRef = doc(basebase, `users/${userId}`);
+await setDoc(userRef, {
+  name: "John Doe",
+  email: "john@example.com",
+});
+
+// Merge with existing data
+await setDoc(userRef, { age: 30 }, { merge: true });
+```
+
+#### `updateDoc(docRef, data)`
+
+Update specific fields in a document.
+
+```typescript
+const docRef = doc(basebase, "users/user123");
+await updateDoc(docRef, {
+  age: 31,
+  "profile.lastLogin": new Date().toISOString(),
+});
+```
+
+#### `deleteDoc(docRef)`
+
+Delete a document.
+
+```typescript
+const docRef = doc(basebase, "users/user123");
+await deleteDoc(docRef);
 ```
 
 ### Querying
