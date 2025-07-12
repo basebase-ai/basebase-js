@@ -199,9 +199,7 @@ class QueryImpl implements Query {
     constraint: WhereConstraint
   ): any[] {
     return documents.filter((doc) => {
-      if (!doc.fields) return false;
-
-      const fieldValue = this.getFieldValue(doc.fields, constraint.fieldPath);
+      const fieldValue = this.getFieldValue(doc, constraint.fieldPath);
       return this.evaluateWhereCondition(
         fieldValue,
         constraint.opStr,
@@ -219,8 +217,8 @@ class QueryImpl implements Query {
   ): any[] {
     return documents.sort((a, b) => {
       for (const constraint of constraints) {
-        const aValue = this.getFieldValue(a.fields, constraint.fieldPath);
-        const bValue = this.getFieldValue(b.fields, constraint.fieldPath);
+        const aValue = this.getFieldValue(a, constraint.fieldPath);
+        const bValue = this.getFieldValue(b, constraint.fieldPath);
 
         const comparison = this.compareValues(aValue, bValue);
         if (comparison !== 0) {
@@ -232,37 +230,17 @@ class QueryImpl implements Query {
   }
 
   /**
-   * Gets a field value from BaseBase document fields
+   * Gets a field value from MongoDB-style document
    */
-  private getFieldValue(fields: any, fieldPath: string): any {
+  private getFieldValue(doc: any, fieldPath: string): any {
     const pathSegments = fieldPath.split(".");
-    let current = fields;
+    let current = doc;
 
     for (const segment of pathSegments) {
-      if (!current || !current[segment]) {
+      if (!current || current[segment] === undefined) {
         return undefined;
       }
-
-      const field = current[segment];
-
-      // Convert BaseBase value to JavaScript value
-      if (field.stringValue !== undefined) {
-        current = field.stringValue;
-      } else if (field.integerValue !== undefined) {
-        current = parseInt(field.integerValue, 10);
-      } else if (field.doubleValue !== undefined) {
-        current = field.doubleValue;
-      } else if (field.booleanValue !== undefined) {
-        current = field.booleanValue;
-      } else if (field.nullValue !== undefined) {
-        current = null;
-      } else if (field.mapValue) {
-        current = field.mapValue.fields;
-      } else if (field.arrayValue) {
-        current = field.arrayValue.values;
-      } else {
-        return undefined;
-      }
+      current = current[segment];
     }
 
     return current;
@@ -334,7 +312,7 @@ class QueryImpl implements Query {
   }
 
   /**
-   * Extracts document ID from BaseBase document
+   * Extracts document ID from MongoDB-style document
    */
   private extractDocumentId(doc: any, fallbackIndex: number): string {
     if (doc.name) {
@@ -342,11 +320,10 @@ class QueryImpl implements Query {
       return nameParts[nameParts.length - 1] || `doc_${fallbackIndex}`;
     }
 
-    if (doc.fields) {
-      const idField = doc.fields.id || doc.fields._id || doc.fields.ID;
-      if (idField?.stringValue) {
-        return idField.stringValue;
-      }
+    // Look for an ID field in the document (MongoDB-style)
+    const idField = doc.id || doc._id || doc.ID;
+    if (idField && typeof idField === "string") {
+      return idField;
     }
 
     return `doc_${fallbackIndex}_${Date.now()}`;

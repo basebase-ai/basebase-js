@@ -17,121 +17,41 @@ import {
 // ========================================
 
 /**
- * Converts a JavaScript value to BaseBase format
+ * Converts a JavaScript value to BaseBase format (MongoDB-style)
+ * Now just returns the value as-is for MongoDB compatibility
  */
-export function toBasebaseValue(value: any): BasebaseValue {
-  if (value === null || value === undefined) {
-    return { nullValue: null };
-  }
-
-  if (typeof value === "string") {
-    return { stringValue: value };
-  }
-
-  if (typeof value === "number") {
-    return Number.isInteger(value)
-      ? { integerValue: value.toString() }
-      : { doubleValue: value };
-  }
-
-  if (typeof value === "boolean") {
-    return { booleanValue: value };
-  }
-
-  if (Array.isArray(value)) {
-    return {
-      arrayValue: {
-        values: value.map(toBasebaseValue),
-      },
-    };
-  }
-
-  if (typeof value === "object") {
-    const fields: Record<string, BasebaseValue> = {};
-    for (const [key, val] of Object.entries(value)) {
-      fields[key] = toBasebaseValue(val);
-    }
-    return {
-      mapValue: { fields },
-    };
-  }
-
-  throw new BasebaseError(
-    BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-    `Unsupported data type: ${typeof value}`
-  );
+export function toBasebaseValue(value: any): any {
+  return value;
 }
 
 /**
- * Converts BaseBase format to JavaScript value
+ * Converts BaseBase format to JavaScript value (MongoDB-style)
+ * Now just returns the value as-is for MongoDB compatibility
  */
-export function fromBasebaseValue(value: BasebaseValue): any {
-  if (value.nullValue !== undefined) {
-    return null;
-  }
-
-  if (value.stringValue !== undefined) {
-    return value.stringValue;
-  }
-
-  if (value.integerValue !== undefined) {
-    return parseInt(value.integerValue, 10);
-  }
-
-  if (value.doubleValue !== undefined) {
-    return value.doubleValue;
-  }
-
-  if (value.booleanValue !== undefined) {
-    return value.booleanValue;
-  }
-
-  if (value.arrayValue) {
-    return value.arrayValue.values.map(fromBasebaseValue);
-  }
-
-  if (value.mapValue) {
-    const result: Record<string, any> = {};
-    for (const [key, val] of Object.entries(value.mapValue.fields)) {
-      result[key] = fromBasebaseValue(val);
-    }
-    return result;
-  }
-
-  return null;
+export function fromBasebaseValue(value: any): any {
+  return value;
 }
 
 /**
- * Converts JavaScript object to BaseBase document format
+ * Converts JavaScript object to BaseBase document format (MongoDB-style)
+ * Now sends raw JavaScript objects to match MongoDB format
  */
 export function toBasebaseDocument(
   data: BasebaseDocumentData
-): BasebaseDocument {
-  const fields: Record<string, BasebaseValue> = {};
-
-  for (const [key, value] of Object.entries(data)) {
-    fields[key] = toBasebaseValue(value);
-  }
-
-  return { fields };
+): BasebaseDocumentData {
+  // Just return the data as-is for MongoDB compatibility
+  return data;
 }
 
 /**
- * Converts BaseBase document to JavaScript object
+ * Converts BaseBase document to JavaScript object (MongoDB-style)
+ * Now expects raw JavaScript objects from MongoDB
  */
 export function fromBasebaseDocument(
-  doc: BasebaseDocument
+  doc: BasebaseDocumentData
 ): BasebaseDocumentData {
-  if (!doc.fields) {
-    return {};
-  }
-
-  const result: BasebaseDocumentData = {};
-  for (const [key, value] of Object.entries(doc.fields)) {
-    result[key] = fromBasebaseValue(value);
-  }
-
-  return result;
+  // Just return the data as-is for MongoDB compatibility
+  return doc;
 }
 
 // ========================================

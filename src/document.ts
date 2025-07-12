@@ -67,7 +67,7 @@ class DocumentReferenceImpl implements DocumentReference {
    */
   async get(): Promise<DocumentSnapshot> {
     try {
-      const response = await makeHttpRequest<BasebaseDocument>(
+      const response = await makeHttpRequest<BasebaseDocumentData>(
         `${this.basebase.baseUrl}/${this.getApiPath()}`,
         {
           method: "GET",
@@ -161,7 +161,7 @@ class DocumentReferenceImpl implements DocumentReference {
         }
       }
 
-      const response = await makeHttpRequest<BasebaseDocument>(url, {
+      const response = await makeHttpRequest<BasebaseDocumentData>(url, {
         method: "PUT",
         headers: getAuthHeader(),
         body: requestData,
@@ -190,7 +190,7 @@ class DocumentReferenceImpl implements DocumentReference {
     const url = `${this.basebase.baseUrl}/${this.getApiPath()}`;
 
     try {
-      const response = await makeHttpRequest<BasebaseDocument>(url, {
+      const response = await makeHttpRequest<BasebaseDocumentData>(url, {
         method: "PATCH",
         headers: getAuthHeader(),
         body: document,
@@ -340,7 +340,7 @@ class CollectionReferenceImpl implements CollectionReference {
 
     try {
       // POST to collection endpoint without documentId - server assigns ID
-      const response = await makeHttpRequest<BasebaseDocument>(url, {
+      const response = await makeHttpRequest<BasebaseDocumentData>(url, {
         method: "POST",
         headers: getAuthHeader(),
         body: document,
@@ -368,7 +368,7 @@ class CollectionReferenceImpl implements CollectionReference {
    * Extracts document ID from BaseBase document
    */
   private extractDocumentId(
-    doc: BasebaseDocument,
+    doc: BasebaseDocumentData,
     fallbackIndex: number
   ): string {
     // Try to extract ID from document name or fields
@@ -377,12 +377,10 @@ class CollectionReferenceImpl implements CollectionReference {
       return nameParts[nameParts.length - 1] || `fallback_${fallbackIndex}`;
     }
 
-    // Look for an ID field in the document
-    if (doc.fields) {
-      const idField = doc.fields.id || doc.fields._id || doc.fields.ID;
-      if (idField?.stringValue) {
-        return idField.stringValue;
-      }
+    // Look for an ID field in the document (MongoDB-style)
+    const idField = doc.id || doc._id || doc.ID;
+    if (idField && typeof idField === "string") {
+      return idField;
     }
 
     // Fallback to generating an ID
@@ -402,7 +400,7 @@ class DocumentSnapshotImpl implements DocumentSnapshot {
 
   constructor(
     ref: DocumentReference,
-    document: BasebaseDocument | null,
+    document: BasebaseDocumentData | null,
     exists: boolean
   ) {
     this.ref = ref;
@@ -438,7 +436,7 @@ class QueryDocumentSnapshotImpl
   extends DocumentSnapshotImpl
   implements QueryDocumentSnapshot
 {
-  constructor(ref: DocumentReference, document: BasebaseDocument) {
+  constructor(ref: DocumentReference, document: BasebaseDocumentData) {
     super(ref, document, true);
   }
 
@@ -494,7 +492,8 @@ export function doc(
 ): DocumentReference {
   validatePath(path);
 
-  // Use specified project or default to the current project
+  // Always use the explicitly provided project, or default to current project
+  // Never try to auto-detect project from path
   const targetProjectId = projectName || basebase.projectId;
 
   const pathSegments = path.split("/");
@@ -503,7 +502,8 @@ export function doc(
   if (pathSegments.length < 2) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Document path must include both collection and document ID (e.g., 'users/user123')"
+      "Document path must include both collection and document ID (e.g., 'users/user123'). " +
+        "To specify a different project, use the projectName parameter: doc(basebase, 'users/user123', 'projectName')"
     );
   }
 
@@ -520,7 +520,7 @@ export function doc(
   const collectionPath = pathSegments.slice(0, -1).join("/");
   const collectionRef = collection(basebase, collectionPath, projectName);
 
-  // Build the full path for API calls
+  // Build the full path for API calls - path is always relative to the specified project
   const fullPath = `${targetProjectId}/${path}`;
 
   return new DocumentReferenceImpl(
@@ -541,7 +541,8 @@ export function collection(
 ): CollectionReference {
   validatePath(path);
 
-  // Use specified project or default to the current project
+  // Always use the explicitly provided project, or default to current project
+  // Never try to auto-detect project from path
   const targetProjectId = projectName || basebase.projectId;
 
   const pathSegments = path.split("/");
@@ -550,7 +551,8 @@ export function collection(
   if (pathSegments.length < 1 || pathSegments[pathSegments.length - 1] === "") {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Collection path must include a collection name (e.g., 'users' or 'users/user123/posts')"
+      "Collection path must include a collection name (e.g., 'users' or 'users/user123/posts'). " +
+        "To specify a different project, use the projectName parameter: collection(basebase, 'users', 'projectName')"
     );
   }
 
@@ -560,7 +562,7 @@ export function collection(
     parent = doc(basebase, parentPath, projectName);
   }
 
-  // Build the full path for API calls
+  // Build the full path for API calls - path is always relative to the specified project
   const fullPath = `${targetProjectId}/${path}`;
 
   return new CollectionReferenceImpl(basebase, fullPath, parent);

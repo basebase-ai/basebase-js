@@ -73,6 +73,7 @@ console.log("Token:", authResult.token);
 ```typescript
 import {
   doc,
+  collection,
   getDoc,
   getDocs,
   addDoc,
@@ -81,41 +82,77 @@ import {
   deleteDoc,
 } from "basebase-js";
 
-// Get a single document
+// Get a single document (in your project)
 const userRef = doc(basebase, "users/user123");
 const userSnap = await getDoc(userRef);
 if (userSnap.exists) {
   console.log("User data:", userSnap.data());
 }
 
-// Get all documents in a collection
+// Get all documents in a collection (in your project)
 const usersRef = collection(basebase, "users");
 const snapshot = await getDocs(usersRef);
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
 });
 
-// Add document with auto-generated ID
+// Add document with auto-generated ID (in your project)
 const newUserRef = await addDoc(collection(basebase, "users"), {
   name: "Jane Doe",
   email: "jane@example.com",
 });
 
-// Set document with specific ID (great for consistent IDs across collections)
+// Set document with specific ID (in your project)
 const userId = "507f1f77bcf86cd799439011";
 await setDoc(doc(basebase, `users/${userId}`), {
   name: "John Doe",
   email: "john@example.com",
 });
 
-// Update specific fields
+// Update specific fields (in your project)
 await updateDoc(doc(basebase, "users/user123"), {
   age: 31,
   "profile.lastLogin": new Date().toISOString(),
 });
 ```
 
-### 4. Querying Data
+### 4. Path Structure & Cross-Project Operations
+
+**Important**: All paths are relative to the specified project. This eliminates ambiguity:
+
+- ✅ `"users"` = collection named "users"
+- ✅ `"users/user123"` = document "user123" in "users" collection
+- ✅ `"users/user123/posts"` = "posts" subcollection under document "user123"
+
+To work with a different project, use the optional `projectName` parameter:
+
+```typescript
+// Work with documents in another project
+const otherProjectDoc = doc(basebase, "users/user123", "otherProject");
+const otherUserData = await getDoc(otherProjectDoc);
+
+// Add to another project's collection
+const otherProjectCollection = collection(basebase, "users", "otherProject");
+await addDoc(otherProjectCollection, { name: "Cross-project user" });
+
+// Set document with same ID across projects (powerful for data consistency)
+const userId = "507f1f77bcf86cd799439011";
+
+// Set base user data in main project
+await setDoc(doc(basebase, `users/${userId}`), {
+  name: "John Doe",
+  email: "john@example.com",
+  phone: "+1234567890",
+});
+
+// Set app-specific data in another project using same ID
+await setDoc(doc(basebase, `users/${userId}`, "newsapp"), {
+  sources: ["techcrunch", "ars-technica"],
+  preferences: { theme: "dark", notifications: true },
+});
+```
+
+### 5. Querying Data
 
 ```typescript
 import { query, where, orderBy, limit, getDocs } from "basebase-js";
@@ -199,20 +236,28 @@ signOut();
 
 ### Document Operations
 
-#### `doc(basebase, path)`
+#### `doc(basebase, path, projectName?)`
 
-Create a document reference.
+Create a document reference. Paths are always relative to the specified project.
 
 ```typescript
+// Document in your project
 const docRef = doc(basebase, "users/user123");
+
+// Document in another project
+const otherDocRef = doc(basebase, "users/user123", "otherProject");
 ```
 
-#### `collection(basebase, path)`
+#### `collection(basebase, path, projectName?)`
 
-Create a collection reference.
+Create a collection reference. Paths are always relative to the specified project.
 
 ```typescript
+// Collection in your project
 const collectionRef = collection(basebase, "users");
+
+// Collection in another project
+const otherCollectionRef = collection(basebase, "users", "otherProject");
 ```
 
 #### `getDoc(docRef)`

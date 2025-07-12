@@ -199,7 +199,7 @@ export interface BasebaseApiResponse<T = any> {
 }
 
 export interface BasebaseListResponse {
-  documents: BasebaseDocument[];
+  documents: BasebaseDocumentData[];
   nextPageToken?: string;
 }
 
