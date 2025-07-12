@@ -1,6 +1,6 @@
 {
-  "name": "basebase",
-  "version": "1.0.0",
+  "name": "basebase-js",
+  "version": "0.1.0",
   "description": "BaseBase SDK for Javascript/Typescript - Firebase-like API for BaseBase server",
   "type": "module",
   "main": "dist/index.js",
@@ -48,7 +48,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/grenager/basebase-js-sdk.git"
+    "url": "git+https://github.com/grenager/basebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/grenager/basebase-js-sdk/issues"

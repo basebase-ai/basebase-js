@@ -4,7 +4,7 @@
  *
  * @example
  * ```typescript
- * import { initializeApp, getBasebase, collection, doc, getDocs, getDoc } from 'basebase-js-sdk';
+ * import { initializeApp, getBasebase, collection, doc, getDocs, getDoc } from 'basebase-js';
  *
  * // Initialize the app
  * const app = initializeApp({
@@ -200,7 +200,7 @@ import { query, where, orderBy, limit } from "./query";
 /**
  * Default export with the most commonly used functions
  * This allows for convenient importing like:
- * import basebase from 'basebase-js-sdk';
+ * import basebase from 'basebase-js';
  * const app = basebase.initializeApp(config);
  */
 const basebase = {
@@ -243,7 +243,7 @@ export default basebase;
 // Version Information
 // ========================================
 
-export const VERSION = "1.0.0";
+export const VERSION = "0.1.0";
 
 // ========================================
 // Browser Global Registration
@@ -262,11 +262,11 @@ if (typeof window !== "undefined") {
  * BaseBase JavaScript SDK Module Information
  */
 export const MODULE_INFO = {
-  name: "basebase-js-sdk",
+  name: "basebase-js",
   version: VERSION,
   description: "Firebase-compatible SDK for BaseBase server",
   author: "BaseBase Team",
-  homepage: "https://github.com/your-org/basebase-js-sdk",
-  repository: "https://github.com/your-org/basebase-js-sdk.git",
+  homepage: "https://github.com/grenager/basebase-js-sdk",
+  repository: "https://github.com/grenager/basebase-js-sdk.git",
   license: "MIT",
 } as const;

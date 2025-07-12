@@ -1,6 +1,10 @@
 # BaseBase JavaScript SDK
 
-An SDK for BaseBase server interactions, patterned after the Firebase/Firestore SDK. Build web applications that use BaseBase as a backend server.
+An SDK for BaseBase server interactions, patterned after the Firebase/Firestore SDK. Makes it easy to build web applications that use BaseBase as a data store and user authentication service.
+
+## ⚠️ Early Development
+
+This SDK is currently in early development (0.1.x). The API may change between versions. Please use with caution in production environments.
 
 ## 🚀 Features
 
@@ -15,13 +19,13 @@ An SDK for BaseBase server interactions, patterned after the Firebase/Firestore 
 ## 📦 Installation
 
 ```bash
-npm install basebase
+npm install basebase-js
 ```
 
 Or with yarn:
 
 ```bash
-yarn add basebase
+yarn add basebase-js
 ```
 
 ## 🛠 Quick Start
@@ -29,7 +33,7 @@ yarn add basebase
 ### 1. Initialize BaseBase
 
 ```typescript
-import { initializeApp, getBasebase } from "basebase";
+import { initializeApp, getBasebase } from "basebase-js";
 
 // Initialize your BaseBase app
 const app = initializeApp({
@@ -47,7 +51,7 @@ const basebase = initializeBasebase({
 ### 2. Authentication
 
 ```typescript
-import { requestCode, verifyCode } from "basebase";
+import { requestCode, verifyCode } from "basebase-js";
 
 // Request SMS verification code
 const response = await requestCode("john_doe", "+1234567890");
@@ -67,7 +71,7 @@ console.log("Token:", authResult.token);
 ### 3. Working with Documents
 
 ```typescript
-import { doc, getDoc, setDoc, collection, getDocs } from "basebase";
+import { doc, getDoc, setDoc, collection, getDocs } from "basebase-js";
 
 // Get a document
 const userRef = doc(basebase, "users/user123");
@@ -98,7 +102,7 @@ snapshot.forEach((doc) => {
 ### 4. Querying Data
 
 ```typescript
-import { query, where, orderBy, limit, getDocs } from "basebase";
+import { query, where, orderBy, limit, getDocs } from "basebase-js";
 
 // Advanced queries
 const q = query(
@@ -339,7 +343,7 @@ BASEBASE_PROJECT_ID=your-project-id        # optional, derived from API key if n
 The SDK is written in TypeScript and provides full type safety:
 
 ```typescript
-import { BasebaseDocumentData, DocumentSnapshot } from "basebase-js-sdk";
+import { BasebaseDocumentData, DocumentSnapshot } from "basebase-js";
 
 interface User extends BasebaseDocumentData {
   name: string;
@@ -370,7 +374,7 @@ const userData = userSnap.data() as User;
 ### Token Management
 
 ```typescript
-import { getToken, isTokenExpired, validateStoredToken } from "basebase-js-sdk";
+import { getToken, isTokenExpired, validateStoredToken } from "basebase-js";
 
 // Check if user has valid token
 if (validateStoredToken()) {
@@ -419,7 +423,7 @@ import {
   doc,
   getDoc,
   getDocs,
-} from "basebase-js-sdk";
+} from "basebase-js";
 
 const app = initializeApp(basebaseConfig);
 const basebase = getBasebase(app);
@@ -453,7 +457,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - 📖 [Documentation](https://docs.basebase.us)
 - 💬 [Community Discord](https://discord.gg/basebase)
-- 🐛 [Issue Tracker](https://github.com/your-org/basebase-js-sdk/issues)
+- 🐛 [Issue Tracker](https://github.com/grenager/basebase-js-sdk/issues)
 - 📧 [Email Support](mailto:support@basebase.us)
 
 ## 🔄 Changelog
