@@ -315,6 +315,44 @@ export function validateDocumentId(id: string): void {
 }
 
 /**
+ * Validates that a string is a valid MongoDB ObjectID format (24 hex characters)
+ */
+export function validateObjectId(id: string): void {
+  if (!id || typeof id !== "string") {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "ObjectID must be a non-empty string"
+    );
+  }
+
+  if (id.length !== 24) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "ObjectID must be exactly 24 characters long"
+    );
+  }
+
+  if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "ObjectID must contain only hexadecimal characters (0-9, a-f, A-F)"
+    );
+  }
+}
+
+/**
+ * Checks if a string is a valid MongoDB ObjectID format
+ */
+export function isValidObjectId(id: string): boolean {
+  try {
+    validateObjectId(id);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Checks if a path is absolute (contains project ID) or relative
  */
 export function isAbsolutePath(path: string): boolean {

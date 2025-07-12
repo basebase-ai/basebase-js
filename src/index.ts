@@ -77,6 +77,7 @@ export {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
 } from "./document";
@@ -101,6 +102,8 @@ export {
   makeHttpRequest,
   validatePath,
   validateDocumentId,
+  validateObjectId,
+  isValidObjectId,
   buildPath,
   generateId,
   deepClone,
@@ -198,6 +201,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
 } from "./document";
@@ -236,6 +240,7 @@ const basebase = {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
 

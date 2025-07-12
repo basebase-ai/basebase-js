@@ -29,6 +29,8 @@ import {
   deepClone,
   getNestedProperty,
   validatePathSegments,
+  validateObjectId,
+  isValidObjectId,
 } from "./utils";
 import { getAuthHeader } from "./auth";
 
@@ -82,6 +84,94 @@ class DocumentReferenceImpl implements DocumentReference {
       ) {
         return new DocumentSnapshotImpl(this, null, false);
       }
+      throw error;
+    }
+  }
+
+  /**
+   * Sets the document data, optionally merging with existing data
+   */
+  async set(
+    data: BasebaseDocumentData,
+    options?: SetOptions
+  ): Promise<WriteResult> {
+    if (!data || typeof data !== "object") {
+      throw new BasebaseError(
+        BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+        "Document data must be an object"
+      );
+    }
+
+    const document = toBasebaseDocument(data);
+    const url = `${this.basebase.baseUrl}/${this.getApiPath()}`;
+
+    try {
+      let requestData = document;
+
+      // Handle merge options
+      if (options?.merge || options?.mergeFields) {
+        if (options.merge) {
+          // For merge: true, we need to get existing data and merge it
+          try {
+            const existingDoc = await this.get();
+            if (existingDoc.exists) {
+              const existingData = existingDoc.data();
+              if (existingData) {
+                const mergedData = { ...existingData, ...data };
+                requestData = toBasebaseDocument(mergedData);
+              }
+            }
+          } catch (error) {
+            // If document doesn't exist, just use the new data
+            if (
+              !(
+                error instanceof BasebaseError &&
+                error.code === BASEBASE_ERROR_CODES.NOT_FOUND
+              )
+            ) {
+              throw error;
+            }
+          }
+        } else if (options.mergeFields) {
+          // For mergeFields, only merge specified fields
+          try {
+            const existingDoc = await this.get();
+            if (existingDoc.exists) {
+              const existingData = existingDoc.data();
+              if (existingData) {
+                const mergedData = { ...existingData };
+                for (const field of options.mergeFields) {
+                  if (field in data) {
+                    mergedData[field] = data[field];
+                  }
+                }
+                requestData = toBasebaseDocument(mergedData);
+              }
+            }
+          } catch (error) {
+            // If document doesn't exist, just use the new data
+            if (
+              !(
+                error instanceof BasebaseError &&
+                error.code === BASEBASE_ERROR_CODES.NOT_FOUND
+              )
+            ) {
+              throw error;
+            }
+          }
+        }
+      }
+
+      const response = await makeHttpRequest<BasebaseDocument>(url, {
+        method: "PUT",
+        headers: getAuthHeader(),
+        body: requestData,
+      });
+
+      return {
+        writeTime: response.updateTime || new Date().toISOString(),
+      };
+    } catch (error) {
       throw error;
     }
   }
@@ -508,6 +598,22 @@ export async function addDoc(
   data: BasebaseDocumentData
 ): Promise<DocumentReference> {
   return collectionRef.add(data);
+}
+
+/**
+ * Sets a document with a specific ID, optionally merging with existing data
+ */
+export async function setDoc(
+  docRef: DocumentReference,
+  data: BasebaseDocumentData,
+  options?: SetOptions
+): Promise<WriteResult> {
+  // Validate that the document ID is a valid ObjectID format if it looks like one
+  if (isValidObjectId(docRef.id)) {
+    validateObjectId(docRef.id);
+  }
+
+  return docRef.set(data, options);
 }
 
 // Export the implementations for use in other modules

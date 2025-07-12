@@ -408,6 +408,86 @@
 
           <div id="updateDocMessage"></div>
         </div>
+
+        <!-- Set Document Section -->
+        <div class="section">
+          <h2>🎯 Set Document (with custom ID)</h2>
+          <div class="form-group">
+            <label for="setDocProject">Project Name (optional):</label>
+            <input
+              type="text"
+              id="setDocProject"
+              placeholder="Leave empty for current project"
+            />
+          </div>
+          <div class="form-group">
+            <label for="setDocCollection">Collection Name:</label>
+            <input
+              type="text"
+              id="setDocCollection"
+              placeholder="users"
+              value="users"
+            />
+          </div>
+          <div class="form-group">
+            <label for="setDocId">Document ID:</label>
+            <input
+              type="text"
+              id="setDocId"
+              placeholder="507f1f77bcf86cd799439011"
+              title="Enter any ID or a 24-character MongoDB ObjectID"
+            />
+            <small
+              style="
+                color: #666;
+                font-size: 12px;
+                margin-top: 4px;
+                display: block;
+              "
+            >
+              💡 Try a MongoDB ObjectID (24 hex chars) like:
+              507f1f77bcf86cd799439011
+            </small>
+          </div>
+          <div class="form-group">
+            <label for="setDocData">Document Data (JSON):</label>
+            <textarea
+              id="setDocData"
+              placeholder='{"name": "John Doe", "email": "john@example.com"}'
+              style="height: 100px; font-family: monospace; font-size: 13px"
+            >
+{"name": "John Doe", "email": "john@example.com", "sources": ["techcrunch", "ars-technica"], "preferences": {"theme": "dark", "notifications": true}}</textarea
+            >
+          </div>
+
+          <div class="form-group">
+            <label>
+              <input
+                type="checkbox"
+                id="setDocMerge"
+                style="margin-right: 8px"
+              />
+              Merge with existing document
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label for="setDocMergeFields"
+              >Merge Fields (comma-separated, optional):</label
+            >
+            <input
+              type="text"
+              id="setDocMergeFields"
+              placeholder="sources,preferences"
+              title="Only merge these specific fields"
+            />
+          </div>
+
+          <button onclick="setDocument()">Set Document</button>
+          <button onclick="generateObjectId()">Generate ObjectID</button>
+
+          <div id="setDocMessage"></div>
+        </div>
       </div>
     </div>
 
@@ -1061,6 +1141,134 @@
             );
           }
         }
+      };
+
+      // Set a document with a specific ID
+      window.setDocument = async function setDocument() {
+        if (!basebase) {
+          showMessage(
+            document.getElementById("setDocMessage"),
+            "Please initialize SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("setDocMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const targetProject =
+          document.getElementById("setDocProject").value.trim() || undefined;
+        const collectionName = document
+          .getElementById("setDocCollection")
+          .value.trim();
+        const docId = document.getElementById("setDocId").value.trim();
+        const jsonData = document.getElementById("setDocData").value.trim();
+        const shouldMerge = document.getElementById("setDocMerge").checked;
+        const mergeFields = document
+          .getElementById("setDocMergeFields")
+          .value.trim();
+
+        if (!collectionName || !docId || !jsonData) {
+          showMessage(
+            document.getElementById("setDocMessage"),
+            "Please enter collection name, document ID, and JSON data",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const data = JSON.parse(jsonData);
+          const docRef = window.BasebaseSDK.doc(
+            basebase,
+            `${collectionName}/${docId}`,
+            targetProject
+          );
+
+          // Build set options
+          const options = {};
+          if (shouldMerge) {
+            options.merge = true;
+          }
+          if (mergeFields) {
+            options.mergeFields = mergeFields.split(",").map((f) => f.trim());
+          }
+
+          await window.BasebaseSDK.setDoc(
+            docRef,
+            data,
+            Object.keys(options).length > 0 ? options : undefined
+          );
+
+          const projectDisplay = targetProject
+            ? ` in project "${targetProject}"`
+            : "";
+          const optionsDisplay = shouldMerge
+            ? " (merged with existing)"
+            : mergeFields
+            ? ` (merged fields: ${mergeFields})`
+            : "";
+
+          showMessage(
+            document.getElementById("setDocMessage"),
+            `Document set successfully${projectDisplay}${optionsDisplay}! ID: ${docId}`,
+            "success"
+          );
+
+          // Clear the textarea
+          document.getElementById("setDocData").value =
+            '{"name": "John Doe", "email": "john@example.com", "sources": ["techcrunch", "ars-technica"], "preferences": {"theme": "dark", "notifications": true}}';
+
+          // Refresh the main data list if it's showing the same collection
+          const mainCollectionName = document
+            .getElementById("collectionName")
+            .value.trim();
+          if (mainCollectionName === collectionName) {
+            loadData();
+          }
+        } catch (error) {
+          if (error.message.includes("JSON")) {
+            showMessage(
+              document.getElementById("setDocMessage"),
+              "Invalid JSON format",
+              "error"
+            );
+          } else {
+            showMessage(
+              document.getElementById("setDocMessage"),
+              `Failed to set document: ${error.message}`,
+              "error"
+            );
+          }
+        }
+      };
+
+      // Generate a random MongoDB ObjectID
+      window.generateObjectId = function generateObjectId() {
+        // Generate a 24-character hex string that looks like a MongoDB ObjectID
+        const timestamp = Math.floor(Date.now() / 1000)
+          .toString(16)
+          .padStart(8, "0");
+        const randomPart = Array.from({ length: 16 }, () =>
+          Math.floor(Math.random() * 16).toString(16)
+        ).join("");
+
+        const objectId = timestamp + randomPart;
+        document.getElementById("setDocId").value = objectId;
+
+        showMessage(
+          document.getElementById("setDocMessage"),
+          `Generated ObjectID: ${objectId}`,
+          "success"
+        );
       };
 
       // Show message helper
