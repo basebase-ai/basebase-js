@@ -29,14 +29,45 @@ const PROJECT_STORAGE_KEY = "basebase_project";
 const TOKEN_EXPIRY_DAYS = 30;
 
 // ========================================
+// Global Token Storage for Server Environments
+// ========================================
+
+let directToken: string | null = null;
+
+// ========================================
 // Token Management
 // ========================================
+
+/**
+ * Sets a JWT token directly for server environments
+ */
+export function setDirectToken(token: string): void {
+  directToken = token;
+}
+
+/**
+ * Gets the directly set token for server environments
+ */
+export function getDirectToken(): string | null {
+  return directToken;
+}
+
+/**
+ * Removes the directly set token for server environments
+ */
+export function removeDirectToken(): void {
+  directToken = null;
+}
 
 /**
  * Sets the JWT token in both cookies and localStorage
  */
 export function setToken(token: string): void {
-  if (!isBrowser()) return;
+  if (!isBrowser()) {
+    // In server environments, store the token directly
+    setDirectToken(token);
+    return;
+  }
 
   // Set in cookie
   try {
@@ -58,9 +89,14 @@ export function setToken(token: string): void {
 }
 
 /**
- * Gets the JWT token from cookies or localStorage
+ * Gets the JWT token from cookies, localStorage, or directly set token
  */
 export function getToken(): string | null {
+  // Check for directly set token first (for server environments)
+  if (directToken) {
+    return directToken;
+  }
+
   if (!isBrowser()) return null;
 
   // Try cookie first
@@ -80,9 +116,12 @@ export function getToken(): string | null {
 }
 
 /**
- * Removes the JWT token from both cookies and localStorage
+ * Removes the JWT token from cookies, localStorage, and direct storage
  */
 export function removeToken(): void {
+  // Remove directly set token
+  removeDirectToken();
+
   if (!isBrowser()) return;
 
   // Remove from cookie

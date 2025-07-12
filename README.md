@@ -463,3 +463,82 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔄 Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for a list of changes and version history.
+
+## Server Environment Authentication
+
+For server environments (Node.js, Deno, etc.) where browser cookies and localStorage are not available, you can directly provide a JWT token in the configuration or set it programmatically.
+
+### Method 1: Provide Token in Configuration
+
+```typescript
+import { initializeApp, getBasebase } from "basebase-js";
+
+// Initialize with a directly provided JWT token
+const app = initializeApp({
+  apiKey: "bb_your_api_key_here",
+  projectId: "your-project-id",
+  token: "your-jwt-token-here", // Direct token for server environments
+});
+
+const basebase = getBasebase(app);
+
+// Token will be automatically included in API requests
+const usersRef = collection(basebase, "users");
+const snapshot = await getDocs(usersRef);
+```
+
+### Method 2: Set Token Programmatically
+
+```typescript
+import { initializeApp, getBasebase, setDirectToken } from "basebase-js";
+
+// Initialize app without token
+const app = initializeApp({
+  apiKey: "bb_your_api_key_here",
+  projectId: "your-project-id",
+});
+
+// Set token programmatically (useful when token is obtained from external source)
+setDirectToken("your-jwt-token-here");
+
+const basebase = getBasebase(app);
+
+// Token will be automatically included in API requests
+const usersRef = collection(basebase, "users");
+const snapshot = await getDocs(usersRef);
+```
+
+### Token Management Functions
+
+```typescript
+import {
+  setDirectToken,
+  getDirectToken,
+  removeDirectToken,
+  getToken, // Works in both browser and server environments
+} from "basebase-js";
+
+// Set token directly (for server environments)
+setDirectToken("your-jwt-token-here");
+
+// Get currently set token
+const token = getDirectToken(); // Returns directly set token
+// or
+const token = getToken(); // Returns token from any source (cookies, localStorage, or directly set)
+
+// Remove directly set token
+removeDirectToken();
+```
+
+### Environment Detection
+
+The SDK automatically detects the environment and uses the appropriate token storage:
+
+- **Browser environments**: Uses cookies and localStorage
+- **Server environments**: Uses direct token storage
+- **Hybrid**: Supports both simultaneously
+
+```typescript
+// This works in both browser and server environments
+const token = getToken(); // Returns appropriate token for current environment
+```

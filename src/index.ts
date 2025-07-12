@@ -65,6 +65,9 @@ export {
   validateStoredToken,
   decodeTokenPayload,
   isTokenExpired,
+  setDirectToken,
+  getDirectToken,
+  removeDirectToken,
 } from "./auth";
 
 // Document operations
@@ -185,6 +188,9 @@ import {
   getUser,
   getProject,
   onAuthStateChanged,
+  setDirectToken,
+  getDirectToken,
+  removeDirectToken,
 } from "./auth";
 import {
   doc,
@@ -220,6 +226,9 @@ const basebase = {
   getUser,
   getProject,
   onAuthStateChanged,
+  setDirectToken,
+  getDirectToken,
+  removeDirectToken,
 
   // Document functions
   doc,

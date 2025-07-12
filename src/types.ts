@@ -40,6 +40,7 @@ export interface BasebaseConfig {
   projectId?: string;
   apiKey: string;
   baseUrl?: string;
+  token?: string; // JWT token for server environments
 }
 
 export interface RequestCodeRequest {

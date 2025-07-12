@@ -11,7 +11,7 @@ import {
   BASEBASE_ERROR_CODES,
   DEFAULT_BASE_URL,
 } from "./types";
-import { validateStoredToken, getProject } from "./auth";
+import { validateStoredToken, getProject, setDirectToken } from "./auth";
 import { getProjectIdFromApiKey } from "./utils";
 
 // ========================================
@@ -152,6 +152,11 @@ export function getBasebase(app?: BasebaseApp): Basebase {
  * Creates a new BaseBase instance from an app
  */
 function createBasebaseInstance(app: BasebaseApp): Basebase {
+  // Set the token directly if provided in configuration (for server environments)
+  if (app.options.token) {
+    setDirectToken(app.options.token);
+  }
+
   // Validate stored authentication token
   validateStoredToken();
 
