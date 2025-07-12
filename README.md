@@ -15,13 +15,13 @@ An SDK for BaseBase server interactions, patterned after the Firebase/Firestore 
 ## 📦 Installation
 
 ```bash
-npm install basebase-js-sdk
+npm install basebase
 ```
 
 Or with yarn:
 
 ```bash
-yarn add basebase-js-sdk
+yarn add basebase
 ```
 
 ## 🛠 Quick Start
@@ -29,7 +29,7 @@ yarn add basebase-js-sdk
 ### 1. Initialize BaseBase
 
 ```typescript
-import { initializeApp, getBasebase } from "basebase-js-sdk";
+import { initializeApp, getBasebase } from "basebase";
 
 // Initialize your BaseBase app
 const app = initializeApp({
@@ -47,7 +47,7 @@ const basebase = initializeBasebase({
 ### 2. Authentication
 
 ```typescript
-import { requestCode, verifyCode } from "basebase-js-sdk";
+import { requestCode, verifyCode } from "basebase";
 
 // Request SMS verification code
 const response = await requestCode("john_doe", "+1234567890");
@@ -67,7 +67,7 @@ console.log("Token:", authResult.token);
 ### 3. Working with Documents
 
 ```typescript
-import { doc, getDoc, setDoc, collection, getDocs } from "basebase-js-sdk";
+import { doc, getDoc, setDoc, collection, getDocs } from "basebase";
 
 // Get a document
 const userRef = doc(basebase, "users/user123");
@@ -98,7 +98,7 @@ snapshot.forEach((doc) => {
 ### 4. Querying Data
 
 ```typescript
-import { query, where, orderBy, limit, getDocs } from "basebase-js-sdk";
+import { query, where, orderBy, limit, getDocs } from "basebase";
 
 // Advanced queries
 const q = query(
