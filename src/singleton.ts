@@ -6,6 +6,7 @@
 import { Basebase, BasebaseConfig } from "./types";
 import { initializeApp, getBasebase } from "./app";
 import { isBrowser } from "./utils";
+import { getToken, getProject, setDirectToken } from "./auth";
 
 // ========================================
 // Environment Configuration Reading
@@ -98,13 +99,36 @@ export function getSingletonBasebase(): Basebase {
   }
 
   try {
-    const config = getEnvironmentConfig();
+    // First try to get config from environment variables
+    let config = getEnvironmentConfig();
+
+    // If no environment config, check if we have a stored authentication token
+    if (!config) {
+      const storedToken = getToken();
+
+      if (storedToken) {
+        // We have a stored token from authentication, create minimal config
+        const storedProject = getProject();
+        config = {
+          apiKey: "authenticated", // Dummy API key since we have a token
+          projectId: storedProject?.name,
+          token: storedToken,
+        };
+      }
+    }
 
     if (!config) {
-      throw new Error(
-        "BaseBase configuration not found. Please set BASEBASE_API_KEY environment variable, " +
-          "or initialize manually with initializeApp(config) or configureSingletonBasebase(config)."
-      );
+      if (!isBrowser()) {
+        throw new Error(
+          "BaseBase configuration required for server environments. " +
+            "Please use configureSingletonBasebase({ token: 'jwt_token', projectId: 'project_name' })."
+        );
+      } else {
+        throw new Error(
+          "BaseBase not configured. Please authenticate first using verifyCode(), " +
+            "or set BASEBASE_API_KEY environment variable."
+        );
+      }
     }
 
     const app = initializeApp(config, "[SINGLETON]");
@@ -118,27 +142,40 @@ export function getSingletonBasebase(): Basebase {
 
 /**
  * Manually configure the singleton basebase instance
+ * For server environments, both token and projectId are required
  */
 export function configureSingletonBasebase(config: BasebaseConfig): Basebase {
+  // In non-browser environments, require both token and projectId
+  if (!isBrowser()) {
+    if (!config.token) {
+      throw new Error(
+        "JWT token is required for server environments. " +
+          "Please provide config.token in configureSingletonBasebase()."
+      );
+    }
+    if (!config.projectId) {
+      throw new Error(
+        "Project ID is required for server environments. " +
+          "Please provide config.projectId in configureSingletonBasebase()."
+      );
+    }
+  }
+
   try {
     const app = initializeApp(config, "[SINGLETON]");
     singletonInstance = getBasebase(app);
     initializationError = null;
+
+    // Store token and project info for server environments
+    if (!isBrowser() && config.token) {
+      setDirectToken(config.token);
+    }
+
     return singletonInstance;
   } catch (error) {
     initializationError = error as Error;
     throw error;
   }
-}
-
-/**
- * Set a token for the singleton instance (useful for server environments)
- */
-export function setSingletonToken(token: string): void {
-  const basebase = getSingletonBasebase();
-  // Import setDirectToken here to avoid circular dependency
-  const { setDirectToken } = require("./auth");
-  setDirectToken(token);
 }
 
 /**

@@ -75,7 +75,6 @@ export {
   basebase,
   getSingletonBasebase,
   configureSingletonBasebase,
-  setSingletonToken,
   resetSingletonBasebase,
   isSingletonConfigured,
 } from "./singleton";
@@ -219,7 +218,6 @@ import {
 
 import {
   basebase as singletonBasebase,
-  setSingletonToken,
   configureSingletonBasebase,
 } from "./singleton";
 import {
@@ -257,7 +255,6 @@ const basebase = {
   // Singleton instance access
   getInstance: () => singletonBasebase,
   configureSingletonBasebase,
-  setSingletonToken,
 
   // Document operations (auto-use singleton)
   doc,

@@ -211,11 +211,6 @@
         border: 1px solid #81e6d9;
       }
 
-      .advanced-section {
-        background: #fef5e7;
-        border: 1px solid #f6e05e;
-      }
-
       .badge {
         display: inline-block;
         padding: 3px 8px;
@@ -229,11 +224,6 @@
       .badge-new {
         background: #c6f6d5;
         color: #22543d;
-      }
-
-      .badge-advanced {
-        background: #fed7d7;
-        color: #742a2a;
       }
 
       @media (max-width: 768px) {
@@ -251,62 +241,10 @@
     <div class="container">
       <div class="header">
         <h1>🚀 BaseBase SDK Test</h1>
-        <p>
-          Test authentication and data operations with the new auto-initializing
-          API
-        </p>
+        <p>Test authentication and data operations - no setup required!</p>
       </div>
 
       <div class="content">
-        <!-- New Auto-Initializing API Section -->
-        <div class="section new-api-section">
-          <h2>
-            ✨ Auto-Initializing API <span class="badge badge-new">New</span>
-          </h2>
-          <p style="margin-bottom: 15px; color: #2d3748; line-height: 1.5">
-            🎉 <strong>No initialization required!</strong> Just set your API
-            key and start using the SDK immediately.
-          </p>
-
-          <div class="form-group">
-            <label for="autoApiKey">API Key:</label>
-            <input
-              type="text"
-              id="autoApiKey"
-              class="config-input"
-              placeholder="bb_your_api_key_here"
-              value="test-api-key-123"
-            />
-          </div>
-          <div class="form-group">
-            <label for="autoBaseUrl">Base URL (optional):</label>
-            <input
-              type="text"
-              id="autoBaseUrl"
-              class="config-input"
-              placeholder="https://app.basebase.us"
-              value="https://app.basebase.us"
-            />
-          </div>
-          <button onclick="configureAutoSDK()">Configure SDK</button>
-          <div id="autoStatus"></div>
-
-          <div
-            id="autoProjectInfo"
-            style="
-              margin-top: 15px;
-              padding: 10px;
-              background: #f0fff4;
-              border-radius: 4px;
-              font-size: 13px;
-              color: #22543d;
-            "
-          >
-            <strong>Status:</strong>
-            <span id="autoCurrentProject">SDK not configured</span>
-          </div>
-        </div>
-
         <!-- Authentication Section -->
         <div class="section">
           <h2>🔐 Authentication</h2>
@@ -326,6 +264,16 @@
             <button onclick="requestCode()">Request Code</button>
 
             <div class="form-group" style="margin-top: 20px">
+              <label for="apiKey">API Key (for verification):</label>
+              <input
+                type="text"
+                id="apiKey"
+                class="config-input"
+                placeholder="bb_your_api_key_here"
+                value="test-api-key-123"
+              />
+            </div>
+            <div class="form-group">
               <label for="code">Verification Code:</label>
               <input type="text" id="code" placeholder="123456" value="" />
             </div>
@@ -411,48 +359,6 @@
             <!-- Results will be populated here -->
           </div>
         </div>
-
-        <!-- Advanced Manual API Section -->
-        <div class="section advanced-section">
-          <h2>
-            🔧 Advanced: Manual API
-            <span class="badge badge-advanced">Advanced</span>
-          </h2>
-          <p style="margin-bottom: 15px; color: #2d3748; line-height: 1.5">
-            For advanced use cases like multi-tenant apps. Most developers won't
-            need this.
-          </p>
-
-          <div class="form-group">
-            <label for="manualApiKey">API Key:</label>
-            <input
-              type="text"
-              id="manualApiKey"
-              class="config-input"
-              placeholder="bb_your_api_key_here"
-              value="test-api-key-123"
-            />
-          </div>
-          <div class="form-group">
-            <label for="manualBaseUrl">Base URL (optional):</label>
-            <input
-              type="text"
-              id="manualBaseUrl"
-              class="config-input"
-              placeholder="https://app.basebase.us"
-              value="https://app.basebase.us"
-            />
-          </div>
-          <button onclick="initializeManualSDK()">Initialize Manual SDK</button>
-          <div id="manualStatus"></div>
-
-          <div style="margin-top: 15px">
-            <button onclick="loadDataManual()" id="manualLoadBtn" disabled>
-              Load Data (Manual API)
-            </button>
-            <div id="manualDataMessage"></div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -462,68 +368,9 @@
     <!-- Include the BaseBase SDK -->
     <script src="./dist/index.umd.js"></script>
     <script>
-      let manualApp = null;
-      let manualBasebase = null;
-
       // ========================================
       // Auto-Initializing API Functions (New)
       // ========================================
-
-      // Configure the auto-initializing SDK
-      window.configureAutoSDK = function configureAutoSDK() {
-        const apiKey = document.getElementById("autoApiKey").value.trim();
-        const baseUrl = document.getElementById("autoBaseUrl").value.trim();
-        const statusEl = document.getElementById("autoStatus");
-
-        if (!apiKey) {
-          showMessage(statusEl, "Please enter an API key", "error");
-          return;
-        }
-
-        try {
-          const config = { apiKey };
-          if (baseUrl) {
-            config.baseUrl = baseUrl;
-          }
-
-          // Use the new singleton configuration
-          window.BasebaseSDK.configureSingletonBasebase(config);
-
-          showMessage(
-            statusEl,
-            "Auto SDK configured successfully! 🎉",
-            "success"
-          );
-          updateAutoProjectInfo();
-          updateAuthStatus();
-        } catch (error) {
-          showMessage(
-            statusEl,
-            `Failed to configure: ${error.message}`,
-            "error"
-          );
-        }
-      };
-
-      // Update auto SDK project information
-      window.updateAutoProjectInfo = function updateAutoProjectInfo() {
-        const projectEl = document.getElementById("autoCurrentProject");
-        try {
-          // Try to get the singleton instance to see if it's configured
-          const instance = window.BasebaseSDK.getSingletonBasebase();
-          const storedProject = window.BasebaseSDK.getProject();
-
-          if (storedProject) {
-            projectEl.textContent = `Ready! Project: ${storedProject.name} (from authentication)`;
-          } else {
-            projectEl.textContent = `Ready! Project: ${instance.projectId} (from API key)`;
-          }
-          projectEl.style.color = "#22543d";
-        } catch (error) {
-          projectEl.textContent = "SDK not configured yet";
-          projectEl.style.color = "#742a2a";
-        }
-      };
 
       // Add document using auto API
       window.addDataAuto = async function addDataAuto() {
@@ -942,89 +789,6 @@
       };
 
       // ========================================
-      // Manual API Functions (Advanced)
-      // ========================================
-
-      // Initialize the manual SDK (advanced)
-      window.initializeManualSDK = function initializeManualSDK() {
-        const apiKey = document.getElementById("manualApiKey").value.trim();
-        const baseUrl = document.getElementById("manualBaseUrl").value.trim();
-        const statusEl = document.getElementById("manualStatus");
-
-        if (!apiKey) {
-          showMessage(statusEl, "Please enter an API key", "error");
-          return;
-        }
-
-        try {
-          const config = { apiKey };
-          if (baseUrl) {
-            config.baseUrl = baseUrl;
-          }
-
-          // Use the manual initialization (advanced)
-          manualApp = window.BasebaseSDK.initializeApp(config, "manual-test");
-          manualBasebase = window.BasebaseSDK.getBasebase(manualApp);
-
-          showMessage(
-            statusEl,
-            "Manual SDK initialized successfully! (Advanced)",
-            "success"
-          );
-          document.getElementById("manualLoadBtn").disabled = false;
-        } catch (error) {
-          showMessage(
-            statusEl,
-            `Failed to initialize: ${error.message}`,
-            "error"
-          );
-        }
-      };
-
-      // Load data using manual API (advanced)
-      window.loadDataManual = async function loadDataManual() {
-        if (!manualBasebase) {
-          showMessage(
-            document.getElementById("manualDataMessage"),
-            "Please initialize manual SDK first",
-            "error"
-          );
-          return;
-        }
-
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("manualDataMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
-
-        try {
-          // Use the manual API (requires passing basebase instance)
-          const collectionRef = window.BasebaseSDK.collection(
-            manualBasebase,
-            "test"
-          );
-          const snapshot = await window.BasebaseSDK.getDocs(collectionRef);
-
-          showMessage(
-            document.getElementById("manualDataMessage"),
-            `Manual API loaded ${snapshot.size} items (Advanced usage)`,
-            "success"
-          );
-        } catch (error) {
-          showMessage(
-            document.getElementById("manualDataMessage"),
-            `Failed to load: ${error.message}`,
-            "error"
-          );
-        }
-      };
-
-      // ========================================
       // Authentication Functions
       // ========================================
 
@@ -1040,16 +804,12 @@
           statusEl.className = "status unauthenticated";
           statusEl.textContent = "Not authenticated";
         }
-
-        updateAutoProjectInfo();
       };
 
       // Request verification code
       window.requestCode = async function requestCode() {
         const name = document.getElementById("name").value.trim();
         const phone = document.getElementById("phone").value.trim();
-        const baseUrl =
-          document.getElementById("autoBaseUrl").value.trim() || undefined;
 
         if (!name || !phone) {
           showMessage(
@@ -1062,11 +822,7 @@
 
         try {
           // No need to initialize - just use the function directly!
-          const response = await window.BasebaseSDK.requestCode(
-            name,
-            phone,
-            baseUrl
-          );
+          const response = await window.BasebaseSDK.requestCode(name, phone);
           showMessage(
             document.getElementById("authMessage"),
             "Verification code sent! 📱",
@@ -1085,14 +841,12 @@
       window.verifyCode = async function verifyCode() {
         const phone = document.getElementById("phone").value.trim();
         const code = document.getElementById("code").value.trim();
-        const apiKey = document.getElementById("autoApiKey").value.trim();
-        const baseUrl =
-          document.getElementById("autoBaseUrl").value.trim() || undefined;
+        const apiKey = document.getElementById("apiKey").value.trim();
 
-        if (!phone || !code) {
+        if (!phone || !code || !apiKey) {
           showMessage(
             document.getElementById("authMessage"),
-            "Please enter phone and code",
+            "Please enter phone, code, and API key",
             "error"
           );
           return;
@@ -1103,8 +857,7 @@
           const result = await window.BasebaseSDK.verifyCode(
             phone,
             code,
-            apiKey,
-            baseUrl
+            apiKey
           );
 
           showMessage(
@@ -1113,7 +866,6 @@
             "success"
           );
           updateAuthStatus();
-          updateAutoProjectInfo();
           loadDataAuto(); // Load data after authentication
         } catch (error) {
           showMessage(
@@ -1190,7 +942,6 @@
       // Initialize on page load
       window.addEventListener("load", function () {
         updateAuthStatus();
-        updateAutoProjectInfo();
         clearDataDisplay();
 
         // Initialize empty states for new sections

@@ -45,15 +45,19 @@ export function initializeApp(
     );
   }
 
-  if (!config.apiKey) {
+  // API key is required unless we have a token (for authenticated users)
+  if (!config.apiKey && !config.token) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
       "API key is required in BaseBase configuration"
     );
   }
 
-  // Validate API key format
-  if (typeof config.apiKey !== "string" || config.apiKey.trim() === "") {
+  // Validate API key format (if provided)
+  if (
+    config.apiKey &&
+    (typeof config.apiKey !== "string" || config.apiKey.trim() === "")
+  ) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
       "API key must be a non-empty string"
@@ -62,10 +66,24 @@ export function initializeApp(
 
   // Get project ID from stored authentication data first, then fall back to config or API key
   const storedProject = getProject();
-  const projectId =
-    storedProject?.name ||
-    config.projectId ||
-    getProjectIdFromApiKey(config.apiKey);
+  let projectId = storedProject?.name || config.projectId;
+
+  // Only try to extract project ID from API key if we have a real API key (not a dummy one)
+  if (!projectId && config.apiKey && config.apiKey !== "authenticated") {
+    try {
+      projectId = getProjectIdFromApiKey(config.apiKey);
+    } catch (error) {
+      // If we can't extract project ID from API key but have a token, that's okay
+      if (!config.token) {
+        throw error;
+      }
+    }
+  }
+
+  // If we still don't have a project ID and have a token, use a default
+  if (!projectId && config.token) {
+    projectId = "authenticated-project";
+  }
 
   // Check if app already exists
   if (appRegistry.has(name)) {

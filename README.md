@@ -81,13 +81,16 @@ console.log("Token:", authResult.token);
 
 ### 3. Server/Node.js Environments (If Applicable)
 
-For server environments without browser storage, provide JWT token manually:
+For server environments without browser storage, configure with JWT token and project ID:
 
 ```typescript
-import { setSingletonToken, doc, getDoc } from "basebase-js";
+import { configureSingletonBasebase, doc, getDoc } from "basebase-js";
 
-// Set user's JWT token before using data functions
-setSingletonToken("user_jwt_token_here");
+// Configure with JWT token and project ID
+configureSingletonBasebase({
+  token: "user_jwt_token_here",
+  projectId: "your_project_name",
+});
 
 // Now use normally
 const userRef = doc("users/user123");
@@ -237,13 +240,16 @@ The SDK works immediately without any setup for browser applications. JWT tokens
 
 #### Server Environment Configuration
 
-For server/Node.js environments, provide JWT token manually:
+For server/Node.js environments, configure with JWT token and project ID:
 
 ```typescript
-import { setSingletonToken } from "basebase-js";
+import { configureSingletonBasebase } from "basebase-js";
 
-// Set user's JWT token before using data functions
-setSingletonToken("user_jwt_token_here");
+// Configure with JWT token and project ID (required for server environments)
+configureSingletonBasebase({
+  token: "user_jwt_token_here",
+  projectId: "your_project_name",
+});
 ```
 
 Or via environment variable:
@@ -518,7 +524,7 @@ const snapshot = await getDoc(userRef);
 
 ### Server/Node.js Applications
 
-For server environments, provide JWT token manually:
+For server environments, configure with JWT token and project ID:
 
 **Option 1: Environment Variable**
 
@@ -527,13 +533,16 @@ For server environments, provide JWT token manually:
 BASEBASE_TOKEN=user_jwt_token_here
 ```
 
-**Option 2: Programmatic Setup**
+**Option 2: Configuration (Recommended)**
 
 ```typescript
-import { setSingletonToken, doc, getDoc } from "basebase-js";
+import { configureSingletonBasebase, doc, getDoc } from "basebase-js";
 
-// Set user's JWT token before using data functions
-setSingletonToken("user_jwt_token_here");
+// Configure with JWT token and project ID
+configureSingletonBasebase({
+  token: "user_jwt_token_here",
+  projectId: "your_project_name",
+});
 
 // Now use normally
 const userRef = doc("users/user123");
@@ -678,13 +687,16 @@ const userRef = doc("users/user123");
 const snapshot = await getDoc(userRef);
 ```
 
-### Method 2: Programmatic Setup
+### Method 2: Configuration Setup (Recommended)
 
 ```typescript
-import { setSingletonToken, doc, getDoc } from "basebase-js";
+import { configureSingletonBasebase, doc, getDoc } from "basebase-js";
 
-// Set user's JWT token before using data functions
-setSingletonToken("user_jwt_token_here");
+// Configure with JWT token and project ID
+configureSingletonBasebase({
+  token: "user_jwt_token_here",
+  projectId: "your_project_name",
+});
 
 // Now use normally
 const userRef = doc("users/user123");
