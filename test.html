@@ -206,6 +206,36 @@
         font-size: 13px;
       }
 
+      .new-api-section {
+        background: #e6fffa;
+        border: 1px solid #81e6d9;
+      }
+
+      .advanced-section {
+        background: #fef5e7;
+        border: 1px solid #f6e05e;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-left: 8px;
+      }
+
+      .badge-new {
+        background: #c6f6d5;
+        color: #22543d;
+      }
+
+      .badge-advanced {
+        background: #fed7d7;
+        color: #742a2a;
+      }
+
       @media (max-width: 768px) {
         .container {
           margin: 10px;
@@ -221,49 +251,59 @@
     <div class="container">
       <div class="header">
         <h1>🚀 BaseBase SDK Test</h1>
-        <p>Test authentication and data operations with BaseBase</p>
+        <p>
+          Test authentication and data operations with the new auto-initializing
+          API
+        </p>
       </div>
 
       <div class="content">
-        <!-- Configuration Section -->
-        <div class="section config-section">
-          <h2>⚙️ Configuration</h2>
+        <!-- New Auto-Initializing API Section -->
+        <div class="section new-api-section">
+          <h2>
+            ✨ Auto-Initializing API <span class="badge badge-new">New</span>
+          </h2>
+          <p style="margin-bottom: 15px; color: #2d3748; line-height: 1.5">
+            🎉 <strong>No initialization required!</strong> Just set your API
+            key and start using the SDK immediately.
+          </p>
+
           <div class="form-group">
-            <label for="apiKey">API Key:</label>
+            <label for="autoApiKey">API Key:</label>
             <input
               type="text"
-              id="apiKey"
+              id="autoApiKey"
               class="config-input"
-              placeholder="your_api_key_here"
+              placeholder="bb_your_api_key_here"
               value="test-api-key-123"
             />
           </div>
           <div class="form-group">
-            <label for="baseUrl">Base URL (optional):</label>
+            <label for="autoBaseUrl">Base URL (optional):</label>
             <input
               type="text"
-              id="baseUrl"
+              id="autoBaseUrl"
               class="config-input"
               placeholder="https://app.basebase.us"
               value="https://app.basebase.us"
             />
           </div>
-          <button onclick="initializeSDK()">Initialize SDK</button>
-          <div id="initStatus"></div>
+          <button onclick="configureAutoSDK()">Configure SDK</button>
+          <div id="autoStatus"></div>
 
           <div
-            id="projectInfo"
+            id="autoProjectInfo"
             style="
               margin-top: 15px;
               padding: 10px;
-              background: #f8f9fa;
+              background: #f0fff4;
               border-radius: 4px;
               font-size: 13px;
-              color: #6c757d;
+              color: #22543d;
             "
           >
-            <strong>Current Project:</strong>
-            <span id="currentProject">Not set</span>
+            <strong>Status:</strong>
+            <span id="autoCurrentProject">SDK not configured</span>
           </div>
         </div>
 
@@ -298,16 +338,8 @@
 
         <!-- Data Operations Section -->
         <div class="section">
-          <h2>📝 Data Operations</h2>
+          <h2>📝 Data Operations (Auto API)</h2>
 
-          <div class="form-group">
-            <label for="targetProject">Project Name (optional):</label>
-            <input
-              type="text"
-              id="targetProject"
-              placeholder="Leave empty for current project"
-            />
-          </div>
           <div class="form-group">
             <label for="collectionName">Collection Name:</label>
             <input
@@ -327,9 +359,9 @@
 {"name": "John Doe", "age": 30, "timestamp": "2024-01-01T00:00:00.000Z"}</textarea
             >
           </div>
-          <button onclick="addData()">Add Document</button>
-          <button onclick="loadData()">Load All Data</button>
-          <button onclick="clearData()">Clear All Data</button>
+          <button onclick="addDataAuto()">Add Document</button>
+          <button onclick="loadDataAuto()">Load All Data</button>
+          <button onclick="clearDataAuto()">Clear All Data</button>
 
           <div id="dataMessage"></div>
 
@@ -338,155 +370,88 @@
           </div>
         </div>
 
-        <!-- Get Document Section -->
-        <div class="section">
-          <h2>🔍 Get Document</h2>
-          <div class="form-group">
-            <label for="getDocProject">Project Name (optional):</label>
-            <input
-              type="text"
-              id="getDocProject"
-              placeholder="Leave empty for current project"
-            />
-          </div>
-          <div class="form-group">
-            <label for="getDocCollection">Collection Name:</label>
-            <input
-              type="text"
-              id="getDocCollection"
-              placeholder="test"
-              value="test"
-            />
-          </div>
-          <div class="form-group">
-            <label for="getDocId">Document ID:</label>
-            <input type="text" id="getDocId" placeholder="document-id-123" />
-          </div>
-          <button onclick="getDocument()">Get Document</button>
+        <!-- Direct-by-Path Operations Section -->
+        <div class="section new-api-section">
+          <h2>
+            🎯 Direct-by-Path Operations
+            <span class="badge badge-new">New</span>
+          </h2>
+          <p style="margin-bottom: 15px; color: #2d3748; line-height: 1.5">
+            Use super convenient functions that work directly with paths - no
+            references needed!
+          </p>
 
-          <div id="getDocMessage"></div>
-          <div id="getDocResult" class="data-list" style="margin-top: 15px">
-            <!-- Document result will be populated here -->
-          </div>
-        </div>
-
-        <!-- Update Document Section -->
-        <div class="section">
-          <h2>✏️ Update Document</h2>
           <div class="form-group">
-            <label for="updateDocProject">Project Name (optional):</label>
+            <label for="directPath">Document Path:</label>
             <input
               type="text"
-              id="updateDocProject"
-              placeholder="Leave empty for current project"
+              id="directPath"
+              placeholder="users/user123"
+              value="users/user123"
             />
           </div>
           <div class="form-group">
-            <label for="updateDocCollection">Collection Name:</label>
-            <input
-              type="text"
-              id="updateDocCollection"
-              placeholder="test"
-              value="test"
-            />
-          </div>
-          <div class="form-group">
-            <label for="updateDocId">Document ID:</label>
-            <input type="text" id="updateDocId" placeholder="document-id-123" />
-          </div>
-          <div class="form-group">
-            <label for="updateDocData">Update Data (JSON):</label>
+            <label for="directData">JSON Data:</label>
             <textarea
-              id="updateDocData"
-              placeholder='{"name": "Updated Name", "status": "modified"}'
+              id="directData"
+              placeholder='{"name": "John Doe", "email": "john@example.com"}'
               style="height: 80px; font-family: monospace; font-size: 13px"
             >
-{"name": "Updated Name", "lastModified": "2024-01-01T00:00:00.000Z"}</textarea
+{"name": "John Doe", "email": "john@example.com", "age": 30}</textarea
             >
           </div>
-          <button onclick="updateDocument()">Update Document</button>
 
-          <div id="updateDocMessage"></div>
+          <button onclick="setDocByPath()">Set Document</button>
+          <button onclick="getDocByPath()">Get Document</button>
+          <button onclick="updateDocByPath()">Update Document</button>
+          <button onclick="deleteDocByPath()">Delete Document</button>
+
+          <div id="directMessage"></div>
+          <div id="directResult" class="data-list" style="margin-top: 15px">
+            <!-- Results will be populated here -->
+          </div>
         </div>
 
-        <!-- Set Document Section -->
-        <div class="section">
-          <h2>🎯 Set Document (with custom ID)</h2>
+        <!-- Advanced Manual API Section -->
+        <div class="section advanced-section">
+          <h2>
+            🔧 Advanced: Manual API
+            <span class="badge badge-advanced">Advanced</span>
+          </h2>
+          <p style="margin-bottom: 15px; color: #2d3748; line-height: 1.5">
+            For advanced use cases like multi-tenant apps. Most developers won't
+            need this.
+          </p>
+
           <div class="form-group">
-            <label for="setDocProject">Project Name (optional):</label>
+            <label for="manualApiKey">API Key:</label>
             <input
               type="text"
-              id="setDocProject"
-              placeholder="Leave empty for current project"
+              id="manualApiKey"
+              class="config-input"
+              placeholder="bb_your_api_key_here"
+              value="test-api-key-123"
             />
           </div>
           <div class="form-group">
-            <label for="setDocCollection">Collection Name:</label>
+            <label for="manualBaseUrl">Base URL (optional):</label>
             <input
               type="text"
-              id="setDocCollection"
-              placeholder="users"
-              value="users"
+              id="manualBaseUrl"
+              class="config-input"
+              placeholder="https://app.basebase.us"
+              value="https://app.basebase.us"
             />
           </div>
-          <div class="form-group">
-            <label for="setDocId">Document ID:</label>
-            <input
-              type="text"
-              id="setDocId"
-              placeholder="507f1f77bcf86cd799439011"
-              title="Enter any ID or a 24-character MongoDB ObjectID"
-            />
-            <small
-              style="
-                color: #666;
-                font-size: 12px;
-                margin-top: 4px;
-                display: block;
-              "
-            >
-              💡 Try a MongoDB ObjectID (24 hex chars) like:
-              507f1f77bcf86cd799439011
-            </small>
-          </div>
-          <div class="form-group">
-            <label for="setDocData">Document Data (JSON):</label>
-            <textarea
-              id="setDocData"
-              placeholder='{"name": "John Doe", "email": "john@example.com"}'
-              style="height: 100px; font-family: monospace; font-size: 13px"
-            >
-{"name": "John Doe", "email": "john@example.com", "sources": ["techcrunch", "ars-technica"], "preferences": {"theme": "dark", "notifications": true}}</textarea
-            >
-          </div>
+          <button onclick="initializeManualSDK()">Initialize Manual SDK</button>
+          <div id="manualStatus"></div>
 
-          <div class="form-group">
-            <label>
-              <input
-                type="checkbox"
-                id="setDocMerge"
-                style="margin-right: 8px"
-              />
-              Merge with existing document
-            </label>
+          <div style="margin-top: 15px">
+            <button onclick="loadDataManual()" id="manualLoadBtn" disabled>
+              Load Data (Manual API)
+            </button>
+            <div id="manualDataMessage"></div>
           </div>
-
-          <div class="form-group">
-            <label for="setDocMergeFields"
-              >Merge Fields (comma-separated, optional):</label
-            >
-            <input
-              type="text"
-              id="setDocMergeFields"
-              placeholder="sources,preferences"
-              title="Only merge these specific fields"
-            />
-          </div>
-
-          <button onclick="setDocument()">Set Document</button>
-          <button onclick="generateObjectId()">Generate ObjectID</button>
-
-          <div id="setDocMessage"></div>
         </div>
       </div>
     </div>
@@ -497,14 +462,18 @@
     <!-- Include the BaseBase SDK -->
     <script src="./dist/index.umd.js"></script>
     <script>
-      let app = null;
-      let basebase = null;
+      let manualApp = null;
+      let manualBasebase = null;
 
-      // Initialize the SDK
-      window.initializeSDK = function initializeSDK() {
-        const apiKey = document.getElementById("apiKey").value.trim();
-        const baseUrl = document.getElementById("baseUrl").value.trim();
-        const statusEl = document.getElementById("initStatus");
+      // ========================================
+      // Auto-Initializing API Functions (New)
+      // ========================================
+
+      // Configure the auto-initializing SDK
+      window.configureAutoSDK = function configureAutoSDK() {
+        const apiKey = document.getElementById("autoApiKey").value.trim();
+        const baseUrl = document.getElementById("autoBaseUrl").value.trim();
+        const statusEl = document.getElementById("autoStatus");
 
         if (!apiKey) {
           showMessage(statusEl, "Please enter an API key", "error");
@@ -517,12 +486,492 @@
             config.baseUrl = baseUrl;
           }
 
-          app = window.BasebaseSDK.initializeApp(config);
-          basebase = window.BasebaseSDK.getBasebase(app);
+          // Use the new singleton configuration
+          window.BasebaseSDK.configureSingletonBasebase(config);
 
-          showMessage(statusEl, "SDK initialized successfully!", "success");
+          showMessage(
+            statusEl,
+            "Auto SDK configured successfully! 🎉",
+            "success"
+          );
+          updateAutoProjectInfo();
           updateAuthStatus();
-          updateProjectInfo();
+        } catch (error) {
+          showMessage(
+            statusEl,
+            `Failed to configure: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Update auto SDK project information
+      window.updateAutoProjectInfo = function updateAutoProjectInfo() {
+        const projectEl = document.getElementById("autoCurrentProject");
+        try {
+          // Try to get the singleton instance to see if it's configured
+          const instance = window.BasebaseSDK.getSingletonBasebase();
+          const storedProject = window.BasebaseSDK.getProject();
+
+          if (storedProject) {
+            projectEl.textContent = `Ready! Project: ${storedProject.name} (from authentication)`;
+          } else {
+            projectEl.textContent = `Ready! Project: ${instance.projectId} (from API key)`;
+          }
+          projectEl.style.color = "#22543d";
+        } catch (error) {
+          projectEl.textContent = "SDK not configured yet";
+          projectEl.style.color = "#742a2a";
+        }
+      };
+
+      // Add document using auto API
+      window.addDataAuto = async function addDataAuto() {
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+        const jsonData = document.getElementById("jsonData").value.trim();
+
+        if (!collectionName || !jsonData) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter collection name and JSON data",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const data = JSON.parse(jsonData);
+
+          // Use the new auto API - no basebase instance needed!
+          const docRef = await window.BasebaseSDK.addDocToCollection(
+            collectionName,
+            data
+          );
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Document added successfully! ID: ${docRef.id}`,
+            "success"
+          );
+          // Clear the textarea
+          document.getElementById("jsonData").value =
+            '{"name": "John Doe", "age": 30, "timestamp": "2024-01-01T00:00:00.000Z"}';
+          loadDataAuto(); // Refresh the data list
+        } catch (error) {
+          if (error.message.includes("JSON")) {
+            showMessage(
+              document.getElementById("dataMessage"),
+              "Invalid JSON format",
+              "error"
+            );
+          } else {
+            showMessage(
+              document.getElementById("dataMessage"),
+              `Failed to add document: ${error.message}`,
+              "error"
+            );
+          }
+        }
+      };
+
+      // Load data using auto API
+      window.loadDataAuto = async function loadDataAuto() {
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          clearDataDisplay();
+          return;
+        }
+
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+
+        if (!collectionName) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter collection name",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          // Use the new auto API - no basebase instance needed!
+          const snapshot = await window.BasebaseSDK.getDocsFromCollection(
+            collectionName
+          );
+
+          displayData(snapshot);
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Loaded ${snapshot.size} items using auto API 🚀`,
+            "success"
+          );
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to load: ${error.message}`,
+            "error"
+          );
+          clearDataDisplay();
+        }
+      };
+
+      // Clear data using auto API
+      window.clearDataAuto = async function clearDataAuto() {
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+
+        if (
+          !confirm(
+            `Are you sure you want to delete all data in "${collectionName}"?`
+          )
+        ) {
+          return;
+        }
+
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        if (!collectionName) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter collection name",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          // Use the new auto API
+          const snapshot = await window.BasebaseSDK.getDocsFromCollection(
+            collectionName
+          );
+
+          // Delete all documents using the new auto API
+          const deletePromises = [];
+          snapshot.forEach((doc) => {
+            deletePromises.push(
+              window.BasebaseSDK.deleteDocByPath(`${collectionName}/${doc.id}`)
+            );
+          });
+
+          await Promise.all(deletePromises);
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Deleted ${snapshot.size} items using auto API 🗑️`,
+            "success"
+          );
+          clearDataDisplay();
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to clear data: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Delete specific item using auto API
+      window.deleteItem = async function deleteItem(key) {
+        const collectionName =
+          document.getElementById("collectionName").value.trim() || "test";
+
+        try {
+          // Use the new auto API
+          await window.BasebaseSDK.deleteDocByPath(`${collectionName}/${key}`);
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Deleted "${key}" using auto API 🗑️`,
+            "success"
+          );
+          loadDataAuto(); // Refresh the data list
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to delete "${key}": ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // ========================================
+      // Direct-by-Path API Functions (New)
+      // ========================================
+
+      window.setDocByPath = async function setDocByPath() {
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("directMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const path = document.getElementById("directPath").value.trim();
+        const jsonData = document.getElementById("directData").value.trim();
+
+        if (!path || !jsonData) {
+          showMessage(
+            document.getElementById("directMessage"),
+            "Please enter document path and JSON data",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const data = JSON.parse(jsonData);
+
+          // Use the super convenient direct-by-path API
+          await window.BasebaseSDK.setDocByPath(path, data);
+
+          showMessage(
+            document.getElementById("directMessage"),
+            `Document set at "${path}" successfully! 🎯`,
+            "success"
+          );
+        } catch (error) {
+          if (error.message.includes("JSON")) {
+            showMessage(
+              document.getElementById("directMessage"),
+              "Invalid JSON format",
+              "error"
+            );
+          } else {
+            showMessage(
+              document.getElementById("directMessage"),
+              `Failed to set document: ${error.message}`,
+              "error"
+            );
+          }
+        }
+      };
+
+      window.getDocByPath = async function getDocByPath() {
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("directMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const path = document.getElementById("directPath").value.trim();
+
+        if (!path) {
+          showMessage(
+            document.getElementById("directMessage"),
+            "Please enter document path",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          // Use the super convenient direct-by-path API
+          const docSnap = await window.BasebaseSDK.getDocByPath(path);
+
+          if (docSnap.exists) {
+            const data = docSnap.data();
+            const resultEl = document.getElementById("directResult");
+            resultEl.innerHTML = `
+              <div class="data-item" style="flex-direction: column; align-items: flex-start;">
+                <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
+                  <span class="data-key">Path: ${path}</span>
+                  <span style="color: #38a169; font-weight: 500;">Found 🎯</span>
+                </div>
+                <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
+                  data,
+                  null,
+                  2
+                )}</pre>
+              </div>
+            `;
+
+            showMessage(
+              document.getElementById("directMessage"),
+              `Document found at "${path}" using direct API! 🎯`,
+              "success"
+            );
+          } else {
+            document.getElementById("directResult").innerHTML =
+              '<div class="data-item" style="justify-content: center; color: #e53e3e;">Document not found</div>';
+            showMessage(
+              document.getElementById("directMessage"),
+              "Document not found",
+              "error"
+            );
+          }
+        } catch (error) {
+          showMessage(
+            document.getElementById("directMessage"),
+            `Failed to get document: ${error.message}`,
+            "error"
+          );
+          document.getElementById("directResult").innerHTML =
+            '<div class="data-item" style="justify-content: center; color: #e53e3e;">Error loading document</div>';
+        }
+      };
+
+      window.updateDocByPath = async function updateDocByPath() {
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("directMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const path = document.getElementById("directPath").value.trim();
+        const jsonData = document.getElementById("directData").value.trim();
+
+        if (!path || !jsonData) {
+          showMessage(
+            document.getElementById("directMessage"),
+            "Please enter document path and JSON data",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const data = JSON.parse(jsonData);
+
+          // Use the super convenient direct-by-path API
+          await window.BasebaseSDK.updateDocByPath(path, data);
+
+          showMessage(
+            document.getElementById("directMessage"),
+            `Document updated at "${path}" successfully! 🎯`,
+            "success"
+          );
+        } catch (error) {
+          if (error.message.includes("JSON")) {
+            showMessage(
+              document.getElementById("directMessage"),
+              "Invalid JSON format",
+              "error"
+            );
+          } else {
+            showMessage(
+              document.getElementById("directMessage"),
+              `Failed to update document: ${error.message}`,
+              "error"
+            );
+          }
+        }
+      };
+
+      window.deleteDocByPath = async function deleteDocByPath() {
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("directMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        const path = document.getElementById("directPath").value.trim();
+
+        if (!path) {
+          showMessage(
+            document.getElementById("directMessage"),
+            "Please enter document path",
+            "error"
+          );
+          return;
+        }
+
+        if (
+          !confirm(`Are you sure you want to delete the document at "${path}"?`)
+        ) {
+          return;
+        }
+
+        try {
+          // Use the super convenient direct-by-path API
+          await window.BasebaseSDK.deleteDocByPath(path);
+
+          showMessage(
+            document.getElementById("directMessage"),
+            `Document deleted at "${path}" successfully! 🗑️`,
+            "success"
+          );
+
+          // Clear the result display
+          document.getElementById("directResult").innerHTML =
+            '<div class="data-item" style="justify-content: center; color: #a0aec0;">No document loaded</div>';
+        } catch (error) {
+          showMessage(
+            document.getElementById("directMessage"),
+            `Failed to delete document: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // ========================================
+      // Manual API Functions (Advanced)
+      // ========================================
+
+      // Initialize the manual SDK (advanced)
+      window.initializeManualSDK = function initializeManualSDK() {
+        const apiKey = document.getElementById("manualApiKey").value.trim();
+        const baseUrl = document.getElementById("manualBaseUrl").value.trim();
+        const statusEl = document.getElementById("manualStatus");
+
+        if (!apiKey) {
+          showMessage(statusEl, "Please enter an API key", "error");
+          return;
+        }
+
+        try {
+          const config = { apiKey };
+          if (baseUrl) {
+            config.baseUrl = baseUrl;
+          }
+
+          // Use the manual initialization (advanced)
+          manualApp = window.BasebaseSDK.initializeApp(config, "manual-test");
+          manualBasebase = window.BasebaseSDK.getBasebase(manualApp);
+
+          showMessage(
+            statusEl,
+            "Manual SDK initialized successfully! (Advanced)",
+            "success"
+          );
+          document.getElementById("manualLoadBtn").disabled = false;
         } catch (error) {
           showMessage(
             statusEl,
@@ -531,6 +980,53 @@
           );
         }
       };
+
+      // Load data using manual API (advanced)
+      window.loadDataManual = async function loadDataManual() {
+        if (!manualBasebase) {
+          showMessage(
+            document.getElementById("manualDataMessage"),
+            "Please initialize manual SDK first",
+            "error"
+          );
+          return;
+        }
+
+        const authState = window.BasebaseSDK.getAuthState();
+        if (!authState.isAuthenticated) {
+          showMessage(
+            document.getElementById("manualDataMessage"),
+            "Please authenticate first",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          // Use the manual API (requires passing basebase instance)
+          const collectionRef = window.BasebaseSDK.collection(
+            manualBasebase,
+            "test"
+          );
+          const snapshot = await window.BasebaseSDK.getDocs(collectionRef);
+
+          showMessage(
+            document.getElementById("manualDataMessage"),
+            `Manual API loaded ${snapshot.size} items (Advanced usage)`,
+            "success"
+          );
+        } catch (error) {
+          showMessage(
+            document.getElementById("manualDataMessage"),
+            `Failed to load: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // ========================================
+      // Authentication Functions
+      // ========================================
 
       // Update authentication status
       window.updateAuthStatus = function updateAuthStatus() {
@@ -545,41 +1041,15 @@
           statusEl.textContent = "Not authenticated";
         }
 
-        // Update project information display
-        updateProjectInfo();
-      };
-
-      // Update project information display
-      window.updateProjectInfo = function updateProjectInfo() {
-        const projectEl = document.getElementById("currentProject");
-        if (!basebase) {
-          projectEl.textContent = "SDK not initialized";
-          return;
-        }
-
-        const storedProject = window.BasebaseSDK.getProject();
-        if (storedProject) {
-          projectEl.textContent = `${storedProject.name} (from authentication)`;
-        } else {
-          projectEl.textContent = `${basebase.projectId} (from API key)`;
-        }
+        updateAutoProjectInfo();
       };
 
       // Request verification code
       window.requestCode = async function requestCode() {
-        if (!app) {
-          showMessage(
-            document.getElementById("authMessage"),
-            "Please initialize SDK first",
-            "error"
-          );
-          return;
-        }
-
         const name = document.getElementById("name").value.trim();
         const phone = document.getElementById("phone").value.trim();
         const baseUrl =
-          document.getElementById("baseUrl").value.trim() || undefined;
+          document.getElementById("autoBaseUrl").value.trim() || undefined;
 
         if (!name || !phone) {
           showMessage(
@@ -591,6 +1061,7 @@
         }
 
         try {
+          // No need to initialize - just use the function directly!
           const response = await window.BasebaseSDK.requestCode(
             name,
             phone,
@@ -598,7 +1069,7 @@
           );
           showMessage(
             document.getElementById("authMessage"),
-            "Verification code sent!",
+            "Verification code sent! 📱",
             "success"
           );
         } catch (error) {
@@ -612,20 +1083,11 @@
 
       // Verify code and authenticate
       window.verifyCode = async function verifyCode() {
-        if (!app) {
-          showMessage(
-            document.getElementById("authMessage"),
-            "Please initialize SDK first",
-            "error"
-          );
-          return;
-        }
-
         const phone = document.getElementById("phone").value.trim();
         const code = document.getElementById("code").value.trim();
-        const apiKey = document.getElementById("apiKey").value.trim();
+        const apiKey = document.getElementById("autoApiKey").value.trim();
         const baseUrl =
-          document.getElementById("baseUrl").value.trim() || undefined;
+          document.getElementById("autoBaseUrl").value.trim() || undefined;
 
         if (!phone || !code) {
           showMessage(
@@ -637,6 +1099,7 @@
         }
 
         try {
+          // No need to initialize - just use the function directly!
           const result = await window.BasebaseSDK.verifyCode(
             phone,
             code,
@@ -644,18 +1107,14 @@
             baseUrl
           );
 
-          // Debug: log the authentication result
-          console.log("Authentication result:", result);
-          console.log("Stored project:", window.BasebaseSDK.getProject());
-
           showMessage(
             document.getElementById("authMessage"),
-            "Authentication successful!",
+            "Authentication successful! 🎉",
             "success"
           );
           updateAuthStatus();
-          updateProjectInfo(); // Update project info after authentication
-          loadData(); // Load data after authentication
+          updateAutoProjectInfo();
+          loadDataAuto(); // Load data after authentication
         } catch (error) {
           showMessage(
             document.getElementById("authMessage"),
@@ -677,253 +1136,9 @@
         clearDataDisplay();
       };
 
-      // Add document to the specified collection
-      window.addData = async function addData() {
-        if (!basebase) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please initialize SDK first",
-            "error"
-          );
-          return;
-        }
-
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
-
-        const targetProject =
-          document.getElementById("targetProject").value.trim() || undefined;
-        const collectionName = document
-          .getElementById("collectionName")
-          .value.trim();
-        const jsonData = document.getElementById("jsonData").value.trim();
-
-        if (!collectionName || !jsonData) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please enter collection name and JSON data",
-            "error"
-          );
-          return;
-        }
-
-        try {
-          const data = JSON.parse(jsonData);
-          const collectionRef = window.BasebaseSDK.collection(
-            basebase,
-            collectionName,
-            targetProject
-          );
-          const docRef = await window.BasebaseSDK.addDoc(collectionRef, data);
-
-          const projectDisplay = targetProject
-            ? ` in project "${targetProject}"`
-            : "";
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Document added successfully${projectDisplay}! ID: ${docRef.id}`,
-            "success"
-          );
-          // Clear the textarea
-          document.getElementById("jsonData").value =
-            '{"name": "John Doe", "age": 30, "timestamp": "2024-01-01T00:00:00.000Z"}';
-          loadData(); // Refresh the data list
-        } catch (error) {
-          if (error.message.includes("JSON")) {
-            showMessage(
-              document.getElementById("dataMessage"),
-              "Invalid JSON format",
-              "error"
-            );
-          } else {
-            showMessage(
-              document.getElementById("dataMessage"),
-              `Failed to add document: ${error.message}`,
-              "error"
-            );
-          }
-        }
-      };
-
-      // Load all data from the specified collection
-      window.loadData = async function loadData() {
-        if (!basebase) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please initialize SDK first",
-            "error"
-          );
-          return;
-        }
-
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          clearDataDisplay();
-          return;
-        }
-
-        const targetProject =
-          document.getElementById("targetProject").value.trim() || undefined;
-        const collectionName = document
-          .getElementById("collectionName")
-          .value.trim();
-
-        if (!collectionName) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please enter collection name",
-            "error"
-          );
-          return;
-        }
-
-        try {
-          const collectionRef = window.BasebaseSDK.collection(
-            basebase,
-            collectionName,
-            targetProject
-          );
-          const snapshot = await window.BasebaseSDK.getDocs(collectionRef);
-
-          displayData(snapshot);
-          const projectDisplay = targetProject
-            ? ` from project "${targetProject}"`
-            : "";
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Loaded ${snapshot.size} items${projectDisplay}`,
-            "success"
-          );
-        } catch (error) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Failed to load: ${error.message}`,
-            "error"
-          );
-          clearDataDisplay();
-        }
-      };
-
-      // Delete a specific item
-      window.deleteItem = async function deleteItem(key) {
-        if (!basebase) return;
-
-        const targetProject =
-          document.getElementById("targetProject").value.trim() || undefined;
-        const collectionName =
-          document.getElementById("collectionName").value.trim() || "test";
-
-        try {
-          const docRef = window.BasebaseSDK.doc(
-            basebase,
-            `${collectionName}/${key}`,
-            targetProject
-          );
-          await window.BasebaseSDK.deleteDoc(docRef);
-
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Deleted "${key}"`,
-            "success"
-          );
-          loadData(); // Refresh the data list
-        } catch (error) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Failed to delete "${key}": ${error.message}`,
-            "error"
-          );
-        }
-      };
-
-      // Clear all data
-      window.clearData = async function clearData() {
-        const targetProject =
-          document.getElementById("targetProject").value.trim() || undefined;
-        const collectionName =
-          document.getElementById("collectionName").value.trim() || "test";
-
-        const projectDisplay = targetProject
-          ? ` in project "${targetProject}"`
-          : "";
-        if (
-          !confirm(
-            `Are you sure you want to delete all data in the "${collectionName}" collection${projectDisplay}?`
-          )
-        ) {
-          return;
-        }
-
-        if (!basebase) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please initialize SDK first",
-            "error"
-          );
-          return;
-        }
-
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
-
-        if (!collectionName) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please enter collection name",
-            "error"
-          );
-          return;
-        }
-
-        try {
-          const collectionRef = window.BasebaseSDK.collection(
-            basebase,
-            collectionName,
-            targetProject
-          );
-          const snapshot = await window.BasebaseSDK.getDocs(collectionRef);
-
-          // Delete all documents
-          const deletePromises = [];
-          snapshot.forEach((doc) => {
-            const docRef = window.BasebaseSDK.doc(
-              basebase,
-              `${collectionName}/${doc.id}`,
-              targetProject
-            );
-            deletePromises.push(window.BasebaseSDK.deleteDoc(docRef));
-          });
-
-          await Promise.all(deletePromises);
-
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Deleted ${snapshot.size} items${projectDisplay}`,
-            "success"
-          );
-          clearDataDisplay();
-        } catch (error) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Failed to clear data: ${error.message}`,
-            "error"
-          );
-        }
-      };
+      // ========================================
+      // Utility Functions
+      // ========================================
 
       // Display data in the UI
       window.displayData = function displayData(snapshot) {
@@ -966,311 +1181,6 @@
           '<div class="data-item" style="justify-content: center; color: #a0aec0;">No data</div>';
       };
 
-      // Get a specific document by ID
-      window.getDocument = async function getDocument() {
-        if (!basebase) {
-          showMessage(
-            document.getElementById("getDocMessage"),
-            "Please initialize SDK first",
-            "error"
-          );
-          return;
-        }
-
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("getDocMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
-
-        const targetProject =
-          document.getElementById("getDocProject").value.trim() || undefined;
-        const collectionName = document
-          .getElementById("getDocCollection")
-          .value.trim();
-        const docId = document.getElementById("getDocId").value.trim();
-
-        if (!collectionName || !docId) {
-          showMessage(
-            document.getElementById("getDocMessage"),
-            "Please enter collection name and document ID",
-            "error"
-          );
-          return;
-        }
-
-        try {
-          const docRef = window.BasebaseSDK.doc(
-            basebase,
-            `${collectionName}/${docId}`,
-            targetProject
-          );
-          const docSnapshot = await window.BasebaseSDK.getDoc(docRef);
-
-          if (docSnapshot.exists) {
-            const data = docSnapshot.data();
-            const resultEl = document.getElementById("getDocResult");
-            resultEl.innerHTML = `
-              <div class="data-item" style="flex-direction: column; align-items: flex-start;">
-                <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
-                  <span class="data-key">ID: ${docSnapshot.id}</span>
-                  <span style="color: #38a169; font-weight: 500;">Found</span>
-                </div>
-                <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
-                  data,
-                  null,
-                  2
-                )}</pre>
-              </div>
-            `;
-
-            const projectDisplay = targetProject
-              ? ` from project "${targetProject}"`
-              : "";
-            showMessage(
-              document.getElementById("getDocMessage"),
-              `Document found${projectDisplay}`,
-              "success"
-            );
-          } else {
-            document.getElementById("getDocResult").innerHTML =
-              '<div class="data-item" style="justify-content: center; color: #e53e3e;">Document not found</div>';
-            showMessage(
-              document.getElementById("getDocMessage"),
-              "Document not found",
-              "error"
-            );
-          }
-        } catch (error) {
-          showMessage(
-            document.getElementById("getDocMessage"),
-            `Failed to get document: ${error.message}`,
-            "error"
-          );
-          document.getElementById("getDocResult").innerHTML =
-            '<div class="data-item" style="justify-content: center; color: #e53e3e;">Error loading document</div>';
-        }
-      };
-
-      // Update a specific document by ID
-      window.updateDocument = async function updateDocument() {
-        if (!basebase) {
-          showMessage(
-            document.getElementById("updateDocMessage"),
-            "Please initialize SDK first",
-            "error"
-          );
-          return;
-        }
-
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("updateDocMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
-
-        const targetProject =
-          document.getElementById("updateDocProject").value.trim() || undefined;
-        const collectionName = document
-          .getElementById("updateDocCollection")
-          .value.trim();
-        const docId = document.getElementById("updateDocId").value.trim();
-        const updateData = document
-          .getElementById("updateDocData")
-          .value.trim();
-
-        if (!collectionName || !docId || !updateData) {
-          showMessage(
-            document.getElementById("updateDocMessage"),
-            "Please enter collection name, document ID, and update data",
-            "error"
-          );
-          return;
-        }
-
-        try {
-          const data = JSON.parse(updateData);
-          const docRef = window.BasebaseSDK.doc(
-            basebase,
-            `${collectionName}/${docId}`,
-            targetProject
-          );
-
-          await window.BasebaseSDK.updateDoc(docRef, data);
-
-          const projectDisplay = targetProject
-            ? ` in project "${targetProject}"`
-            : "";
-          showMessage(
-            document.getElementById("updateDocMessage"),
-            `Document updated successfully${projectDisplay}!`,
-            "success"
-          );
-
-          // Clear the textarea
-          document.getElementById("updateDocData").value =
-            '{"name": "Updated Name", "lastModified": "2024-01-01T00:00:00.000Z"}';
-
-          // Refresh the main data list if it's showing the same collection
-          const mainCollectionName = document
-            .getElementById("collectionName")
-            .value.trim();
-          if (mainCollectionName === collectionName) {
-            loadData();
-          }
-        } catch (error) {
-          if (error.message.includes("JSON")) {
-            showMessage(
-              document.getElementById("updateDocMessage"),
-              "Invalid JSON format",
-              "error"
-            );
-          } else {
-            showMessage(
-              document.getElementById("updateDocMessage"),
-              `Failed to update document: ${error.message}`,
-              "error"
-            );
-          }
-        }
-      };
-
-      // Set a document with a specific ID
-      window.setDocument = async function setDocument() {
-        if (!basebase) {
-          showMessage(
-            document.getElementById("setDocMessage"),
-            "Please initialize SDK first",
-            "error"
-          );
-          return;
-        }
-
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("setDocMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
-
-        const targetProject =
-          document.getElementById("setDocProject").value.trim() || undefined;
-        const collectionName = document
-          .getElementById("setDocCollection")
-          .value.trim();
-        const docId = document.getElementById("setDocId").value.trim();
-        const jsonData = document.getElementById("setDocData").value.trim();
-        const shouldMerge = document.getElementById("setDocMerge").checked;
-        const mergeFields = document
-          .getElementById("setDocMergeFields")
-          .value.trim();
-
-        if (!collectionName || !docId || !jsonData) {
-          showMessage(
-            document.getElementById("setDocMessage"),
-            "Please enter collection name, document ID, and JSON data",
-            "error"
-          );
-          return;
-        }
-
-        try {
-          const data = JSON.parse(jsonData);
-          const docRef = window.BasebaseSDK.doc(
-            basebase,
-            `${collectionName}/${docId}`,
-            targetProject
-          );
-
-          // Build set options
-          const options = {};
-          if (shouldMerge) {
-            options.merge = true;
-          }
-          if (mergeFields) {
-            options.mergeFields = mergeFields.split(",").map((f) => f.trim());
-          }
-
-          await window.BasebaseSDK.setDoc(
-            docRef,
-            data,
-            Object.keys(options).length > 0 ? options : undefined
-          );
-
-          const projectDisplay = targetProject
-            ? ` in project "${targetProject}"`
-            : "";
-          const optionsDisplay = shouldMerge
-            ? " (merged with existing)"
-            : mergeFields
-            ? ` (merged fields: ${mergeFields})`
-            : "";
-
-          showMessage(
-            document.getElementById("setDocMessage"),
-            `Document set successfully${projectDisplay}${optionsDisplay}! ID: ${docId}`,
-            "success"
-          );
-
-          // Clear the textarea
-          document.getElementById("setDocData").value =
-            '{"name": "John Doe", "email": "john@example.com", "sources": ["techcrunch", "ars-technica"], "preferences": {"theme": "dark", "notifications": true}}';
-
-          // Refresh the main data list if it's showing the same collection
-          const mainCollectionName = document
-            .getElementById("collectionName")
-            .value.trim();
-          if (mainCollectionName === collectionName) {
-            loadData();
-          }
-        } catch (error) {
-          if (error.message.includes("JSON")) {
-            showMessage(
-              document.getElementById("setDocMessage"),
-              "Invalid JSON format",
-              "error"
-            );
-          } else {
-            showMessage(
-              document.getElementById("setDocMessage"),
-              `Failed to set document: ${error.message}`,
-              "error"
-            );
-          }
-        }
-      };
-
-      // Generate a random MongoDB ObjectID
-      window.generateObjectId = function generateObjectId() {
-        // Generate a 24-character hex string that looks like a MongoDB ObjectID
-        const timestamp = Math.floor(Date.now() / 1000)
-          .toString(16)
-          .padStart(8, "0");
-        const randomPart = Array.from({ length: 16 }, () =>
-          Math.floor(Math.random() * 16).toString(16)
-        ).join("");
-
-        const objectId = timestamp + randomPart;
-        document.getElementById("setDocId").value = objectId;
-
-        showMessage(
-          document.getElementById("setDocMessage"),
-          `Generated ObjectID: ${objectId}`,
-          "success"
-        );
-      };
-
       // Show message helper
       window.showMessage = function showMessage(element, message, type) {
         element.className = type;
@@ -1280,9 +1190,11 @@
       // Initialize on page load
       window.addEventListener("load", function () {
         updateAuthStatus();
+        updateAutoProjectInfo();
         clearDataDisplay();
+
         // Initialize empty states for new sections
-        document.getElementById("getDocResult").innerHTML =
+        document.getElementById("directResult").innerHTML =
           '<div class="data-item" style="justify-content: center; color: #a0aec0;">No document loaded</div>';
       });
     </script>

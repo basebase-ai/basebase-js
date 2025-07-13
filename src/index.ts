@@ -70,8 +70,19 @@ export {
   removeDirectToken,
 } from "./auth";
 
-// Document operations
+// Auto-initializing singleton basebase instance
 export {
+  basebase,
+  getSingletonBasebase,
+  configureSingletonBasebase,
+  setSingletonToken,
+  resetSingletonBasebase,
+  isSingletonConfigured,
+} from "./singleton";
+
+// Ready-to-use functions (no initialization required)
+export {
+  // Document operations
   doc,
   collection,
   getDoc,
@@ -80,14 +91,24 @@ export {
   setDoc,
   updateDoc,
   deleteDoc,
-} from "./document";
 
-// Query operations
-export {
+  // Query operations
   query,
   where,
   orderBy,
   limit,
+
+  // Direct-by-path convenience functions
+  getDocByPath,
+  getDocsFromCollection,
+  setDocByPath,
+  updateDocByPath,
+  deleteDocByPath,
+  addDocToCollection,
+} from "./convenience";
+
+// Query validation utilities
+export {
   validateQueryConstraint,
   hasConstraintType,
   getConstraintsOfType,
@@ -195,6 +216,12 @@ import {
   getDirectToken,
   removeDirectToken,
 } from "./auth";
+
+import {
+  basebase as singletonBasebase,
+  setSingletonToken,
+  configureSingletonBasebase,
+} from "./singleton";
 import {
   doc,
   collection,
@@ -204,24 +231,59 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
-} from "./document";
-import { query, where, orderBy, limit } from "./query";
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocByPath,
+  getDocsFromCollection,
+  setDocByPath,
+  updateDocByPath,
+  deleteDocByPath,
+  addDocToCollection,
+} from "./convenience";
 
 /**
  * Default export with the most commonly used functions
  * This allows for convenient importing like:
  * import basebase from 'basebase-js';
+ * const userRef = basebase.doc('users/user123');
+ *
+ * Or for manual initialization (advanced use cases):
+ * import basebase from 'basebase-js';
  * const app = basebase.initializeApp(config);
  */
 const basebase = {
-  // App functions
-  initializeApp,
-  getBasebase,
-  getApp,
-  getApps,
-  deleteApp,
+  // Singleton instance access
+  getInstance: () => singletonBasebase,
+  configureSingletonBasebase,
+  setSingletonToken,
 
-  // Auth functions
+  // Document operations (auto-use singleton)
+  doc,
+  collection,
+  getDoc,
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+
+  // Query operations (auto-use singleton)
+  query,
+  where,
+  orderBy,
+  limit,
+
+  // Direct-by-path convenience functions
+  getDocByPath,
+  getDocsFromCollection,
+  setDocByPath,
+  updateDocByPath,
+  deleteDocByPath,
+  addDocToCollection,
+
+  // Authentication
   requestCode,
   verifyCode,
   signOut,
@@ -234,21 +296,12 @@ const basebase = {
   getDirectToken,
   removeDirectToken,
 
-  // Document functions
-  doc,
-  collection,
-  getDoc,
-  getDocs,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-
-  // Query functions
-  query,
-  where,
-  orderBy,
-  limit,
+  // Advanced: Manual app management (for multi-tenant apps)
+  initializeApp,
+  getBasebase,
+  getApp,
+  getApps,
+  deleteApp,
 };
 
 export default basebase;

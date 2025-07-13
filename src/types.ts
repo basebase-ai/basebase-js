@@ -185,6 +185,7 @@ export interface Query {
   basebase: Basebase;
   path: string;
   constraints: QueryConstraint[];
+  get(): Promise<QuerySnapshot>;
 }
 
 // ========================================
