@@ -28,8 +28,8 @@ import {
   generateId,
   deepClone,
   getNestedProperty,
-  validateObjectId,
-  isValidObjectId,
+  validateProjectId,
+  isValidProjectId,
 } from "./utils";
 import { getAuthHeader } from "./auth";
 
@@ -377,7 +377,7 @@ class CollectionReferenceImpl implements CollectionReference {
       return nameParts[nameParts.length - 1] || `fallback_${fallbackIndex}`;
     }
 
-    // Look for an ID field in the document (MongoDB-style)
+    // Look for an ID field in the document
     const idField = doc.id || doc._id || doc.ID;
     if (idField && typeof idField === "string") {
       return idField;
@@ -623,9 +623,9 @@ export async function setDoc(
   data: BasebaseDocumentData,
   options?: SetOptions
 ): Promise<WriteResult> {
-  // Validate that the document ID is a valid ObjectID format if it looks like one
-  if (isValidObjectId(docRef.id)) {
-    validateObjectId(docRef.id);
+  // Validate that the document ID follows project naming rules
+  if (isValidProjectId(docRef.id)) {
+    validateProjectId(docRef.id);
   }
 
   return docRef.set(data, options);

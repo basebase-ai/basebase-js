@@ -230,7 +230,7 @@ class QueryImpl implements Query {
   }
 
   /**
-   * Gets a field value from MongoDB-style document
+   * Gets a field value from document
    */
   private getFieldValue(doc: any, fieldPath: string): any {
     const pathSegments = fieldPath.split(".");
@@ -312,7 +312,7 @@ class QueryImpl implements Query {
   }
 
   /**
-   * Extracts document ID from MongoDB-style document
+   * Extracts document ID from document
    */
   private extractDocumentId(doc: any, fallbackIndex: number): string {
     if (doc.name) {
@@ -320,7 +320,7 @@ class QueryImpl implements Query {
       return nameParts[nameParts.length - 1] || `doc_${fallbackIndex}`;
     }
 
-    // Look for an ID field in the document (MongoDB-style)
+    // Look for an ID field in the document
     const idField = doc.id || doc._id || doc.ID;
     if (idField && typeof idField === "string") {
       return idField;

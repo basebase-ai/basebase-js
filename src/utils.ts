@@ -17,40 +17,40 @@ import {
 // ========================================
 
 /**
- * Converts a JavaScript value to BaseBase format (MongoDB-style)
- * Now just returns the value as-is for MongoDB compatibility
+ * Converts a JavaScript value to BaseBase format
+ * Returns the value as-is for compatibility
  */
 export function toBasebaseValue(value: any): any {
   return value;
 }
 
 /**
- * Converts BaseBase format to JavaScript value (MongoDB-style)
- * Now just returns the value as-is for MongoDB compatibility
+ * Converts BaseBase format to JavaScript value
+ * Returns the value as-is for compatibility
  */
 export function fromBasebaseValue(value: any): any {
   return value;
 }
 
 /**
- * Converts JavaScript object to BaseBase document format (MongoDB-style)
- * Now sends raw JavaScript objects to match MongoDB format
+ * Converts JavaScript object to BaseBase document format
+ * Sends raw JavaScript objects to match expected format
  */
 export function toBasebaseDocument(
   data: BasebaseDocumentData
 ): BasebaseDocumentData {
-  // Just return the data as-is for MongoDB compatibility
+  // Just return the data as-is for compatibility
   return data;
 }
 
 /**
- * Converts BaseBase document to JavaScript object (MongoDB-style)
- * Now expects raw JavaScript objects from MongoDB
+ * Converts BaseBase document to JavaScript object
+ * Expects raw JavaScript objects from BaseBase
  */
 export function fromBasebaseDocument(
   doc: BasebaseDocumentData
 ): BasebaseDocumentData {
-  // Just return the data as-is for MongoDB compatibility
+  // Just return the data as-is for compatibility
   return doc;
 }
 
@@ -210,6 +210,7 @@ export function validatePath(path: string): void {
 
 /**
  * Validates a document ID
+ * Allows URL-safe strings under 24 characters
  */
 export function validateDocumentId(id: string): void {
   if (!id || typeof id !== "string") {
@@ -226,46 +227,56 @@ export function validateDocumentId(id: string): void {
     );
   }
 
-  if (id.startsWith(".") || id.startsWith("_")) {
+  if (id.length > 24) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Document ID cannot start with a dot or underscore"
+      "Document ID must be 24 characters or less"
+    );
+  }
+
+  // Allow URL-safe characters: alphanumeric, hyphens, underscores
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Document ID must contain only URL-safe characters (a-z, A-Z, 0-9, _, -)"
     );
   }
 }
 
 /**
- * Validates that a string is a valid MongoDB ObjectID format (24 hex characters)
+ * Validates that a string is a valid project or document ID format
+ * Allows URL-safe strings under 24 characters
  */
-export function validateObjectId(id: string): void {
+export function validateProjectId(id: string): void {
   if (!id || typeof id !== "string") {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "ObjectID must be a non-empty string"
+      "Project ID must be a non-empty string"
     );
   }
 
-  if (id.length !== 24) {
+  if (id.length > 24) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "ObjectID must be exactly 24 characters long"
+      "Project ID must be 24 characters or less"
     );
   }
 
-  if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+  // URL-safe characters: alphanumeric, hyphens, underscores
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "ObjectID must contain only hexadecimal characters (0-9, a-f, A-F)"
+      "Project ID must contain only URL-safe characters (a-z, A-Z, 0-9, _, -)"
     );
   }
 }
 
 /**
- * Checks if a string is a valid MongoDB ObjectID format
+ * Checks if a string is a valid project ID format
  */
-export function isValidObjectId(id: string): boolean {
+export function isValidProjectId(id: string): boolean {
   try {
-    validateObjectId(id);
+    validateProjectId(id);
     return true;
   } catch {
     return false;

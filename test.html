@@ -326,16 +326,16 @@
           </h2>
           <p style="margin-bottom: 15px; color: #2d3748; line-height: 1.5">
             Use super convenient functions that work directly with paths - no
-            references needed!
+            references needed! <strong>New:</strong> Document and collection names now support flexible naming with URL-safe characters (a-z, A-Z, 0-9, _, -) up to 24 characters. Paths are relative to your project.
           </p>
 
           <div class="form-group">
-            <label for="directPath">Document Path:</label>
+            <label for="directPath">Document Path (relative to your project):</label>
             <input
               type="text"
               id="directPath"
-              placeholder="users/user123"
-              value="users/user123"
+              placeholder="users/ben_wen"
+              value="users/ben_wen"
             />
           </div>
           <div class="form-group">
@@ -353,6 +353,16 @@
           <button onclick="getDocByPath()">Get Document</button>
           <button onclick="updateDocByPath()">Update Document</button>
           <button onclick="deleteDocByPath()">Delete Document</button>
+          
+          <div style="margin-top: 15px; padding: 10px; background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 6px;">
+            <strong style="color: #22543d;">Quick Test Examples (New Flexible Naming):</strong>
+            <div style="margin-top: 8px; font-family: monospace; font-size: 12px; color: #2d3748;">
+              • <button onclick="testPath('users/ben_wen')" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-family: monospace; font-size: 12px;">users/ben_wen</button> (underscores allowed)<br>
+              • <button onclick="testPath('posts/post-123')" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-family: monospace; font-size: 12px;">posts/post-123</button> (hyphens allowed)<br>
+              • <button onclick="testPath('items/item_abc_2024')" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-family: monospace; font-size: 12px;">items/item_abc_2024</button> (mixed chars)<br>
+              • <button onclick="testPath('test/simple')" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-family: monospace; font-size: 12px;">test/simple</button> (basic example)
+            </div>
+          </div>
 
           <div id="directMessage"></div>
           <div id="directResult" class="data-list" style="margin-top: 15px">
@@ -886,6 +896,28 @@
           "success"
         );
         clearDataDisplay();
+      };
+
+      // ========================================
+      // Quick Test Function for New Naming
+      // ========================================
+      
+      window.testPath = function testPath(path) {
+        document.getElementById("directPath").value = path;
+        const docId = path.split('/').pop();
+        document.getElementById("directData").value = JSON.stringify({
+          name: "Test User",
+          documentId: docId,
+          collection: path.split('/')[0],
+          timestamp: new Date().toISOString(),
+          note: "Testing new flexible naming: URL-safe chars (a-z, A-Z, 0-9, _, -) up to 24 chars"
+        }, null, 2);
+        
+        showMessage(
+          document.getElementById("directMessage"),
+          `Path set to "${path}" - this tests the new flexible naming rules! Try "Set Document" first.`,
+          "success"
+        );
       };
 
       // ========================================

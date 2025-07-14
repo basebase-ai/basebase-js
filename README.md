@@ -131,8 +131,8 @@ const newUserRef = await addDoc(collection("users"), {
   email: "jane@example.com",
 });
 
-// Set document with specific ID
-const userId = "507f1f77bcf86cd799439011";
+// Set document with specific ID (URL-safe string under 24 characters)
+const userId = "ben_wen";
 await setDoc(doc(`users/${userId}`), {
   name: "John Doe",
   email: "john@example.com",
@@ -148,13 +148,20 @@ await updateDoc(doc("users/user123"), {
 await deleteDoc(doc("users/user123"));
 ```
 
-### 5. Path Structure & Cross-Project Operations
+### 5. Path Structure & Naming Rules
 
-**Important**: All paths are relative to the specified project. This eliminates ambiguity:
+**Project and Document IDs**: BaseBase allows flexible naming for projects and documents using URL-safe strings up to 24 characters long:
+
+- ✅ Allowed characters: `a-z`, `A-Z`, `0-9`, `_`, `-`
+- ✅ Examples: `test_project`, `user-123`, `myapp2024`, `ben_wen`
+- ❌ Not allowed: spaces, special characters like `/`, `@`, `.`, etc.
+- ❌ Must be 24 characters or less
+
+**Path Structure**: All paths are relative to the specified project. This eliminates ambiguity:
 
 - ✅ `"users"` = collection named "users"
-- ✅ `"users/user123"` = document "user123" in "users" collection
-- ✅ `"users/user123/posts"` = "posts" subcollection under document "user123"
+- ✅ `"users/ben_wen"` = document "ben_wen" in "users" collection
+- ✅ `"users/ben_wen/posts"` = "posts" subcollection under document "ben_wen"
 
 To work with a different project, use the optional `projectName` parameter:
 
@@ -169,7 +176,7 @@ await addDoc(collection("users", "otherProject"), {
 });
 
 // Set document with same ID across projects (powerful for data consistency)
-const userId = "507f1f77bcf86cd799439011";
+const userId = "user_ben";
 
 // Set base user data in main project
 await setDoc(doc(`users/${userId}`), {
@@ -179,7 +186,7 @@ await setDoc(doc(`users/${userId}`), {
 });
 
 // Set app-specific data in another project using same ID
-await setDoc(doc(`users/${userId}`, "newsapp"), {
+await setDoc(doc(`users/${userId}`, "news_app"), {
   sources: ["techcrunch", "ars-technica"],
   preferences: { theme: "dark", notifications: true },
 });
@@ -361,7 +368,7 @@ console.log("New document ID:", docRef.id);
 Set a document with a specific ID, optionally merging with existing data.
 
 ```typescript
-const userId = "507f1f77bcf86cd799439011";
+const userId = "john_doe";
 const userRef = doc(`users/${userId}`);
 await setDoc(userRef, {
   name: "John Doe",
