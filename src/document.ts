@@ -429,27 +429,30 @@ class QuerySnapshotImpl implements QuerySnapshot {
  */
 export function doc(
   db: Basebase,
-  path: string,
-  projectName?: string
+  path: string
 ): DocumentReference {
   validatePath(path);
 
-  // Always use the explicitly provided project, or default to current project
-  // Never try to auto-detect project from path
-  const targetProjectId = projectName || db.projectId;
-
   const pathSegments = path.split("/");
 
-  // Document paths need at least 2 segments: collection/document
-  if (pathSegments.length < 2) {
+  // Document paths need at least 3 segments: projectName/collection/document
+  if (pathSegments.length < 3) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Document path must include both collection and document ID (e.g., 'users/user123'). " +
-        "To specify a different project, use the projectName parameter: doc(db, 'users/user123', 'projectName')"
+      "Document path must include project name, collection, and document ID (e.g., 'myproject/users/user123')"
     );
   }
 
+  const projectName = pathSegments[0];
   const documentId = pathSegments[pathSegments.length - 1];
+  
+  if (!projectName) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Project name cannot be empty"
+    );
+  }
+
   if (!documentId) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
@@ -457,13 +460,14 @@ export function doc(
     );
   }
 
+  validateProjectId(projectName);
   validateDocumentId(documentId);
 
   const collectionPath = pathSegments.slice(0, -1).join("/");
-  const collectionRef = collection(db, collectionPath, projectName);
+  const collectionRef = collection(db, collectionPath);
 
-  // Build the full path for API calls - path is always relative to the specified project
-  const fullPath = `${targetProjectId}/${path}`;
+  // Path already includes project name
+  const fullPath = path;
 
   return new DocumentReferenceImpl(db, fullPath, documentId, collectionRef);
 }
@@ -473,34 +477,47 @@ export function doc(
  */
 export function collection(
   db: Basebase,
-  path: string,
-  projectName?: string
+  path: string
 ): CollectionReference {
   validatePath(path);
 
-  // Always use the explicitly provided project, or default to current project
-  // Never try to auto-detect project from path
-  const targetProjectId = projectName || db.projectId;
-
   const pathSegments = path.split("/");
 
-  // Collection paths need at least 1 segment: collection
-  if (pathSegments.length < 1 || pathSegments[pathSegments.length - 1] === "") {
+  // Collection paths need at least 2 segments: projectName/collection
+  if (pathSegments.length < 2) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Collection path must include a collection name (e.g., 'users' or 'users/user123/posts'). " +
-        "To specify a different project, use the projectName parameter: collection(db, 'users', 'projectName')"
+      "Collection path must include project name and collection name (e.g., 'myproject/users' or 'myproject/users/user123/posts')"
     );
   }
 
-  let parent: DocumentReference | undefined;
-  if (pathSegments.length > 1) {
-    const parentPath = pathSegments.slice(0, -1).join("/");
-    parent = doc(db, parentPath, projectName);
+  const projectName = pathSegments[0];
+  const collectionName = pathSegments[pathSegments.length - 1];
+  
+  if (!projectName) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Project name cannot be empty"
+    );
   }
 
-  // Build the full path for API calls - path is always relative to the specified project
-  const fullPath = `${targetProjectId}/${path}`;
+  if (!collectionName) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Collection name cannot be empty"
+    );
+  }
+
+  validateProjectId(projectName);
+
+  let parent: DocumentReference | undefined;
+  if (pathSegments.length > 2) {
+    const parentPath = pathSegments.slice(0, -1).join("/");
+    parent = doc(db, parentPath);
+  }
+
+  // Path already includes project name
+  const fullPath = path;
 
   return new CollectionReferenceImpl(db, fullPath, parent);
 }

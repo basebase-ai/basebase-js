@@ -10,11 +10,11 @@
  * await verifyCode('+1234567890', '123456', 'bb_your_api_key');
  *
  * // Then use db with explicit reference
- * const usersRef = collection(db, 'users');
+ * const usersRef = collection(db, 'myproject/users');
  * const snapshot = await getDocs(usersRef);
  *
  * // Get a document
- * const userRef = doc(db, 'users/user123');
+ * const userRef = doc(db, 'myproject/users/user123');
  * const userSnap = await getDoc(userRef);
  * ```
  */
@@ -44,6 +44,7 @@ export {
   signOut,
   getAuthState,
   onAuthStateChanged,
+  setDirectToken,
 } from "./auth";
 
 // Document operations
@@ -169,6 +170,7 @@ import {
   signOut,
   getAuthState,
   onAuthStateChanged,
+  setDirectToken,
 } from "./auth";
 
 import {
@@ -198,6 +200,7 @@ export default {
   signOut,
   getAuthState,
   onAuthStateChanged,
+  setDirectToken,
 
   // Document operations
   doc,
@@ -242,6 +245,7 @@ if (typeof window !== "undefined") {
     signOut,
     getAuthState,
     onAuthStateChanged,
+    setDirectToken,
 
     // Document operations
     doc,

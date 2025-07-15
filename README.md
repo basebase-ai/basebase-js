@@ -57,21 +57,21 @@ console.log("Token:", authResult.token);
 import { db, doc, getDoc, collection, getDocs, addDoc } from "basebase-js";
 
 // Get a single document - no setup needed after auth!
-const userRef = doc(db, "users/user123");
+const userRef = doc(db, "myproject/users/user123");
 const userSnap = await getDoc(userRef);
 if (userSnap.exists) {
   console.log("User data:", userSnap.data());
 }
 
 // Get all documents in a collection
-const usersRef = collection(db, "users");
+const usersRef = collection(db, "myproject/users");
 const snapshot = await getDocs(usersRef);
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
 });
 
 // Add a new document
-const newUserRef = await addDoc(collection(db, "users"), {
+const newUserRef = await addDoc(collection(db, "myproject/users"), {
   name: "Jane Doe",
   email: "jane@example.com",
 });
@@ -94,21 +94,21 @@ import {
 } from "basebase-js";
 
 // Get a single document
-const userRef = doc(db, "users/user123");
+const userRef = doc(db, "myproject/users/user123");
 const userSnap = await getDoc(userRef);
 if (userSnap.exists) {
   console.log("User data:", userSnap.data());
 }
 
 // Get all documents in a collection
-const usersRef = collection(db, "users");
+const usersRef = collection(db, "myproject/users");
 const snapshot = await getDocs(usersRef);
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
 });
 
 // Add document with auto-generated ID
-const newUserRef = await addDoc(collection(db, "users"), {
+const newUserRef = await addDoc(collection(db, "myproject/users"), {
   name: "Jane Doe",
   email: "jane@example.com",
 });
@@ -121,13 +121,13 @@ await setDoc(doc(db, `users/${userId}`), {
 });
 
 // Update specific fields
-await updateDoc(doc(db, "users/user123"), {
+await updateDoc(doc(db, "myproject/users/user123"), {
   age: 31,
   lastLogin: new Date().toISOString(),
 });
 
 // Delete document
-await deleteDoc(doc(db, "users/user123"));
+await deleteDoc(doc(db, "myproject/users/user123"));
 ```
 
 ### 4. Path Structure & Naming Rules
@@ -149,7 +149,7 @@ To work with a different project, use the optional `projectName` parameter:
 
 ```typescript
 // Work with documents in another project
-const otherUserRef = doc(db, "users/user123", "otherProject");
+const otherUserRef = doc(db, "otherproject/users/user123");
 const otherUserData = await getDoc(otherUserRef);
 
 // Add to another project's collection
@@ -189,7 +189,7 @@ import {
 
 // Advanced queries
 const q = query(
-  collection(db, "users"),
+  collection(db, "myproject/users"),
   where("age", ">=", 18),
   where("status", "==", "active"),
   orderBy("name", "asc"),
@@ -265,10 +265,10 @@ Create a document reference. Paths are always relative to the specified project.
 
 ```typescript
 // Document in your project
-const docRef = doc(db, "users/user123");
+const docRef = doc(db, "myproject/users/user123");
 
 // Document in another project
-const otherDocRef = doc(db, "users/user123", "otherProject");
+const otherDocRef = doc(db, "otherproject/users/user123");
 ```
 
 #### `collection(db, path, projectName?)`
@@ -277,7 +277,7 @@ Create a collection reference. Paths are always relative to the specified projec
 
 ```typescript
 // Collection in your project
-const collectionRef = collection(db, "users");
+const collectionRef = collection(db, "myproject/users");
 
 // Collection in another project
 const otherCollectionRef = collection(db, "users", "otherProject");
@@ -288,7 +288,7 @@ const otherCollectionRef = collection(db, "users", "otherProject");
 Get a document snapshot.
 
 ```typescript
-const docRef = doc(db, "users/user123");
+const docRef = doc(db, "myproject/users/user123");
 const snapshot = await getDoc(docRef);
 if (snapshot.exists) {
   console.log("User data:", snapshot.data());
@@ -300,7 +300,7 @@ if (snapshot.exists) {
 Get all documents in a collection.
 
 ```typescript
-const collectionRef = collection(db, "users");
+const collectionRef = collection(db, "myproject/users");
 const snapshot = await getDocs(collectionRef);
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
@@ -312,7 +312,7 @@ snapshot.forEach((doc) => {
 Add a new document with auto-generated ID.
 
 ```typescript
-const docRef = await addDoc(collection(db, "users"), {
+const docRef = await addDoc(collection(db, "myproject/users"), {
   name: "Jane Doe",
   email: "jane@example.com",
 });
@@ -340,7 +340,7 @@ await setDoc(userRef, { age: 30 }, { merge: true });
 Update specific fields in a document.
 
 ```typescript
-const docRef = doc(db, "users/user123");
+const docRef = doc(db, "myproject/users/user123");
 await updateDoc(docRef, {
   age: 31,
   lastLogin: new Date().toISOString(),
@@ -352,7 +352,7 @@ await updateDoc(docRef, {
 Delete a document.
 
 ```typescript
-const docRef = doc(db, "users/user123");
+const docRef = doc(db, "myproject/users/user123");
 await deleteDoc(docRef);
 ```
 
@@ -364,7 +364,7 @@ Create a query with constraints.
 
 ```typescript
 const q = query(
-  collection(db, "users"),
+  collection(db, "myproject/users"),
   where("age", ">=", 18),
   orderBy("name"),
   limit(10)
@@ -441,7 +441,7 @@ import { requestCode, verifyCode, doc, getDoc, setDoc } from "basebase-js";
 await verifyCode("+1234567890", "123456", "bb_your_api_key");
 
 // 2. Then use database - no setup required
-const userRef = doc(db, "users/user123");
+const userRef = doc(db, "myproject/users/user123");
 const snapshot = await getDoc(userRef);
 ```
 
@@ -456,7 +456,7 @@ import { setDirectToken, doc, getDoc } from "basebase-js";
 setDirectToken("user_jwt_token_here");
 
 // Now use normally
-const userRef = doc(db, "users/user123");
+const userRef = doc(db, "myproject/users/user123");
 const snapshot = await getDoc(userRef);
 ```
 
@@ -473,7 +473,7 @@ interface User extends BasebaseDocumentData {
   age: number;
 }
 
-const userSnap: DocumentSnapshot = await getDoc(doc(db, "users/user123"));
+const userSnap: DocumentSnapshot = await getDoc(doc(db, "myproject/users/user123"));
 const userData = userSnap.data() as User;
 ```
 
@@ -512,7 +512,7 @@ import {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const userRef = doc(db, "users", "user123");
+const userRef = doc(db, "myproject/users/user123");
 const userSnap = await getDoc(userRef);
 ```
 
@@ -525,7 +525,7 @@ import { verifyCode, db, doc, getDoc } from "basebase-js";
 await verifyCode("+1234567890", "123456", "bb_your_api_key");
 
 // Then use database - no initialization needed!
-const userRef = doc(db, "users/user123");
+const userRef = doc(db, "myproject/users/user123");
 const userSnap = await getDoc(userRef);
 ```
 

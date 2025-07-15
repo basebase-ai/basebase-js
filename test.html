@@ -343,6 +343,7 @@
           <button onclick="updateDataAuto()">Update Document</button>
           <button onclick="loadDataAuto()">Load All Data</button>
           <button onclick="loadDocAuto()">Load Single Doc</button>
+          <button onclick="deleteDocAuto()">Delete Document</button>
           <button onclick="clearDataAuto()">Clear All Data</button>
 
           <div id="dataMessage"></div>
@@ -385,7 +386,7 @@
         try {
           const data = JSON.parse(jsonData);
           console.log("Creating collection reference for:", collectionName);
-          const collectionRef = collection(db, collectionName);
+          const collectionRef = collection(db, `test_project/${collectionName}`);
           console.log("Collection reference created:", {
             path: collectionRef.path,
             id: collectionRef.id,
@@ -444,7 +445,7 @@
         }
 
         try {
-          const snapshot = await getDocs(collection(db, collectionName));
+          const snapshot = await getDocs(collection(db, `test_project/${collectionName}`));
 
           displayData(snapshot);
           showMessage(
@@ -487,12 +488,12 @@
         }
 
         try {
-          const snapshot = await getDocs(collection(db, collectionName));
+          const snapshot = await getDocs(collection(db, `test_project/${collectionName}`));
 
           const deletePromises = [];
           snapshot.forEach((docSnap) => {
             deletePromises.push(
-              deleteDoc(doc(db, `${collectionName}/${docSnap.id}`))
+              deleteDoc(doc(db, `test_project/${collectionName}/${docSnap.id}`))
             );
           });
 
@@ -513,29 +514,6 @@
         }
       };
 
-      // Delete specific item using auto API
-      window.deleteItem = async function deleteItem(key) {
-        const { db, doc, deleteDoc } = window.BasebaseSDK;
-        const collectionName =
-          document.getElementById("collectionName").value.trim() || "test";
-
-        try {
-          await deleteDoc(doc(db, `${collectionName}/${key}`));
-
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Deleted "${key}" 🗑️`,
-            "success"
-          );
-          loadDataAuto(); // Refresh the data list
-        } catch (error) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            `Failed to delete "${key}": ${error.message}`,
-            "error"
-          );
-        }
-      };
 
       // ========================================
       // Additional Data Operations Functions
@@ -562,7 +540,7 @@
 
         try {
           const data = JSON.parse(jsonData);
-          const docRef = doc(db, `${collectionName}/${documentId}`);
+          const docRef = doc(db, `test_project/${collectionName}/${documentId}`);
           await setDoc(docRef, data);
 
           showMessage(
@@ -604,7 +582,7 @@
 
         try {
           const data = JSON.parse(updateDataStr);
-          const docRef = doc(db, `${collectionName}/${documentId}`);
+          const docRef = doc(db, `test_project/${collectionName}/${documentId}`);
           await updateDoc(docRef, data);
 
           showMessage(
@@ -642,7 +620,7 @@
         }
 
         try {
-          const docRef = doc(db, `${collectionName}/${documentId}`);
+          const docRef = doc(db, `test_project/${collectionName}/${documentId}`);
           const docSnap = await getDoc(docRef);
 
           if (docSnap.exists) {
@@ -653,11 +631,8 @@
             item.style.flexDirection = "column";
             item.style.alignItems = "flex-start";
             item.innerHTML = `
-              <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
+              <div style="display: flex; justify-content: flex-start; width: 100%; margin-bottom: 8px;">
                 <span class="data-key">ID: ${docSnap.id}</span>
-                <button class="delete-btn" onclick="deleteItem('${
-                  docSnap.id
-                }')">Delete</button>
               </div>
               <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
                 docSnap.data(),
@@ -687,6 +662,56 @@
             "error"
           );
           clearDataDisplay();
+        }
+      };
+
+      // Delete single document using auto API
+      window.deleteDocAuto = async function deleteDocAuto() {
+        const { db, doc, deleteDoc } = window.BasebaseSDK;
+
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+        const documentId = document.getElementById("documentId").value.trim();
+
+        if (!collectionName || !documentId) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter collection name and document ID",
+            "error"
+          );
+          return;
+        }
+
+        if (
+          !confirm(
+            `Are you sure you want to delete document "${documentId}" from collection "${collectionName}"?`
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const docRef = doc(db, `test_project/${collectionName}/${documentId}`);
+          await deleteDoc(docRef);
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Document "${documentId}" deleted successfully! 🗑️`,
+            "success"
+          );
+          
+          // Clear the document ID field
+          document.getElementById("documentId").value = "";
+          
+          // Refresh the data list
+          loadDataAuto();
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to delete document: ${error.message}`,
+            "error"
+          );
         }
       };
 
@@ -860,11 +885,8 @@
           item.style.flexDirection = "column";
           item.style.alignItems = "flex-start";
           item.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
+                    <div style="display: flex; justify-content: flex-start; width: 100%; margin-bottom: 8px;">
                       <span class="data-key">ID: ${doc.id}</span>
-                      <button class="delete-btn" onclick="deleteItem('${
-                        doc.id
-                      }')">Delete</button>
                     </div>
                     <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
                       data,
