@@ -10,6 +10,8 @@ import {
   BasebaseError,
   BASEBASE_ERROR_CODES,
   BasebaseApiResponse,
+  BasebaseUser,
+  BasebaseProject,
 } from "./types";
 
 // ========================================
@@ -26,9 +28,38 @@ export function toBasebaseValue(value: any): any {
 
 /**
  * Converts BaseBase format to JavaScript value
- * Returns the value as-is for compatibility
+ * Parses Firebase-like field values (stringValue, timestampValue, etc.)
  */
-export function fromBasebaseValue(value: any): any {
+export function fromBasebaseValue(value: BasebaseValue): any {
+  if (value.stringValue !== undefined) {
+    return value.stringValue;
+  }
+  if (value.integerValue !== undefined) {
+    return parseInt(value.integerValue, 10);
+  }
+  if (value.doubleValue !== undefined) {
+    return value.doubleValue;
+  }
+  if (value.booleanValue !== undefined) {
+    return value.booleanValue;
+  }
+  if (value.nullValue !== undefined) {
+    return null;
+  }
+  if (value.timestampValue !== undefined) {
+    return new Date(value.timestampValue);
+  }
+  if (value.arrayValue) {
+    return value.arrayValue.values.map(fromBasebaseValue);
+  }
+  if (value.mapValue) {
+    const result: any = {};
+    for (const [key, val] of Object.entries(value.mapValue.fields)) {
+      result[key] = fromBasebaseValue(val);
+    }
+    return result;
+  }
+  // Fallback for any other type
   return value;
 }
 
@@ -45,13 +76,20 @@ export function toBasebaseDocument(
 
 /**
  * Converts BaseBase document to JavaScript object
- * Expects raw JavaScript objects from BaseBase
+ * Parses Firebase-like document format with fields
  */
 export function fromBasebaseDocument(
-  doc: BasebaseDocumentData
+  doc: BasebaseDocument
 ): BasebaseDocumentData {
-  // Just return the data as-is for compatibility
-  return doc;
+  if (!doc.fields) {
+    return {};
+  }
+  
+  const result: BasebaseDocumentData = {};
+  for (const [key, value] of Object.entries(doc.fields)) {
+    result[key] = fromBasebaseValue(value);
+  }
+  return result;
 }
 
 // ========================================
@@ -409,6 +447,44 @@ export function deepClone<T>(obj: T): T {
  */
 export function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof document !== "undefined";
+}
+
+/**
+ * Parses a Firebase-like user object to BasebaseUser
+ */
+export function parseUserFromFields(rawUser: { name: string; fields: Record<string, BasebaseValue> }): BasebaseUser {
+  const fields = fromBasebaseDocument({ fields: rawUser.fields });
+  
+  // Extract ID from the name field (e.g., "users/user_id" -> "user_id")
+  const id = rawUser.name.split("/").pop() || "";
+  
+  return {
+    id,
+    name: fields.name || "",
+    phone: fields.phone || "",
+    createdAt: fields.createdAt,
+    updatedAt: fields.updatedAt
+  };
+}
+
+/**
+ * Parses a Firebase-like project object to BasebaseProject
+ */
+export function parseProjectFromFields(rawProject: { name: string; fields: Record<string, BasebaseValue> }): BasebaseProject {
+  const fields = fromBasebaseDocument({ fields: rawProject.fields });
+  
+  // Extract ID from the name field (e.g., "projects/project_id" -> "project_id")
+  const id = rawProject.name.split("/").pop() || "";
+  
+  return {
+    id,
+    name: fields.displayName || fields.name || "",
+    displayName: fields.displayName,
+    description: fields.description,
+    ownerId: fields.ownerId,
+    createdAt: fields.createdAt,
+    updatedAt: fields.updatedAt
+  };
 }
 
 /**

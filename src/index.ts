@@ -130,6 +130,7 @@ export {
   isBrowser,
   getNestedProperty,
 } from "./utils";
+import { setBasebaseHost } from "./types";
 
 // ========================================
 // Type Exports
@@ -195,7 +196,7 @@ export type {
 // Constants
 // ========================================
 
-export { DEFAULT_BASE_URL, BASEBASE_ERROR_CODES } from "./types";
+export { DEFAULT_BASE_URL, BASEBASE_ERROR_CODES, setBasebaseHost } from "./types";
 
 // ========================================
 // Default Export for Convenient Imports
@@ -292,6 +293,9 @@ const basebase = {
   setDirectToken,
   getDirectToken,
   removeDirectToken,
+
+  // Configuration
+  setBasebaseHost,
 
   // Advanced: Manual app management (for multi-tenant apps)
   initializeApp,

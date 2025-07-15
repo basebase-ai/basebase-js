@@ -406,7 +406,7 @@ class DocumentSnapshotImpl implements DocumentSnapshot {
     this.ref = ref;
     this.id = ref.id;
     this.exists = exists;
-    this._data = document ? fromBasebaseDocument(document) : undefined;
+    this._data = document || undefined;
   }
 
   /**

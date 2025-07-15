@@ -9,14 +9,15 @@ import {
   RequestCodeResponse,
   VerifyCodeRequest,
   VerifyCodeResponse,
+  RawVerifyCodeResponse,
   BasebaseUser,
   BasebaseProject,
   AuthState,
   BasebaseError,
   BASEBASE_ERROR_CODES,
-  DEFAULT_BASE_URL,
+  getGlobalBaseUrl,
 } from "./types";
-import { makeHttpRequest, isBrowser } from "./utils";
+import { makeHttpRequest, isBrowser, parseUserFromFields, parseProjectFromFields } from "./utils";
 
 // ========================================
 // Constants
@@ -291,7 +292,7 @@ export function validateStoredToken(): boolean {
 export async function requestCode(
   name: string,
   phone: string,
-  baseUrl: string = DEFAULT_BASE_URL
+  baseUrl?: string
 ): Promise<RequestCodeResponse> {
   if (!name || !phone) {
     throw new BasebaseError(
@@ -306,8 +307,9 @@ export async function requestCode(
   };
 
   try {
+    const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
     const response = await makeHttpRequest<RequestCodeResponse>(
-      `${baseUrl}/requestCode`,
+      `${effectiveBaseUrl}/requestCode`,
       {
         method: "POST",
         body: request,
@@ -337,7 +339,7 @@ export async function verifyCode(
   phone: string,
   code: string,
   projectApiKey: string,
-  baseUrl: string = DEFAULT_BASE_URL
+  baseUrl?: string
 ): Promise<VerifyCodeResponse> {
   if (!phone || !code || !projectApiKey) {
     throw new BasebaseError(
@@ -353,14 +355,25 @@ export async function verifyCode(
   };
 
   try {
-    const response = await makeHttpRequest<VerifyCodeResponse>(
-      `${baseUrl}/verifyCode`,
+    const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
+    const rawResponse = await makeHttpRequest<RawVerifyCodeResponse>(
+      `${effectiveBaseUrl}/verifyCode`,
       {
         method: "POST",
         body: request,
         timeout: 10000,
       }
     );
+
+    // Parse the Firebase-like response format
+    const parsedUser = parseUserFromFields(rawResponse.user);
+    const parsedProject = parseProjectFromFields(rawResponse.project);
+    
+    const response: VerifyCodeResponse = {
+      token: rawResponse.token,
+      user: parsedUser,
+      project: parsedProject
+    };
 
     // Store the token, user data, and project information
     if (response.token && response.user && response.project) {

@@ -245,6 +245,23 @@
       </div>
 
       <div class="content">
+        <!-- Server Configuration Section -->
+        <div class="section config-section">
+          <h2>⚙️ Server Configuration</h2>
+          <div class="form-group">
+            <label for="serverHost">Server Host:</label>
+            <input
+              type="text"
+              id="serverHost"
+              class="config-input"
+              placeholder="https://app.basebase.us/"
+              value="https://app.basebase.us/"
+            />
+          </div>
+          <button onclick="updateServerHost()">Update Server Host</button>
+          <div id="serverMessage"></div>
+        </div>
+
         <!-- Authentication Section -->
         <div class="section">
           <h2>🔐 Authentication</h2>
@@ -793,6 +810,58 @@
           showMessage(
             document.getElementById("directMessage"),
             `Failed to delete document: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // ========================================
+      // Server Configuration Functions
+      // ========================================
+      
+      // Update server host
+      window.updateServerHost = function updateServerHost() {
+        const serverHost = document.getElementById("serverHost").value.trim();
+        
+        if (!serverHost) {
+          showMessage(
+            document.getElementById("serverMessage"),
+            "Please enter a server host",
+            "error"
+          );
+          return;
+        }
+        
+        // Validate URL format
+        try {
+          new URL(serverHost);
+        } catch (error) {
+          showMessage(
+            document.getElementById("serverMessage"),
+            "Please enter a valid URL (e.g., https://app.basebase.us/)",
+            "error"
+          );
+          return;
+        }
+        
+        try {
+          // Update the global base URL
+          window.BasebaseSDK.setBasebaseHost(serverHost);
+          
+          showMessage(
+            document.getElementById("serverMessage"),
+            `Server host updated to: ${serverHost}`,
+            "success"
+          );
+          
+          // Clear auth status since we're connecting to a potentially different server
+          updateAuthStatus();
+          clearDataDisplay();
+          
+        } catch (error) {
+          showMessage(
+            document.getElementById("serverMessage"),
+            `Failed to update server host: ${error.message}`,
             "error"
           );
         }

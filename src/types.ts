@@ -13,6 +13,7 @@ export interface BasebaseValue {
   doubleValue?: number;
   booleanValue?: boolean;
   nullValue?: null;
+  timestampValue?: string;
   arrayValue?: {
     values: BasebaseValue[];
   };
@@ -63,13 +64,34 @@ export interface BasebaseUser {
   id: string;
   name: string;
   phone: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface BasebaseProject {
   id: string;
   name: string;
+  displayName?: string;
+  description?: string;
+  ownerId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
+// Raw response format from server (Firebase-like)
+export interface RawVerifyCodeResponse {
+  token: string;
+  user: {
+    name: string;
+    fields: Record<string, BasebaseValue>;
+  };
+  project: {
+    name: string;
+    fields: Record<string, BasebaseValue>;
+  };
+}
+
+// Parsed response format for application use
 export interface VerifyCodeResponse {
   token: string;
   user: BasebaseUser;
@@ -265,7 +287,18 @@ export type PartialWithFieldValue<T> =
 // Constants
 // ========================================
 
-export const DEFAULT_BASE_URL = "https://app.basebase.us";
+// Global base URL that can be updated
+let GLOBAL_BASE_URL = "https://app.basebase.us";
+
+export const DEFAULT_BASE_URL = GLOBAL_BASE_URL;
+
+export function setBasebaseHost(url: string) {
+  GLOBAL_BASE_URL = url;
+}
+
+export function getGlobalBaseUrl(): string {
+  return GLOBAL_BASE_URL;
+}
 
 export const BASEBASE_ERROR_CODES = {
   PERMISSION_DENIED: "permission-denied",
