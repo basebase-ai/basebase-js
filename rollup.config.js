@@ -51,6 +51,7 @@ export default [
       globals: {
         "js-cookie": "Cookies",
       },
+      exports: "named", // Add this to handle mixed exports
     },
     external,
     plugins,

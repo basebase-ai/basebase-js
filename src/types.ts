@@ -39,7 +39,6 @@ export interface BasebaseDocumentData {
 
 export interface BasebaseConfig {
   projectId?: string;
-  apiKey: string;
   baseUrl?: string;
   token?: string; // JWT token for server environments
 }
@@ -100,6 +99,7 @@ export interface VerifyCodeResponse {
 
 export interface AuthState {
   user: BasebaseUser | null;
+  project: BasebaseProject | null;
   token: string | null;
   isAuthenticated: boolean;
 }
@@ -116,7 +116,6 @@ export interface BasebaseApp {
 export interface Basebase {
   app: BasebaseApp;
   projectId: string;
-  apiKey: string;
   baseUrl: string;
 }
 
@@ -288,7 +287,7 @@ export type PartialWithFieldValue<T> =
 // ========================================
 
 // Global base URL that can be updated
-let GLOBAL_BASE_URL = "https://app.basebase.us";
+let GLOBAL_BASE_URL = "https://api.basebase.us";
 
 export const DEFAULT_BASE_URL = GLOBAL_BASE_URL;
 

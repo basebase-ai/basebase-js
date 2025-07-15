@@ -254,8 +254,8 @@
               type="text"
               id="serverHost"
               class="config-input"
-              placeholder="https://app.basebase.us/"
-              value="https://app.basebase.us/"
+              placeholder="https://api.basebase.us/"
+              value="https://api.basebase.us/"
             />
           </div>
           <button onclick="updateServerHost()">Update Server Host</button>
@@ -303,7 +303,7 @@
 
         <!-- Data Operations Section -->
         <div class="section">
-          <h2>📝 Data Operations (Auto API)</h2>
+          <h2>📝 Data Operations</h2>
 
           <div class="form-group">
             <label for="collectionName">Collection Name:</label>
@@ -315,6 +315,10 @@
             />
           </div>
           <div class="form-group">
+            <label for="documentId">Document ID (optional):</label>
+            <input type="text" id="documentId" placeholder="custom_id" />
+          </div>
+          <div class="form-group">
             <label for="jsonData">JSON Data:</label>
             <textarea
               id="jsonData"
@@ -324,66 +328,27 @@
 {"name": "John Doe", "age": 30, "timestamp": "2024-01-01T00:00:00.000Z"}</textarea
             >
           </div>
+          <div class="form-group">
+            <label for="updateData">Update Data (for updateDoc):</label>
+            <textarea
+              id="updateData"
+              placeholder='{"age": 31, "lastUpdated": "2024-01-02T00:00:00.000Z"}'
+              style="height: 80px; font-family: monospace; font-size: 13px"
+            >
+{"age": 31, "lastUpdated": "2024-01-02T00:00:00.000Z"}</textarea
+            >
+          </div>
           <button onclick="addDataAuto()">Add Document</button>
+          <button onclick="setDataAuto()">Set Document</button>
+          <button onclick="updateDataAuto()">Update Document</button>
           <button onclick="loadDataAuto()">Load All Data</button>
+          <button onclick="loadDocAuto()">Load Single Doc</button>
           <button onclick="clearDataAuto()">Clear All Data</button>
 
           <div id="dataMessage"></div>
 
           <div id="dataList" class="data-list" style="margin-top: 15px">
             <!-- Data items will be populated here -->
-          </div>
-        </div>
-
-        <!-- Direct-by-Path Operations Section -->
-        <div class="section new-api-section">
-          <h2>
-            🎯 Direct-by-Path Operations
-            <span class="badge badge-new">New</span>
-          </h2>
-          <p style="margin-bottom: 15px; color: #2d3748; line-height: 1.5">
-            Use super convenient functions that work directly with paths - no
-            references needed! <strong>New:</strong> Document and collection names now support flexible naming with URL-safe characters (a-z, A-Z, 0-9, _, -) up to 24 characters. Paths are relative to your project.
-          </p>
-
-          <div class="form-group">
-            <label for="directPath">Document Path (relative to your project):</label>
-            <input
-              type="text"
-              id="directPath"
-              placeholder="users/ben_wen"
-              value="users/ben_wen"
-            />
-          </div>
-          <div class="form-group">
-            <label for="directData">JSON Data:</label>
-            <textarea
-              id="directData"
-              placeholder='{"name": "John Doe", "email": "john@example.com"}'
-              style="height: 80px; font-family: monospace; font-size: 13px"
-            >
-{"name": "John Doe", "email": "john@example.com", "age": 30}</textarea
-            >
-          </div>
-
-          <button onclick="setDocByPath()">Set Document</button>
-          <button onclick="getDocByPath()">Get Document</button>
-          <button onclick="updateDocByPath()">Update Document</button>
-          <button onclick="deleteDocByPath()">Delete Document</button>
-          
-          <div style="margin-top: 15px; padding: 10px; background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 6px;">
-            <strong style="color: #22543d;">Quick Test Examples (New Flexible Naming):</strong>
-            <div style="margin-top: 8px; font-family: monospace; font-size: 12px; color: #2d3748;">
-              • <button onclick="testPath('users/ben_wen')" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-family: monospace; font-size: 12px;">users/ben_wen</button> (underscores allowed)<br>
-              • <button onclick="testPath('posts/post-123')" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-family: monospace; font-size: 12px;">posts/post-123</button> (hyphens allowed)<br>
-              • <button onclick="testPath('items/item_abc_2024')" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-family: monospace; font-size: 12px;">items/item_abc_2024</button> (mixed chars)<br>
-              • <button onclick="testPath('test/simple')" style="background: none; border: none; color: #667eea; text-decoration: underline; cursor: pointer; font-family: monospace; font-size: 12px;">test/simple</button> (basic example)
-            </div>
-          </div>
-
-          <div id="directMessage"></div>
-          <div id="directResult" class="data-list" style="margin-top: 15px">
-            <!-- Results will be populated here -->
           </div>
         </div>
       </div>
@@ -396,20 +361,12 @@
     <script src="./dist/index.umd.js"></script>
     <script>
       // ========================================
-      // Auto-Initializing API Functions (New)
+      // Data Operations Functions
       // ========================================
 
       // Add document using auto API
       window.addDataAuto = async function addDataAuto() {
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
+        const { db, collection, addDoc } = window.BasebaseSDK;
 
         const collectionName = document
           .getElementById("collectionName")
@@ -427,12 +384,15 @@
 
         try {
           const data = JSON.parse(jsonData);
+          console.log("Creating collection reference for:", collectionName);
+          const collectionRef = collection(db, collectionName);
+          console.log("Collection reference created:", {
+            path: collectionRef.path,
+            id: collectionRef.id,
+            projectId: db.projectId,
+          });
 
-          // Use the new auto API - no basebase instance needed!
-          const docRef = await window.BasebaseSDK.addDocToCollection(
-            collectionName,
-            data
-          );
+          const docRef = await addDoc(collectionRef, data);
 
           showMessage(
             document.getElementById("dataMessage"),
@@ -444,6 +404,12 @@
             '{"name": "John Doe", "age": 30, "timestamp": "2024-01-01T00:00:00.000Z"}';
           loadDataAuto(); // Refresh the data list
         } catch (error) {
+          console.error("Full error details:", {
+            error,
+            message: error.message,
+            stack: error.stack,
+            code: error.code,
+          });
           if (error.message.includes("JSON")) {
             showMessage(
               document.getElementById("dataMessage"),
@@ -462,11 +428,7 @@
 
       // Load data using auto API
       window.loadDataAuto = async function loadDataAuto() {
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          clearDataDisplay();
-          return;
-        }
+        const { db, collection, getDocs } = window.BasebaseSDK;
 
         const collectionName = document
           .getElementById("collectionName")
@@ -482,15 +444,12 @@
         }
 
         try {
-          // Use the new auto API - no basebase instance needed!
-          const snapshot = await window.BasebaseSDK.getDocsFromCollection(
-            collectionName
-          );
+          const snapshot = await getDocs(collection(db, collectionName));
 
           displayData(snapshot);
           showMessage(
             document.getElementById("dataMessage"),
-            `Loaded ${snapshot.size} items using auto API 🚀`,
+            `Loaded ${snapshot.size} items 🚀`,
             "success"
           );
         } catch (error) {
@@ -505,6 +464,7 @@
 
       // Clear data using auto API
       window.clearDataAuto = async function clearDataAuto() {
+        const { db, collection, getDocs, doc, deleteDoc } = window.BasebaseSDK;
         const collectionName = document
           .getElementById("collectionName")
           .value.trim();
@@ -514,16 +474,6 @@
             `Are you sure you want to delete all data in "${collectionName}"?`
           )
         ) {
-          return;
-        }
-
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("dataMessage"),
-            "Please authenticate first",
-            "error"
-          );
           return;
         }
 
@@ -537,16 +487,12 @@
         }
 
         try {
-          // Use the new auto API
-          const snapshot = await window.BasebaseSDK.getDocsFromCollection(
-            collectionName
-          );
+          const snapshot = await getDocs(collection(db, collectionName));
 
-          // Delete all documents using the new auto API
           const deletePromises = [];
-          snapshot.forEach((doc) => {
+          snapshot.forEach((docSnap) => {
             deletePromises.push(
-              window.BasebaseSDK.deleteDocByPath(`${collectionName}/${doc.id}`)
+              deleteDoc(doc(db, `${collectionName}/${docSnap.id}`))
             );
           });
 
@@ -554,7 +500,7 @@
 
           showMessage(
             document.getElementById("dataMessage"),
-            `Deleted ${snapshot.size} items using auto API 🗑️`,
+            `Deleted ${snapshot.size} items 🗑️`,
             "success"
           );
           clearDataDisplay();
@@ -569,16 +515,16 @@
 
       // Delete specific item using auto API
       window.deleteItem = async function deleteItem(key) {
+        const { db, doc, deleteDoc } = window.BasebaseSDK;
         const collectionName =
           document.getElementById("collectionName").value.trim() || "test";
 
         try {
-          // Use the new auto API
-          await window.BasebaseSDK.deleteDocByPath(`${collectionName}/${key}`);
+          await deleteDoc(doc(db, `${collectionName}/${key}`));
 
           showMessage(
             document.getElementById("dataMessage"),
-            `Deleted "${key}" using auto API 🗑️`,
+            `Deleted "${key}" 🗑️`,
             "success"
           );
           loadDataAuto(); // Refresh the data list
@@ -592,27 +538,23 @@
       };
 
       // ========================================
-      // Direct-by-Path API Functions (New)
+      // Additional Data Operations Functions
       // ========================================
 
-      window.setDocByPath = async function setDocByPath() {
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("directMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
+      // Set document using auto API
+      window.setDataAuto = async function setDataAuto() {
+        const { db, doc, setDoc } = window.BasebaseSDK;
 
-        const path = document.getElementById("directPath").value.trim();
-        const jsonData = document.getElementById("directData").value.trim();
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+        const documentId = document.getElementById("documentId").value.trim();
+        const jsonData = document.getElementById("jsonData").value.trim();
 
-        if (!path || !jsonData) {
+        if (!collectionName || !documentId || !jsonData) {
           showMessage(
-            document.getElementById("directMessage"),
-            "Please enter document path and JSON data",
+            document.getElementById("dataMessage"),
+            "Please enter collection name, document ID, and JSON data",
             "error"
           );
           return;
@@ -620,209 +562,142 @@
 
         try {
           const data = JSON.parse(jsonData);
-
-          // Use the super convenient direct-by-path API
-          await window.BasebaseSDK.setDocByPath(path, data);
+          const docRef = doc(db, `${collectionName}/${documentId}`);
+          await setDoc(docRef, data);
 
           showMessage(
-            document.getElementById("directMessage"),
-            `Document set at "${path}" successfully! 🎯`,
+            document.getElementById("dataMessage"),
+            `Document set successfully! ID: ${documentId}`,
             "success"
           );
+          loadDataAuto(); // Refresh the data list
         } catch (error) {
-          if (error.message.includes("JSON")) {
-            showMessage(
-              document.getElementById("directMessage"),
-              "Invalid JSON format",
-              "error"
-            );
-          } else {
-            showMessage(
-              document.getElementById("directMessage"),
-              `Failed to set document: ${error.message}`,
-              "error"
-            );
-          }
+          console.error("Full error details:", error);
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to set document: ${error.message}`,
+            "error"
+          );
         }
       };
 
-      window.getDocByPath = async function getDocByPath() {
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("directMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
+      // Update document using auto API
+      window.updateDataAuto = async function updateDataAuto() {
+        const { db, doc, updateDoc } = window.BasebaseSDK;
 
-        const path = document.getElementById("directPath").value.trim();
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+        const documentId = document.getElementById("documentId").value.trim();
+        const updateDataStr = document
+          .getElementById("updateData")
+          .value.trim();
 
-        if (!path) {
+        if (!collectionName || !documentId || !updateDataStr) {
           showMessage(
-            document.getElementById("directMessage"),
-            "Please enter document path",
+            document.getElementById("dataMessage"),
+            "Please enter collection name, document ID, and update data",
             "error"
           );
           return;
         }
 
         try {
-          // Use the super convenient direct-by-path API
-          const docSnap = await window.BasebaseSDK.getDocByPath(path);
+          const data = JSON.parse(updateDataStr);
+          const docRef = doc(db, `${collectionName}/${documentId}`);
+          await updateDoc(docRef, data);
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Document updated successfully! ID: ${documentId}`,
+            "success"
+          );
+          loadDataAuto(); // Refresh the data list
+        } catch (error) {
+          console.error("Full error details:", error);
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to update document: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
+      // Load single document using auto API
+      window.loadDocAuto = async function loadDocAuto() {
+        const { db, doc, getDoc } = window.BasebaseSDK;
+
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+        const documentId = document.getElementById("documentId").value.trim();
+
+        if (!collectionName || !documentId) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter collection name and document ID",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const docRef = doc(db, `${collectionName}/${documentId}`);
+          const docSnap = await getDoc(docRef);
 
           if (docSnap.exists) {
-            const data = docSnap.data();
-            const resultEl = document.getElementById("directResult");
-            resultEl.innerHTML = `
-              <div class="data-item" style="flex-direction: column; align-items: flex-start;">
-                <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
-                  <span class="data-key">Path: ${path}</span>
-                  <span style="color: #38a169; font-weight: 500;">Found 🎯</span>
-                </div>
-                <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
-                  data,
-                  null,
-                  2
-                )}</pre>
+            const dataList = document.getElementById("dataList");
+            dataList.innerHTML = "";
+            const item = document.createElement("div");
+            item.className = "data-item";
+            item.style.flexDirection = "column";
+            item.style.alignItems = "flex-start";
+            item.innerHTML = `
+              <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 8px;">
+                <span class="data-key">ID: ${docSnap.id}</span>
+                <button class="delete-btn" onclick="deleteItem('${
+                  docSnap.id
+                }')">Delete</button>
               </div>
+              <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
+                docSnap.data(),
+                null,
+                2
+              )}</pre>
             `;
+            dataList.appendChild(item);
 
             showMessage(
-              document.getElementById("directMessage"),
-              `Document found at "${path}" using direct API! 🎯`,
+              document.getElementById("dataMessage"),
+              "Document loaded successfully! 🚀",
               "success"
             );
           } else {
-            document.getElementById("directResult").innerHTML =
-              '<div class="data-item" style="justify-content: center; color: #e53e3e;">Document not found</div>';
             showMessage(
-              document.getElementById("directMessage"),
+              document.getElementById("dataMessage"),
               "Document not found",
               "error"
             );
+            clearDataDisplay();
           }
         } catch (error) {
           showMessage(
-            document.getElementById("directMessage"),
-            `Failed to get document: ${error.message}`,
+            document.getElementById("dataMessage"),
+            `Failed to load document: ${error.message}`,
             "error"
           );
-          document.getElementById("directResult").innerHTML =
-            '<div class="data-item" style="justify-content: center; color: #e53e3e;">Error loading document</div>';
-        }
-      };
-
-      window.updateDocByPath = async function updateDocByPath() {
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("directMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
-
-        const path = document.getElementById("directPath").value.trim();
-        const jsonData = document.getElementById("directData").value.trim();
-
-        if (!path || !jsonData) {
-          showMessage(
-            document.getElementById("directMessage"),
-            "Please enter document path and JSON data",
-            "error"
-          );
-          return;
-        }
-
-        try {
-          const data = JSON.parse(jsonData);
-
-          // Use the super convenient direct-by-path API
-          await window.BasebaseSDK.updateDocByPath(path, data);
-
-          showMessage(
-            document.getElementById("directMessage"),
-            `Document updated at "${path}" successfully! 🎯`,
-            "success"
-          );
-        } catch (error) {
-          if (error.message.includes("JSON")) {
-            showMessage(
-              document.getElementById("directMessage"),
-              "Invalid JSON format",
-              "error"
-            );
-          } else {
-            showMessage(
-              document.getElementById("directMessage"),
-              `Failed to update document: ${error.message}`,
-              "error"
-            );
-          }
-        }
-      };
-
-      window.deleteDocByPath = async function deleteDocByPath() {
-        const authState = window.BasebaseSDK.getAuthState();
-        if (!authState.isAuthenticated) {
-          showMessage(
-            document.getElementById("directMessage"),
-            "Please authenticate first",
-            "error"
-          );
-          return;
-        }
-
-        const path = document.getElementById("directPath").value.trim();
-
-        if (!path) {
-          showMessage(
-            document.getElementById("directMessage"),
-            "Please enter document path",
-            "error"
-          );
-          return;
-        }
-
-        if (
-          !confirm(`Are you sure you want to delete the document at "${path}"?`)
-        ) {
-          return;
-        }
-
-        try {
-          // Use the super convenient direct-by-path API
-          await window.BasebaseSDK.deleteDocByPath(path);
-
-          showMessage(
-            document.getElementById("directMessage"),
-            `Document deleted at "${path}" successfully! 🗑️`,
-            "success"
-          );
-
-          // Clear the result display
-          document.getElementById("directResult").innerHTML =
-            '<div class="data-item" style="justify-content: center; color: #a0aec0;">No document loaded</div>';
-        } catch (error) {
-          showMessage(
-            document.getElementById("directMessage"),
-            `Failed to delete document: ${error.message}`,
-            "error"
-          );
+          clearDataDisplay();
         }
       };
 
       // ========================================
       // Server Configuration Functions
       // ========================================
-      
+
       // Update server host
       window.updateServerHost = function updateServerHost() {
         const serverHost = document.getElementById("serverHost").value.trim();
-        
+
         if (!serverHost) {
           showMessage(
             document.getElementById("serverMessage"),
@@ -831,33 +706,32 @@
           );
           return;
         }
-        
+
         // Validate URL format
         try {
           new URL(serverHost);
         } catch (error) {
           showMessage(
             document.getElementById("serverMessage"),
-            "Please enter a valid URL (e.g., https://app.basebase.us/)",
+            "Please enter a valid URL (e.g., https://api.basebase.us/)",
             "error"
           );
           return;
         }
-        
+
         try {
           // Update the global base URL
           window.BasebaseSDK.setBasebaseHost(serverHost);
-          
+
           showMessage(
             document.getElementById("serverMessage"),
             `Server host updated to: ${serverHost}`,
             "success"
           );
-          
+
           // Clear auth status since we're connecting to a potentially different server
           updateAuthStatus();
           clearDataDisplay();
-          
         } catch (error) {
           showMessage(
             document.getElementById("serverMessage"),
@@ -878,7 +752,11 @@
 
         if (authState.isAuthenticated) {
           statusEl.className = "status authenticated";
-          statusEl.textContent = `Authenticated as ${authState.user?.name} (${authState.user?.phone})`;
+          statusEl.textContent = `Authenticated as ${authState.user?.name} (${
+            authState.user?.phone
+          }) | Project: ${
+            authState.project?.displayName || authState.project?.name
+          }`;
         } else {
           statusEl.className = "status unauthenticated";
           statusEl.textContent = "Not authenticated";
@@ -900,8 +778,7 @@
         }
 
         try {
-          // No need to initialize - just use the function directly!
-          const response = await window.BasebaseSDK.requestCode(name, phone);
+          await window.BasebaseSDK.requestCode(name, phone);
           showMessage(
             document.getElementById("authMessage"),
             "Verification code sent! 📱",
@@ -932,13 +809,7 @@
         }
 
         try {
-          // No need to initialize - just use the function directly!
-          const result = await window.BasebaseSDK.verifyCode(
-            phone,
-            code,
-            apiKey
-          );
-
+          await window.BasebaseSDK.verifyCode(phone, code, apiKey);
           showMessage(
             document.getElementById("authMessage"),
             "Authentication successful! 🎉",
@@ -965,28 +836,6 @@
           "success"
         );
         clearDataDisplay();
-      };
-
-      // ========================================
-      // Quick Test Function for New Naming
-      // ========================================
-      
-      window.testPath = function testPath(path) {
-        document.getElementById("directPath").value = path;
-        const docId = path.split('/').pop();
-        document.getElementById("directData").value = JSON.stringify({
-          name: "Test User",
-          documentId: docId,
-          collection: path.split('/')[0],
-          timestamp: new Date().toISOString(),
-          note: "Testing new flexible naming: URL-safe chars (a-z, A-Z, 0-9, _, -) up to 24 chars"
-        }, null, 2);
-        
-        showMessage(
-          document.getElementById("directMessage"),
-          `Path set to "${path}" - this tests the new flexible naming rules! Try "Set Document" first.`,
-          "success"
-        );
       };
 
       // ========================================
@@ -1044,10 +893,6 @@
       window.addEventListener("load", function () {
         updateAuthStatus();
         clearDataDisplay();
-
-        // Initialize empty states for new sections
-        document.getElementById("directResult").innerHTML =
-          '<div class="data-item" style="justify-content: center; color: #a0aec0;">No document loaded</div>';
       });
     </script>
   </body>

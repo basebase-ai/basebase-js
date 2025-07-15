@@ -20,9 +20,6 @@ import {
   UpdateData,
 } from "./types";
 import {
-  makeHttpRequest,
-  toBasebaseDocument,
-  fromBasebaseDocument,
   validatePath,
   validateDocumentId,
   generateId,
@@ -31,7 +28,7 @@ import {
   validateProjectId,
   isValidProjectId,
 } from "./utils";
-import { getAuthHeader } from "./auth";
+import { makeDocumentRequest } from "./document_utils";
 
 // ========================================
 // Document Reference Implementation
@@ -67,12 +64,9 @@ class DocumentReferenceImpl implements DocumentReference {
    */
   async get(): Promise<DocumentSnapshot> {
     try {
-      const response = await makeHttpRequest<BasebaseDocumentData>(
+      const response = await makeDocumentRequest<BasebaseDocumentData>(
         `${this.basebase.baseUrl}/${this.getApiPath()}`,
-        {
-          method: "GET",
-          headers: getAuthHeader(),
-        }
+        "GET"
       );
 
       return new DocumentSnapshotImpl(this, response, true);
@@ -101,78 +95,50 @@ class DocumentReferenceImpl implements DocumentReference {
       );
     }
 
-    const document = toBasebaseDocument(data);
-    const url = `${this.basebase.baseUrl}/${this.getApiPath()}`;
+    let requestData = data;
 
-    try {
-      let requestData = document;
-
-      // Handle merge options
-      if (options?.merge || options?.mergeFields) {
-        if (options.merge) {
-          // For merge: true, we need to get existing data and merge it
-          try {
-            const existingDoc = await this.get();
-            if (existingDoc.exists) {
-              const existingData = existingDoc.data();
-              if (existingData) {
-                const mergedData = { ...existingData, ...data };
-                requestData = toBasebaseDocument(mergedData);
-              }
-            }
-          } catch (error) {
-            // If document doesn't exist, just use the new data
-            if (
-              !(
-                error instanceof BasebaseError &&
-                error.code === BASEBASE_ERROR_CODES.NOT_FOUND
-              )
-            ) {
-              throw error;
-            }
-          }
-        } else if (options.mergeFields) {
-          // For mergeFields, only merge specified fields
-          try {
-            const existingDoc = await this.get();
-            if (existingDoc.exists) {
-              const existingData = existingDoc.data();
-              if (existingData) {
-                const mergedData = { ...existingData };
-                for (const field of options.mergeFields) {
-                  if (field in data) {
-                    mergedData[field] = data[field];
-                  }
+    // Handle merge options
+    if (options?.merge || options?.mergeFields) {
+      try {
+        const existingDoc = await this.get();
+        if (existingDoc.exists) {
+          const existingData = existingDoc.data();
+          if (existingData) {
+            if (options.merge) {
+              requestData = { ...existingData, ...data };
+            } else if (options.mergeFields) {
+              requestData = { ...existingData };
+              for (const field of options.mergeFields) {
+                if (field in data) {
+                  requestData[field] = data[field];
                 }
-                requestData = toBasebaseDocument(mergedData);
               }
-            }
-          } catch (error) {
-            // If document doesn't exist, just use the new data
-            if (
-              !(
-                error instanceof BasebaseError &&
-                error.code === BASEBASE_ERROR_CODES.NOT_FOUND
-              )
-            ) {
-              throw error;
             }
           }
         }
+      } catch (error) {
+        // If document doesn't exist, just use the new data
+        if (
+          !(
+            error instanceof BasebaseError &&
+            error.code === BASEBASE_ERROR_CODES.NOT_FOUND
+          )
+        ) {
+          throw error;
+        }
       }
-
-      const response = await makeHttpRequest<BasebaseDocumentData>(url, {
-        method: "PUT",
-        headers: getAuthHeader(),
-        body: requestData,
-      });
-
-      return {
-        writeTime: response.updateTime || new Date().toISOString(),
-      };
-    } catch (error) {
-      throw error;
     }
+
+    const response = await makeDocumentRequest<BasebaseDocumentData>(
+      `${this.basebase.baseUrl}/${this.getApiPath()}`,
+      "PUT",
+      requestData,
+      options
+    );
+
+    return {
+      writeTime: response.updateTime || new Date().toISOString(),
+    };
   }
 
   /**
@@ -186,42 +152,29 @@ class DocumentReferenceImpl implements DocumentReference {
       );
     }
 
-    const document = toBasebaseDocument(data);
-    const url = `${this.basebase.baseUrl}/${this.getApiPath()}`;
+    const response = await makeDocumentRequest<BasebaseDocumentData>(
+      `${this.basebase.baseUrl}/${this.getApiPath()}`,
+      "PATCH",
+      data
+    );
 
-    try {
-      const response = await makeHttpRequest<BasebaseDocumentData>(url, {
-        method: "PATCH",
-        headers: getAuthHeader(),
-        body: document,
-      });
-
-      return {
-        writeTime: response.updateTime || new Date().toISOString(),
-      };
-    } catch (error) {
-      throw error;
-    }
+    return {
+      writeTime: response.updateTime || new Date().toISOString(),
+    };
   }
 
   /**
    * Deletes the document
    */
   async delete(): Promise<WriteResult> {
-    const url = `${this.basebase.baseUrl}/${this.getApiPath()}`;
+    await makeDocumentRequest(
+      `${this.basebase.baseUrl}/${this.getApiPath()}`,
+      "DELETE"
+    );
 
-    try {
-      await makeHttpRequest(url, {
-        method: "DELETE",
-        headers: getAuthHeader(),
-      });
-
-      return {
-        writeTime: new Date().toISOString(),
-      };
-    } catch (error) {
-      throw error;
-    }
+    return {
+      writeTime: new Date().toISOString(),
+    };
   }
 
   /**
@@ -277,12 +230,9 @@ class CollectionReferenceImpl implements CollectionReference {
    */
   async get(): Promise<QuerySnapshot> {
     try {
-      const response = await makeHttpRequest<BasebaseListResponse>(
+      const response = await makeDocumentRequest<BasebaseListResponse>(
         `${this.basebase.baseUrl}/${this.getApiPath()}`,
-        {
-          method: "GET",
-          headers: getAuthHeader(),
-        }
+        "GET"
       );
 
       const docs = response.documents.map((doc, index) => {
@@ -335,26 +285,18 @@ class CollectionReferenceImpl implements CollectionReference {
       );
     }
 
-    const document = toBasebaseDocument(data);
-    const url = `${this.basebase.baseUrl}/${this.getApiPath()}`;
+    const response = await makeDocumentRequest<BasebaseDocumentData>(
+      `${this.basebase.baseUrl}/${this.getApiPath()}`,
+      "POST",
+      data
+    );
 
-    try {
-      // POST to collection endpoint without documentId - server assigns ID
-      const response = await makeHttpRequest<BasebaseDocumentData>(url, {
-        method: "POST",
-        headers: getAuthHeader(),
-        body: document,
-      });
+    // Extract the server-assigned ID from the response
+    const serverId = this.extractDocumentId(response, 0);
 
-      // Extract the server-assigned ID from the response
-      const serverId = this.extractDocumentId(response, 0);
-
-      // Create a new document reference with the server-assigned ID
-      const docPath = `${this.path}/${serverId}`;
-      return new DocumentReferenceImpl(this.basebase, docPath, serverId, this);
-    } catch (error) {
-      throw error;
-    }
+    // Create a new document reference with the server-assigned ID
+    const docPath = `${this.path}/${serverId}`;
+    return new DocumentReferenceImpl(this.basebase, docPath, serverId, this);
   }
 
   /**
@@ -486,7 +428,7 @@ class QuerySnapshotImpl implements QuerySnapshot {
  * Creates a document reference
  */
 export function doc(
-  basebase: Basebase,
+  db: Basebase,
   path: string,
   projectName?: string
 ): DocumentReference {
@@ -494,7 +436,7 @@ export function doc(
 
   // Always use the explicitly provided project, or default to current project
   // Never try to auto-detect project from path
-  const targetProjectId = projectName || basebase.projectId;
+  const targetProjectId = projectName || db.projectId;
 
   const pathSegments = path.split("/");
 
@@ -503,7 +445,7 @@ export function doc(
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
       "Document path must include both collection and document ID (e.g., 'users/user123'). " +
-        "To specify a different project, use the projectName parameter: doc(basebase, 'users/user123', 'projectName')"
+        "To specify a different project, use the projectName parameter: doc(db, 'users/user123', 'projectName')"
     );
   }
 
@@ -518,24 +460,19 @@ export function doc(
   validateDocumentId(documentId);
 
   const collectionPath = pathSegments.slice(0, -1).join("/");
-  const collectionRef = collection(basebase, collectionPath, projectName);
+  const collectionRef = collection(db, collectionPath, projectName);
 
   // Build the full path for API calls - path is always relative to the specified project
   const fullPath = `${targetProjectId}/${path}`;
 
-  return new DocumentReferenceImpl(
-    basebase,
-    fullPath,
-    documentId,
-    collectionRef
-  );
+  return new DocumentReferenceImpl(db, fullPath, documentId, collectionRef);
 }
 
 /**
  * Creates a collection reference
  */
 export function collection(
-  basebase: Basebase,
+  db: Basebase,
   path: string,
   projectName?: string
 ): CollectionReference {
@@ -543,7 +480,7 @@ export function collection(
 
   // Always use the explicitly provided project, or default to current project
   // Never try to auto-detect project from path
-  const targetProjectId = projectName || basebase.projectId;
+  const targetProjectId = projectName || db.projectId;
 
   const pathSegments = path.split("/");
 
@@ -552,20 +489,20 @@ export function collection(
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
       "Collection path must include a collection name (e.g., 'users' or 'users/user123/posts'). " +
-        "To specify a different project, use the projectName parameter: collection(basebase, 'users', 'projectName')"
+        "To specify a different project, use the projectName parameter: collection(db, 'users', 'projectName')"
     );
   }
 
   let parent: DocumentReference | undefined;
   if (pathSegments.length > 1) {
     const parentPath = pathSegments.slice(0, -1).join("/");
-    parent = doc(basebase, parentPath, projectName);
+    parent = doc(db, parentPath, projectName);
   }
 
   // Build the full path for API calls - path is always relative to the specified project
   const fullPath = `${targetProjectId}/${path}`;
 
-  return new CollectionReferenceImpl(basebase, fullPath, parent);
+  return new CollectionReferenceImpl(db, fullPath, parent);
 }
 
 /**

@@ -31,34 +31,7 @@ yarn add basebase-js
 
 ## 🛠 Quick Start
 
-### 1. Start Using Immediately - No Setup Required!
-
-```typescript
-import { doc, getDoc, collection, getDocs, addDoc } from "basebase-js";
-
-// Get a single document - no setup needed!
-const userRef = doc("users/user123");
-const userSnap = await getDoc(userRef);
-if (userSnap.exists) {
-  console.log("User data:", userSnap.data());
-}
-
-// Get all documents in a collection
-const usersRef = collection("users");
-const snapshot = await getDocs(usersRef);
-snapshot.forEach((doc) => {
-  console.log(doc.id, doc.data());
-});
-
-// Add a new document
-const newUserRef = await addDoc(collection("users"), {
-  name: "Jane Doe",
-  email: "jane@example.com",
-});
-console.log("New user ID:", newUserRef.id);
-```
-
-### 2. Authentication (Only When You Need It)
+### 1. Authentication First
 
 ```typescript
 import { requestCode, verifyCode } from "basebase-js";
@@ -66,41 +39,50 @@ import { requestCode, verifyCode } from "basebase-js";
 // Request SMS verification code
 const response = await requestCode("john_doe", "+1234567890");
 
-// Verify the code and get JWT token (API key only needed here)
+// Verify the code and get JWT token
 const authResult = await verifyCode(
   "+1234567890",
   "123456",
-  "bb_your_api_key_here" // API key only needed during auth
+  "bb_your_api_key_here"
 );
 console.log("User:", authResult.user);
 console.log("Token:", authResult.token);
 
-// Token is automatically stored in cookies and localStorage
-// After this, all other functions work without any setup!
+// Token is automatically stored - now you can use the database!
 ```
 
-### 3. Server/Node.js Environments (If Applicable)
-
-For server environments without browser storage, configure with JWT token and project ID:
+### 2. Start Using Database - No Setup Required!
 
 ```typescript
-import { configureSingletonBasebase, doc, getDoc } from "basebase-js";
+import { db, doc, getDoc, collection, getDocs, addDoc } from "basebase-js";
 
-// Configure with JWT token and project ID
-configureSingletonBasebase({
-  token: "user_jwt_token_here",
-  projectId: "your_project_name",
+// Get a single document - no setup needed after auth!
+const userRef = doc(db, "users/user123");
+const userSnap = await getDoc(userRef);
+if (userSnap.exists) {
+  console.log("User data:", userSnap.data());
+}
+
+// Get all documents in a collection
+const usersRef = collection(db, "users");
+const snapshot = await getDocs(usersRef);
+snapshot.forEach((doc) => {
+  console.log(doc.id, doc.data());
 });
 
-// Now use normally
-const userRef = doc("users/user123");
-const userSnap = await getDoc(userRef);
+// Add a new document
+const newUserRef = await addDoc(collection(db, "users"), {
+  name: "Jane Doe",
+  email: "jane@example.com",
+});
+console.log("New user ID:", newUserRef.id);
 ```
 
-### 4. Document Operations
+### 3. Document Operations
 
 ```typescript
 import {
+  db,
   doc,
   collection,
   getDoc,
@@ -112,43 +94,43 @@ import {
 } from "basebase-js";
 
 // Get a single document
-const userRef = doc("users/user123");
+const userRef = doc(db, "users/user123");
 const userSnap = await getDoc(userRef);
 if (userSnap.exists) {
   console.log("User data:", userSnap.data());
 }
 
 // Get all documents in a collection
-const usersRef = collection("users");
+const usersRef = collection(db, "users");
 const snapshot = await getDocs(usersRef);
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
 });
 
 // Add document with auto-generated ID
-const newUserRef = await addDoc(collection("users"), {
+const newUserRef = await addDoc(collection(db, "users"), {
   name: "Jane Doe",
   email: "jane@example.com",
 });
 
 // Set document with specific ID (URL-safe string under 24 characters)
 const userId = "ben_wen";
-await setDoc(doc(`users/${userId}`), {
+await setDoc(doc(db, `users/${userId}`), {
   name: "John Doe",
   email: "john@example.com",
 });
 
 // Update specific fields
-await updateDoc(doc("users/user123"), {
+await updateDoc(doc(db, "users/user123"), {
   age: 31,
-  "profile.lastLogin": new Date().toISOString(),
+  lastLogin: new Date().toISOString(),
 });
 
 // Delete document
-await deleteDoc(doc("users/user123"));
+await deleteDoc(doc(db, "users/user123"));
 ```
 
-### 5. Path Structure & Naming Rules
+### 4. Path Structure & Naming Rules
 
 **Project and Document IDs**: BaseBase allows flexible naming for projects and documents using URL-safe strings up to 24 characters long:
 
@@ -167,11 +149,11 @@ To work with a different project, use the optional `projectName` parameter:
 
 ```typescript
 // Work with documents in another project
-const otherUserRef = doc("users/user123", "otherProject");
+const otherUserRef = doc(db, "users/user123", "otherProject");
 const otherUserData = await getDoc(otherUserRef);
 
 // Add to another project's collection
-await addDoc(collection("users", "otherProject"), {
+await addDoc(collection(db, "users", "otherProject"), {
   name: "Cross-project user",
 });
 
@@ -179,27 +161,35 @@ await addDoc(collection("users", "otherProject"), {
 const userId = "user_ben";
 
 // Set base user data in main project
-await setDoc(doc(`users/${userId}`), {
+await setDoc(doc(db, `users/${userId}`), {
   name: "John Doe",
   email: "john@example.com",
   phone: "+1234567890",
 });
 
 // Set app-specific data in another project using same ID
-await setDoc(doc(`users/${userId}`, "news_app"), {
+await setDoc(doc(db, `users/${userId}`, "news_app"), {
   sources: ["techcrunch", "ars-technica"],
   preferences: { theme: "dark", notifications: true },
 });
 ```
 
-### 6. Querying Data
+### 5. Querying Data
 
 ```typescript
-import { query, where, orderBy, limit, getDocs, collection } from "basebase-js";
+import {
+  db,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+  collection,
+} from "basebase-js";
 
 // Advanced queries
 const q = query(
-  collection("users"),
+  collection(db, "users"),
   where("age", ">=", 18),
   where("status", "==", "active"),
   orderBy("name", "asc"),
@@ -212,58 +202,7 @@ querySnapshot.forEach((doc) => {
 });
 ```
 
-### 7. Direct-by-Path Convenience Functions
-
-```typescript
-import {
-  getDocByPath,
-  setDocByPath,
-  updateDocByPath,
-  deleteDocByPath,
-  addDocToCollection,
-} from "basebase-js";
-
-// Get document directly by path
-const userSnap = await getDocByPath("users/user123");
-
-// Set document directly by path
-await setDocByPath("users/user123", { name: "John Doe" });
-
-// Update document directly by path
-await updateDocByPath("users/user123", { age: 31 });
-
-// Delete document directly by path
-await deleteDocByPath("users/user123");
-
-// Add document to collection directly by path
-const newDoc = await addDocToCollection("users", { name: "Jane Doe" });
-```
-
 ## 📚 API Reference
-
-### Auto-Initializing Singleton
-
-The SDK works immediately without any setup for browser applications. JWT tokens are automatically managed after authentication.
-
-#### Server Environment Configuration
-
-For server/Node.js environments, configure with JWT token and project ID:
-
-```typescript
-import { configureSingletonBasebase } from "basebase-js";
-
-// Configure with JWT token and project ID (required for server environments)
-configureSingletonBasebase({
-  token: "user_jwt_token_here",
-  projectId: "your_project_name",
-});
-```
-
-Or via environment variable:
-
-```bash
-BASEBASE_TOKEN=user_jwt_token_here
-```
 
 ### Authentication
 
@@ -301,30 +240,47 @@ Sign out the current user.
 signOut();
 ```
 
+#### `onAuthStateChanged(callback)`
+
+Listen for authentication state changes.
+
+```typescript
+const unsubscribe = onAuthStateChanged((authState) => {
+  if (authState.isAuthenticated) {
+    console.log("User signed in:", authState.user);
+  } else {
+    console.log("User signed out");
+  }
+});
+
+// Later, stop listening
+unsubscribe();
+```
+
 ### Document Operations
 
-#### `doc(path, projectName?)`
+#### `doc(db, path, projectName?)`
 
 Create a document reference. Paths are always relative to the specified project.
 
 ```typescript
 // Document in your project
-const docRef = doc("users/user123");
+const docRef = doc(db, "users/user123");
 
 // Document in another project
-const otherDocRef = doc("users/user123", "otherProject");
+const otherDocRef = doc(db, "users/user123", "otherProject");
 ```
 
-#### `collection(path, projectName?)`
+#### `collection(db, path, projectName?)`
 
 Create a collection reference. Paths are always relative to the specified project.
 
 ```typescript
 // Collection in your project
-const collectionRef = collection("users");
+const collectionRef = collection(db, "users");
 
 // Collection in another project
-const otherCollectionRef = collection("users", "otherProject");
+const otherCollectionRef = collection(db, "users", "otherProject");
 ```
 
 #### `getDoc(docRef)`
@@ -332,7 +288,7 @@ const otherCollectionRef = collection("users", "otherProject");
 Get a document snapshot.
 
 ```typescript
-const docRef = doc("users/user123");
+const docRef = doc(db, "users/user123");
 const snapshot = await getDoc(docRef);
 if (snapshot.exists) {
   console.log("User data:", snapshot.data());
@@ -344,7 +300,7 @@ if (snapshot.exists) {
 Get all documents in a collection.
 
 ```typescript
-const collectionRef = collection("users");
+const collectionRef = collection(db, "users");
 const snapshot = await getDocs(collectionRef);
 snapshot.forEach((doc) => {
   console.log(doc.id, doc.data());
@@ -356,7 +312,7 @@ snapshot.forEach((doc) => {
 Add a new document with auto-generated ID.
 
 ```typescript
-const docRef = await addDoc(collection("users"), {
+const docRef = await addDoc(collection(db, "users"), {
   name: "Jane Doe",
   email: "jane@example.com",
 });
@@ -369,7 +325,7 @@ Set a document with a specific ID, optionally merging with existing data.
 
 ```typescript
 const userId = "john_doe";
-const userRef = doc(`users/${userId}`);
+const userRef = doc(db, `users/${userId}`);
 await setDoc(userRef, {
   name: "John Doe",
   email: "john@example.com",
@@ -384,10 +340,10 @@ await setDoc(userRef, { age: 30 }, { merge: true });
 Update specific fields in a document.
 
 ```typescript
-const docRef = doc("users/user123");
+const docRef = doc(db, "users/user123");
 await updateDoc(docRef, {
   age: 31,
-  "profile.lastLogin": new Date().toISOString(),
+  lastLogin: new Date().toISOString(),
 });
 ```
 
@@ -396,7 +352,7 @@ await updateDoc(docRef, {
 Delete a document.
 
 ```typescript
-const docRef = doc("users/user123");
+const docRef = doc(db, "users/user123");
 await deleteDoc(docRef);
 ```
 
@@ -408,7 +364,7 @@ Create a query with constraints.
 
 ```typescript
 const q = query(
-  collection("users"),
+  collection(db, "users"),
   where("age", ">=", 18),
   orderBy("name"),
   limit(10)
@@ -445,48 +401,6 @@ Limit the number of results.
 limit(10);
 ```
 
-### Direct-by-Path Functions
-
-#### `getDocByPath(path, projectName?)`
-
-Get a document directly by path.
-
-```typescript
-const userSnap = await getDocByPath("users/user123");
-```
-
-#### `setDocByPath(path, data, options?, projectName?)`
-
-Set a document directly by path.
-
-```typescript
-await setDocByPath("users/user123", { name: "John Doe" });
-```
-
-#### `updateDocByPath(path, data, projectName?)`
-
-Update a document directly by path.
-
-```typescript
-await updateDocByPath("users/user123", { age: 31 });
-```
-
-#### `deleteDocByPath(path, projectName?)`
-
-Delete a document directly by path.
-
-```typescript
-await deleteDocByPath("users/user123");
-```
-
-#### `addDocToCollection(collectionPath, data, projectName?)`
-
-Add a document to a collection directly by path.
-
-```typescript
-const docRef = await addDocToCollection("users", { name: "Jane Doe" });
-```
-
 ## 🧪 Testing
 
 A simple test webapp is included at `test.html` to demonstrate SDK functionality:
@@ -501,58 +415,48 @@ A simple test webapp is included at `test.html` to demonstrate SDK functionality
 2. **Open the test webapp:**
    Open `test.html` in your browser (requires internet connection for js-cookie CDN). The webapp includes:
 
-   - Automatic SDK initialization (no manual setup!)
    - Phone verification authentication flow
-   - Key-value data operations on a "test" collection
+   - Document operations on a "test" collection
    - Real-time UI updates
 
 3. **Test workflow:**
-   - Set your API key in the environment or configuration
+   - Set your API key in the test interface
    - Request SMS verification code
    - Verify code to authenticate
-   - Add/view/delete key-value pairs
+   - Add/view/update/delete documents
    - Test sign out functionality
 
-> **Note:** The test webapp uses the UMD build (`dist/index.umd.js`) for browser compatibility and loads js-cookie from CDN. It defaults to `https://app.basebase.us`. Adjust the configuration for your BaseBase server instance.
+> **Note:** The test webapp uses the UMD build (`dist/index.umd.js`) for browser compatibility and loads js-cookie from CDN. It defaults to `https://api.basebase.us`. Adjust the configuration for your BaseBase server instance.
 
 ## 🔧 Configuration
 
 ### Browser Applications
 
-**No configuration needed!** Just import and use:
+**Authentication required first:**
 
 ```typescript
-import { doc, getDoc, setDoc } from "basebase-js";
+import { requestCode, verifyCode, doc, getDoc, setDoc } from "basebase-js";
 
-// Works immediately - no setup required
-const userRef = doc("users/user123");
+// 1. Authenticate first
+await verifyCode("+1234567890", "123456", "bb_your_api_key");
+
+// 2. Then use database - no setup required
+const userRef = doc(db, "users/user123");
 const snapshot = await getDoc(userRef);
 ```
 
 ### Server/Node.js Applications
 
-For server environments, configure with JWT token and project ID:
-
-**Option 1: Environment Variable**
-
-```bash
-# .env file
-BASEBASE_TOKEN=user_jwt_token_here
-```
-
-**Option 2: Configuration (Recommended)**
+For server environments, you can use an existing JWT token:
 
 ```typescript
-import { configureSingletonBasebase, doc, getDoc } from "basebase-js";
+import { setDirectToken, doc, getDoc } from "basebase-js";
 
-// Configure with JWT token and project ID
-configureSingletonBasebase({
-  token: "user_jwt_token_here",
-  projectId: "your_project_name",
-});
+// Set the user's JWT token directly (for server environments)
+setDirectToken("user_jwt_token_here");
 
 // Now use normally
-const userRef = doc("users/user123");
+const userRef = doc(db, "users/user123");
 const snapshot = await getDoc(userRef);
 ```
 
@@ -569,7 +473,7 @@ interface User extends BasebaseDocumentData {
   age: number;
 }
 
-const userSnap: DocumentSnapshot = await getDoc(doc("users/user123"));
+const userSnap: DocumentSnapshot = await getDoc(doc(db, "users/user123"));
 const userData = userSnap.data() as User;
 ```
 
@@ -588,25 +492,6 @@ const userData = userSnap.data() as User;
 3. User enters code to get JWT token
 4. Token is stored in cookies and localStorage
 5. Token is automatically included in API requests
-
-### Token Management
-
-```typescript
-import { getToken, isTokenExpired, validateStoredToken } from "basebase-js";
-
-// Check if user has valid token
-if (validateStoredToken()) {
-  console.log("User is authenticated");
-} else {
-  console.log("User needs to sign in");
-}
-
-// Get current token
-const token = getToken();
-if (token && !isTokenExpired(token)) {
-  console.log("Token is valid");
-}
-```
 
 ## 🚀 Migration from Firebase
 
@@ -634,20 +519,21 @@ const userSnap = await getDoc(userRef);
 ### After (BaseBase)
 
 ```typescript
-import { doc, getDoc } from "basebase-js";
+import { verifyCode, db, doc, getDoc } from "basebase-js";
 
-// Set environment variable: BASEBASE_API_KEY=bb_your_api_key_here
+// Authenticate first
+await verifyCode("+1234567890", "123456", "bb_your_api_key");
 
-// No initialization needed!
-const userRef = doc("users/user123");
+// Then use database - no initialization needed!
+const userRef = doc(db, "users/user123");
 const userSnap = await getDoc(userRef);
 ```
 
 ### Key Differences
 
-1. **No initialization required** - BaseBase auto-initializes from environment variables
-2. **Authentication**: BaseBase uses phone verification instead of email/password
-3. **Simpler API**: No need to pass database instance to every function call
+1. **Authentication required first** - BaseBase uses phone verification
+2. **No initialization required** - BaseBase exports a ready-to-use `db` object after auth
+3. **Path format**: BaseBase uses slash-separated paths instead of separate arguments (e.g., `"users/user123"` vs `"users", "user123"`)
 
 ## 📱 Browser Support
 
@@ -674,73 +560,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔄 Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for a list of changes and version history.
-
-## Server Environment Authentication
-
-For server environments (Node.js, Deno, etc.) where browser cookies and localStorage are not available, you need to provide the user's JWT token manually.
-
-### Method 1: Environment Variable
-
-```bash
-# Set user's JWT token in your environment
-BASEBASE_TOKEN=user_jwt_token_here
-```
-
-```typescript
-import { doc, getDoc } from "basebase-js";
-
-// Token automatically used from environment
-const userRef = doc("users/user123");
-const snapshot = await getDoc(userRef);
-```
-
-### Method 2: Configuration Setup (Recommended)
-
-```typescript
-import { configureSingletonBasebase, doc, getDoc } from "basebase-js";
-
-// Configure with JWT token and project ID
-configureSingletonBasebase({
-  token: "user_jwt_token_here",
-  projectId: "your_project_name",
-});
-
-// Now use normally
-const userRef = doc("users/user123");
-const snapshot = await getDoc(userRef);
-```
-
-### Advanced: Manual App Management (Multi-Tenant)
-
-For advanced use cases like multi-tenant applications, you can still use the original manual initialization:
-
-```typescript
-import { initializeApp, getBasebase, doc, getDoc } from "basebase-js";
-
-// Initialize multiple apps
-const tenantAApp = initializeApp(
-  {
-    apiKey: "bb_tenant_a_api_key",
-    projectId: "tenant-a",
-  },
-  "tenant-a"
-);
-
-const tenantBApp = initializeApp(
-  {
-    apiKey: "bb_tenant_b_api_key",
-    projectId: "tenant-b",
-  },
-  "tenant-b"
-);
-
-// Get basebase instances
-const tenantADb = getBasebase(tenantAApp);
-const tenantBDb = getBasebase(tenantBApp);
-
-// Use with specific tenants
-const tenantAUserRef = doc(tenantADb, "users/user123");
-const tenantBUserRef = doc(tenantBDb, "users/user123");
-```
-
-However, for most applications, the auto-initializing singleton approach is recommended for simplicity.

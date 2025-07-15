@@ -4,31 +4,20 @@
  */
 
 import {
-  BasebaseConfig,
   BasebaseApp,
+  BasebaseConfig,
   Basebase,
   BasebaseError,
   BASEBASE_ERROR_CODES,
-  DEFAULT_BASE_URL,
 } from "./types";
-import {
-  validateStoredToken,
-  getProject,
-  setDirectToken,
-  getDirectToken,
-} from "./auth";
-import { getProjectIdFromApiKey } from "./utils";
+import { getProject, getToken, getAuthState } from "./auth";
 
-// ========================================
+// Constants
+export const DEFAULT_BASE_URL = "https://api.basebase.us";
+
 // App Registry
-// ========================================
-
 const appRegistry = new Map<string, BasebaseApp>();
 const basebaseRegistry = new Map<string, Basebase>();
-
-// ========================================
-// App Management Functions
-// ========================================
 
 /**
  * Initializes a BaseBase app with the given configuration
@@ -37,79 +26,27 @@ export function initializeApp(
   config: BasebaseConfig,
   name: string = "[DEFAULT]"
 ): BasebaseApp {
-  // Validate configuration
-  if (!config) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "BaseBase configuration is required"
-    );
-  }
-
-  // API key is required unless we have a token (for authenticated users)
-  if (!config.apiKey && !config.token) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "API key is required in BaseBase configuration"
-    );
-  }
-
-  // Validate API key format (if provided)
-  if (
-    config.apiKey &&
-    (typeof config.apiKey !== "string" || config.apiKey.trim() === "")
-  ) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "API key must be a non-empty string"
-    );
-  }
-
-  // Get project ID from stored authentication data first, then fall back to config or API key
-  const storedProject = getProject();
-  let projectId = storedProject?.name || config.projectId;
-
-  // Only try to extract project ID from API key if we have a real API key (not a dummy one)
-  if (!projectId && config.apiKey && config.apiKey !== "authenticated") {
-    try {
-      projectId = getProjectIdFromApiKey(config.apiKey);
-    } catch (error) {
-      // If we can't extract project ID from API key but have a token, that's okay
-      if (!config.token) {
-        throw error;
-      }
-    }
-  }
-
-  // If we still don't have a project ID and have a token, use a default
-  if (!projectId && config.token) {
-    projectId = "authenticated-project";
-  }
-
-  // Check if app already exists
   if (appRegistry.has(name)) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.ALREADY_EXISTS,
-      `BaseBase app named "${name}" already exists`
+      `App named "${name}" already exists`
     );
   }
 
-  // Create normalized configuration
-  const normalizedConfig: BasebaseConfig = {
-    projectId: projectId,
-    apiKey: config.apiKey.trim(),
-    baseUrl: config.baseUrl?.trim() || DEFAULT_BASE_URL,
-    token: config.token, // Include token for server environments
+  validateConfig(config);
+
+  const normalizedConfig = {
+    projectId: config.projectId,
+    baseUrl: config.baseUrl || DEFAULT_BASE_URL,
+    token: config.token,
   };
 
-  // Create app instance
   const app: BasebaseApp = {
     name,
     options: normalizedConfig,
   };
 
-  // Register the app
   appRegistry.set(name, app);
-
   return app;
 }
 
@@ -139,32 +76,23 @@ export function getApps(): BasebaseApp[] {
  */
 export function deleteApp(app: BasebaseApp): Promise<void> {
   return new Promise((resolve) => {
-    // Remove from registries
     appRegistry.delete(app.name);
     basebaseRegistry.delete(app.name);
-
     resolve();
   });
 }
-
-// ========================================
-// BaseBase Instance Management
-// ========================================
 
 /**
  * Gets a BaseBase instance for the given app
  */
 export function getBasebase(app?: BasebaseApp): Basebase {
-  // Use default app if none provided
   if (!app) {
     app = getApp();
   }
 
-  // Check if Basebase instance already exists
   let basebase = basebaseRegistry.get(app.name);
 
   if (!basebase) {
-    // Create new Basebase instance
     basebase = createBasebaseInstance(app);
     basebaseRegistry.set(app.name, basebase);
   }
@@ -176,33 +104,14 @@ export function getBasebase(app?: BasebaseApp): Basebase {
  * Creates a new BaseBase instance from an app
  */
 function createBasebaseInstance(app: BasebaseApp): Basebase {
-  // Set the token directly if provided in configuration (for server environments)
-  if (app.options.token) {
-    setDirectToken(app.options.token);
-  } else if (!getDirectToken()) {
-    // Only validate stored tokens if no direct token is already set
-    // This prevents removing user-provided tokens that may not be standard JWTs
-    validateStoredToken();
-  }
-
-  // Get project ID from stored authentication data first, then fall back to config or API key
-  const storedProject = getProject();
-  const projectId =
-    storedProject?.name ||
-    app.options.projectId ||
-    getProjectIdFromApiKey(app.options.apiKey);
-
-  return {
+  const instance: Basebase = {
     app,
-    projectId: projectId,
-    apiKey: app.options.apiKey,
+    projectId: app.options.projectId || getProject()?.name || "default",
     baseUrl: app.options.baseUrl || DEFAULT_BASE_URL,
   };
-}
 
-// ========================================
-// Configuration Validation Utilities
-// ========================================
+  return instance;
+}
 
 /**
  * Validates a BaseBase configuration object
@@ -212,18 +121,6 @@ export function validateConfig(config: BasebaseConfig): void {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
       "Configuration must be an object"
-    );
-  }
-
-  const requiredFields = ["apiKey"];
-  const missingFields = requiredFields.filter(
-    (field) => !config[field as keyof BasebaseConfig]
-  );
-
-  if (missingFields.length > 0) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      `Missing required configuration fields: ${missingFields.join(", ")}`
     );
   }
 
@@ -239,9 +136,9 @@ export function validateConfig(config: BasebaseConfig): void {
     }
   }
 
-  // Validate project ID format if provided (similar to Firebase project IDs)
+  // Validate project ID format if provided
   if (config.projectId) {
-    const projectIdRegex = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+    const projectIdRegex = /^[a-z0-9][a-z0-9_]*[a-z0-9]$/;
     if (config.projectId.length < 3 || config.projectId.length > 30) {
       throw new BasebaseError(
         BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
@@ -252,49 +149,40 @@ export function validateConfig(config: BasebaseConfig): void {
     if (!projectIdRegex.test(config.projectId)) {
       throw new BasebaseError(
         BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-        "Project ID must contain only lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen"
+        "Project ID must contain only lowercase letters, numbers, and underscores, and cannot start or end with an underscore"
       );
     }
   }
-
-  // Validate API key format (BaseBase API keys start with 'bb_')
-  if (!config.apiKey.startsWith("bb_")) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      'Invalid API key format. BaseBase API keys must start with "bb_"'
-    );
-  }
-
-  if (config.apiKey.length < 10) {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "API key appears to be too short"
-    );
-  }
-}
-
-// ========================================
-// Convenience Functions
-// ========================================
-
-/**
- * Initializes app and returns BaseBase instance in one call
- */
-export function initializeBasebase(
-  config: BasebaseConfig,
-  name?: string
-): Basebase {
-  validateConfig(config);
-  const app = initializeApp(config, name);
-  return getBasebase(app);
 }
 
 /**
- * Gets the default BaseBase instance
+ * Default BaseBase instance that requires authentication
+ * This provides a Firebase-like experience where you can import { db } directly
  */
-export function getDefaultBasebase(): Basebase {
-  return getBasebase();
-}
+export const db: Basebase = new Proxy({} as Basebase, {
+  get(target, prop) {
+    // Check if user is authenticated
+    const authState = getAuthState();
+    if (!authState.isAuthenticated || !authState.project) {
+      throw new BasebaseError(
+        BASEBASE_ERROR_CODES.UNAUTHENTICATED,
+        "You must be authenticated to use the database. Call verifyCode() first."
+      );
+    }
+
+    // Get or create the default instance
+    const defaultApp = hasApp()
+      ? getApp()
+      : initializeApp({
+          projectId: authState.project.id,
+          token: authState.token || undefined,
+          baseUrl: DEFAULT_BASE_URL,
+        });
+
+    const instance = getBasebase(defaultApp);
+    return instance[prop as keyof Basebase];
+  },
+});
 
 /**
  * Checks if an app with the given name exists
@@ -308,70 +196,7 @@ export function hasApp(name: string = "[DEFAULT]"): boolean {
  */
 export function getAppConfig(name: string = "[DEFAULT]"): BasebaseConfig {
   const app = getApp(name);
-  return { ...app.options }; // Return a copy to prevent mutation
-}
-
-// ========================================
-// Environment Detection
-// ========================================
-
-/**
- * Detects if we're running in a development environment
- */
-export function isDevelopment(): boolean {
-  // Check Node.js environment
-  try {
-    const processEnv = (globalThis as any).process?.env;
-    if (processEnv && processEnv.NODE_ENV === "development") {
-      return true;
-    }
-  } catch {
-    // Ignore if process is not available
-  }
-
-  // Check browser environment
-  if (typeof window !== "undefined") {
-    return (
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1" ||
-      window.location.hostname.startsWith("192.168.")
-    );
-  }
-
-  return false;
-}
-
-/**
- * Gets the appropriate base URL based on environment
- */
-export function getEnvironmentBaseUrl(): string {
-  if (isDevelopment()) {
-    return "https://app.basebase.us";
-  }
-
-  return DEFAULT_BASE_URL;
-}
-
-// ========================================
-// Error Recovery and Health Check
-// ========================================
-
-/**
- * Performs a health check on the BaseBase service
- */
-export async function healthCheck(baseUrl?: string): Promise<boolean> {
-  const url = baseUrl || DEFAULT_BASE_URL;
-
-  try {
-    const response = await fetch(`${url}/health`, {
-      method: "GET",
-      timeout: 5000,
-    } as RequestInit);
-
-    return response.ok;
-  } catch {
-    return false;
-  }
+  return { ...app.options };
 }
 
 /**

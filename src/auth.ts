@@ -17,7 +17,12 @@ import {
   BASEBASE_ERROR_CODES,
   getGlobalBaseUrl,
 } from "./types";
-import { makeHttpRequest, isBrowser, parseUserFromFields, parseProjectFromFields } from "./utils";
+import {
+  makeHttpRequest,
+  isBrowser,
+  parseUserFromFields,
+  parseProjectFromFields,
+} from "./utils";
 
 // ========================================
 // Constants
@@ -204,11 +209,13 @@ export function getProject(): BasebaseProject | null {
 export function getAuthState(): AuthState {
   const token = getToken();
   const user = getUser();
+  const project = getProject();
 
   return {
     token,
     user,
-    isAuthenticated: !!(token && user),
+    project,
+    isAuthenticated: !!(token && user && project),
   };
 }
 
@@ -368,11 +375,11 @@ export async function verifyCode(
     // Parse the Firebase-like response format
     const parsedUser = parseUserFromFields(rawResponse.user);
     const parsedProject = parseProjectFromFields(rawResponse.project);
-    
+
     const response: VerifyCodeResponse = {
       token: rawResponse.token,
       user: parsedUser,
-      project: parsedProject
+      project: parsedProject,
     };
 
     // Store the token, user data, and project information

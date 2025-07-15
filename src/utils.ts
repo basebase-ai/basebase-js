@@ -20,10 +20,44 @@ import {
 
 /**
  * Converts a JavaScript value to BaseBase format
- * Returns the value as-is for compatibility
  */
-export function toBasebaseValue(value: any): any {
-  return value;
+export function toBasebaseValue(value: any): BasebaseValue {
+  if (value === null) {
+    return { nullValue: null };
+  }
+  if (typeof value === "string") {
+    return { stringValue: value };
+  }
+  if (typeof value === "number") {
+    if (Number.isInteger(value)) {
+      return { integerValue: value.toString() };
+    }
+    return { doubleValue: value };
+  }
+  if (typeof value === "boolean") {
+    return { booleanValue: value };
+  }
+  if (value instanceof Date) {
+    return { timestampValue: value.toISOString() };
+  }
+  if (Array.isArray(value)) {
+    return {
+      arrayValue: {
+        values: value.map(toBasebaseValue),
+      },
+    };
+  }
+  if (typeof value === "object") {
+    return {
+      mapValue: {
+        fields: Object.fromEntries(
+          Object.entries(value).map(([k, v]) => [k, toBasebaseValue(v)])
+        ),
+      },
+    };
+  }
+  // Fallback for any other type
+  return { stringValue: String(value) };
 }
 
 /**
@@ -65,13 +99,15 @@ export function fromBasebaseValue(value: BasebaseValue): any {
 
 /**
  * Converts JavaScript object to BaseBase document format
- * Sends raw JavaScript objects to match expected format
  */
 export function toBasebaseDocument(
   data: BasebaseDocumentData
-): BasebaseDocumentData {
-  // Just return the data as-is for compatibility
-  return data;
+): BasebaseDocument {
+  return {
+    fields: Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [key, toBasebaseValue(value)])
+    ),
+  };
 }
 
 /**
@@ -84,7 +120,7 @@ export function fromBasebaseDocument(
   if (!doc.fields) {
     return {};
   }
-  
+
   const result: BasebaseDocumentData = {};
   for (const [key, value] of Object.entries(doc.fields)) {
     result[key] = fromBasebaseValue(value);
@@ -452,30 +488,36 @@ export function isBrowser(): boolean {
 /**
  * Parses a Firebase-like user object to BasebaseUser
  */
-export function parseUserFromFields(rawUser: { name: string; fields: Record<string, BasebaseValue> }): BasebaseUser {
+export function parseUserFromFields(rawUser: {
+  name: string;
+  fields: Record<string, BasebaseValue>;
+}): BasebaseUser {
   const fields = fromBasebaseDocument({ fields: rawUser.fields });
-  
+
   // Extract ID from the name field (e.g., "users/user_id" -> "user_id")
   const id = rawUser.name.split("/").pop() || "";
-  
+
   return {
     id,
     name: fields.name || "",
     phone: fields.phone || "",
     createdAt: fields.createdAt,
-    updatedAt: fields.updatedAt
+    updatedAt: fields.updatedAt,
   };
 }
 
 /**
  * Parses a Firebase-like project object to BasebaseProject
  */
-export function parseProjectFromFields(rawProject: { name: string; fields: Record<string, BasebaseValue> }): BasebaseProject {
+export function parseProjectFromFields(rawProject: {
+  name: string;
+  fields: Record<string, BasebaseValue>;
+}): BasebaseProject {
   const fields = fromBasebaseDocument({ fields: rawProject.fields });
-  
+
   // Extract ID from the name field (e.g., "projects/project_id" -> "project_id")
   const id = rawProject.name.split("/").pop() || "";
-  
+
   return {
     id,
     name: fields.displayName || fields.name || "",
@@ -483,7 +525,7 @@ export function parseProjectFromFields(rawProject: { name: string; fields: Recor
     description: fields.description,
     ownerId: fields.ownerId,
     createdAt: fields.createdAt,
-    updatedAt: fields.updatedAt
+    updatedAt: fields.updatedAt,
   };
 }
 
