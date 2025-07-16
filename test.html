@@ -350,11 +350,189 @@
           <button onclick="loadDocAuto()">Load Single Doc</button>
           <button onclick="deleteDocAuto()">Delete Document</button>
           <button onclick="clearDataAuto()">Clear All Data</button>
+          <button onclick="addSampleData()" style="background: #38a169">
+            🎯 Add Sample Data
+          </button>
 
           <div id="dataMessage"></div>
 
           <div id="dataList" class="data-list" style="margin-top: 15px">
             <!-- Data items will be populated here -->
+          </div>
+        </div>
+
+        <!-- Advanced Query Operations Section -->
+        <div class="section new-api-section">
+          <h2>
+            🔍 Advanced Query Operations
+            <span class="badge badge-new">New</span>
+          </h2>
+          <p style="margin-bottom: 15px; color: #4a5568; font-size: 14px">
+            Test the new structured query functionality with field filtering and
+            ordering.
+          </p>
+
+          <div class="form-group">
+            <label for="queryCollectionName">Collection Name:</label>
+            <input
+              type="text"
+              id="queryCollectionName"
+              placeholder="test"
+              value="test"
+            />
+          </div>
+
+          <!-- Where Clause Section -->
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-bottom: 15px;
+              border: 1px solid #cbd5e0;
+            "
+          >
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">
+              Where Clause (Filter)
+            </h4>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 120px 1fr;
+                gap: 10px;
+                align-items: end;
+              "
+            >
+              <div class="form-group" style="margin: 0">
+                <label for="whereField">Field:</label>
+                <input
+                  type="text"
+                  id="whereField"
+                  placeholder="age"
+                  value="age"
+                />
+              </div>
+              <div class="form-group" style="margin: 0">
+                <label for="whereOperator">Operator:</label>
+                <select
+                  id="whereOperator"
+                  style="
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #cbd5e0;
+                    border-radius: 6px;
+                    font-size: 14px;
+                  "
+                >
+                  <option value="==">=</option>
+                  <option value="!=">=</option>
+                  <option value="<"><</option>
+                  <option value="<="><=</option>
+                  <option value=">">></option>
+                  <option value=">=" selected>>=</option>
+                  <option value="array-contains">array-contains</option>
+                  <option value="in">in</option>
+                  <option value="not-in">not-in</option>
+                  <option value="array-contains-any">array-contains-any</option>
+                  <option value="matches">matches (regex)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin: 0">
+                <label for="whereValue">Value:</label>
+                <input
+                  type="text"
+                  id="whereValue"
+                  placeholder="18"
+                  value="18"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Order By Section -->
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-bottom: 15px;
+              border: 1px solid #cbd5e0;
+            "
+          >
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">Order By</h4>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 120px;
+                gap: 10px;
+                align-items: end;
+              "
+            >
+              <div class="form-group" style="margin: 0">
+                <label for="orderField">Field:</label>
+                <input
+                  type="text"
+                  id="orderField"
+                  placeholder="name"
+                  value="name"
+                />
+              </div>
+              <div class="form-group" style="margin: 0">
+                <label for="orderDirection">Direction:</label>
+                <select
+                  id="orderDirection"
+                  style="
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #cbd5e0;
+                    border-radius: 6px;
+                    font-size: 14px;
+                  "
+                >
+                  <option value="asc" selected>Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Limit Section -->
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-bottom: 15px;
+              border: 1px solid #cbd5e0;
+            "
+          >
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">Limit</h4>
+            <div class="form-group" style="margin: 0">
+              <label for="queryLimit">Max Results:</label>
+              <input
+                type="number"
+                id="queryLimit"
+                placeholder="10"
+                value="10"
+                min="1"
+                max="100"
+                style="width: 150px"
+              />
+            </div>
+          </div>
+
+          <button onclick="runStructuredQueryTest()">
+            🚀 Run Structured Query
+          </button>
+          <button onclick="runBasicQueryTest()">
+            📋 Run Basic Query (Legacy)
+          </button>
+          <button onclick="clearQueryFilters()">🧹 Clear Filters</button>
+
+          <div id="queryMessage"></div>
+
+          <div id="queryResults" class="data-list" style="margin-top: 15px">
+            <!-- Query results will be populated here -->
           </div>
         </div>
       </div>
@@ -370,9 +548,29 @@
       // Data Operations Functions
       // ========================================
 
+      // Get the appropriate database instance (custom or default)
+      window.getDbInstance = function getDbInstance() {
+        if (window.customBaseUrl) {
+          // For custom base URLs, create an explicit database instance
+          const authState = window.BasebaseSDK.getAuthState();
+          if (!authState.isAuthenticated || !authState.token) {
+            throw new Error(
+              "Must be authenticated to use custom database instance"
+            );
+          }
+          return window.BasebaseSDK.getDatabase({
+            token: authState.token,
+            baseUrl: window.customBaseUrl,
+          });
+        } else {
+          // For default base URL, use the global db object
+          return window.BasebaseSDK.db;
+        }
+      };
+
       // Add document using auto API
       window.addDataAuto = async function addDataAuto() {
-        const { db, collection, addDoc } = window.BasebaseSDK;
+        const { collection, addDoc } = window.BasebaseSDK;
 
         const collectionName = document
           .getElementById("collectionName")
@@ -390,6 +588,7 @@
 
         try {
           const data = JSON.parse(jsonData);
+          const db = getDbInstance();
           console.log("Creating collection reference for:", collectionName);
           const collectionRef = collection(
             db,
@@ -437,7 +636,7 @@
 
       // Load data using auto API
       window.loadDataAuto = async function loadDataAuto() {
-        const { db, collection, getDocs } = window.BasebaseSDK;
+        const { collection, getDocs } = window.BasebaseSDK;
 
         const collectionName = document
           .getElementById("collectionName")
@@ -453,6 +652,7 @@
         }
 
         try {
+          const db = getDbInstance();
           const snapshot = await getDocs(
             collection(db, `test_project/${collectionName}`)
           );
@@ -475,7 +675,7 @@
 
       // Clear data using auto API
       window.clearDataAuto = async function clearDataAuto() {
-        const { db, collection, getDocs, doc, deleteDoc } = window.BasebaseSDK;
+        const { collection, getDocs, doc, deleteDoc } = window.BasebaseSDK;
         const collectionName = document
           .getElementById("collectionName")
           .value.trim();
@@ -498,6 +698,7 @@
         }
 
         try {
+          const db = getDbInstance();
           const snapshot = await getDocs(
             collection(db, `test_project/${collectionName}`)
           );
@@ -532,7 +733,7 @@
 
       // Set document using auto API
       window.setDataAuto = async function setDataAuto() {
-        const { db, doc, setDoc } = window.BasebaseSDK;
+        const { doc, setDoc } = window.BasebaseSDK;
 
         const collectionName = document
           .getElementById("collectionName")
@@ -551,6 +752,7 @@
 
         try {
           const data = JSON.parse(jsonData);
+          const db = getDbInstance();
           const docRef = doc(
             db,
             `test_project/${collectionName}/${documentId}`
@@ -575,7 +777,7 @@
 
       // Update document using auto API
       window.updateDataAuto = async function updateDataAuto() {
-        const { db, doc, updateDoc } = window.BasebaseSDK;
+        const { doc, updateDoc } = window.BasebaseSDK;
 
         const collectionName = document
           .getElementById("collectionName")
@@ -596,6 +798,7 @@
 
         try {
           const data = JSON.parse(updateDataStr);
+          const db = getDbInstance();
           const docRef = doc(
             db,
             `test_project/${collectionName}/${documentId}`
@@ -620,7 +823,7 @@
 
       // Load single document using auto API
       window.loadDocAuto = async function loadDocAuto() {
-        const { db, doc, getDoc } = window.BasebaseSDK;
+        const { doc, getDoc } = window.BasebaseSDK;
 
         const collectionName = document
           .getElementById("collectionName")
@@ -637,6 +840,7 @@
         }
 
         try {
+          const db = getDbInstance();
           const docRef = doc(
             db,
             `test_project/${collectionName}/${documentId}`
@@ -687,7 +891,7 @@
 
       // Delete single document using auto API
       window.deleteDocAuto = async function deleteDocAuto() {
-        const { db, doc, deleteDoc } = window.BasebaseSDK;
+        const { doc, deleteDoc } = window.BasebaseSDK;
 
         const collectionName = document
           .getElementById("collectionName")
@@ -712,6 +916,7 @@
         }
 
         try {
+          const db = getDbInstance();
           const docRef = doc(
             db,
             `test_project/${collectionName}/${documentId}`
@@ -736,6 +941,270 @@
             "error"
           );
         }
+      };
+
+      // ========================================
+      // Advanced Query Operations Functions
+      // ========================================
+
+      // Run structured query test using Firebase v9+ API (query + getDocs)
+      window.runStructuredQueryTest = async function runStructuredQueryTest() {
+        const { collection, query, where, orderBy, limit, getDocs } =
+          window.BasebaseSDK;
+
+        const collectionName = document
+          .getElementById("queryCollectionName")
+          .value.trim();
+        const whereField = document.getElementById("whereField").value.trim();
+        const whereOperator = document.getElementById("whereOperator").value;
+        const whereValue = document.getElementById("whereValue").value.trim();
+        const orderField = document.getElementById("orderField").value.trim();
+        const orderDirection = document.getElementById("orderDirection").value;
+        const queryLimit =
+          parseInt(document.getElementById("queryLimit").value) || 10;
+
+        if (!collectionName) {
+          showMessage(
+            document.getElementById("queryMessage"),
+            "Please enter collection name",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const db = getDbInstance();
+          const collectionRef = collection(
+            db,
+            `test_project/${collectionName}`
+          );
+          const constraints = [];
+
+          // Add where constraint if specified
+          if (whereField && whereValue) {
+            const parsedValue = parseQueryValue(whereValue, whereOperator);
+            constraints.push(where(whereField, whereOperator, parsedValue));
+          }
+
+          // Add orderBy constraint if specified
+          if (orderField) {
+            constraints.push(orderBy(orderField, orderDirection));
+          }
+
+          // Add limit constraint
+          if (queryLimit > 0) {
+            constraints.push(limit(queryLimit));
+          }
+
+          console.log(
+            "Running structured query with constraints:",
+            constraints
+          );
+
+          // Firebase v9+ syntax: query() + getDocs()
+          const q = query(collectionRef, ...constraints);
+          const snapshot = await getDocs(q);
+
+          displayQueryResults(snapshot, "structured");
+          showMessage(
+            document.getElementById("queryMessage"),
+            `Structured query executed successfully! Found ${snapshot.size} results using Firebase API 🚀`,
+            "success"
+          );
+        } catch (error) {
+          console.error("Structured query error:", error);
+          showMessage(
+            document.getElementById("queryMessage"),
+            `Structured query failed: ${error.message}`,
+            "error"
+          );
+          clearQueryResults();
+        }
+      };
+
+      // Run basic query test using the existing query system (for comparison)
+      window.runBasicQueryTest = async function runBasicQueryTest() {
+        const { collection, query, where, orderBy, limit, getDocs } =
+          window.BasebaseSDK;
+
+        const collectionName = document
+          .getElementById("queryCollectionName")
+          .value.trim();
+        const whereField = document.getElementById("whereField").value.trim();
+        const whereOperator = document.getElementById("whereOperator").value;
+        const whereValue = document.getElementById("whereValue").value.trim();
+        const orderField = document.getElementById("orderField").value.trim();
+        const orderDirection = document.getElementById("orderDirection").value;
+        const queryLimit =
+          parseInt(document.getElementById("queryLimit").value) || 10;
+
+        if (!collectionName) {
+          showMessage(
+            document.getElementById("queryMessage"),
+            "Please enter collection name",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const db = getDbInstance();
+          const collectionRef = collection(
+            db,
+            `test_project/${collectionName}`
+          );
+          const constraints = [];
+
+          // Add where constraint if specified
+          if (whereField && whereValue) {
+            const parsedValue = parseQueryValue(whereValue, whereOperator);
+            constraints.push(where(whereField, whereOperator, parsedValue));
+          }
+
+          // Add orderBy constraint if specified
+          if (orderField) {
+            constraints.push(orderBy(orderField, orderDirection));
+          }
+
+          // Add limit constraint
+          if (queryLimit > 0) {
+            constraints.push(limit(queryLimit));
+          }
+
+          console.log("Running basic query with constraints:", constraints);
+
+          const queryRef = query(collectionRef, ...constraints);
+          const snapshot = await getDocs(queryRef);
+
+          displayQueryResults(snapshot, "basic");
+          showMessage(
+            document.getElementById("queryMessage"),
+            `Basic query executed successfully! Found ${snapshot.size} results using legacy client-side filtering 📋`,
+            "success"
+          );
+        } catch (error) {
+          console.error("Basic query error:", error);
+          showMessage(
+            document.getElementById("queryMessage"),
+            `Basic query failed: ${error.message}`,
+            "error"
+          );
+          clearQueryResults();
+        }
+      };
+
+      // Clear query filters
+      window.clearQueryFilters = function clearQueryFilters() {
+        document.getElementById("queryCollectionName").value = "test";
+        document.getElementById("whereField").value = "age";
+        document.getElementById("whereOperator").value = ">=";
+        document.getElementById("whereValue").value = "18";
+        document.getElementById("orderField").value = "name";
+        document.getElementById("orderDirection").value = "asc";
+        document.getElementById("queryLimit").value = "10";
+
+        clearQueryResults();
+
+        showMessage(
+          document.getElementById("queryMessage"),
+          "Query filters cleared",
+          "success"
+        );
+      };
+
+      // Parse query value based on operator and type detection
+      window.parseQueryValue = function parseQueryValue(value, operator) {
+        // Handle array operators
+        if (
+          operator === "in" ||
+          operator === "not-in" ||
+          operator === "array-contains-any"
+        ) {
+          try {
+            // Try to parse as JSON array first
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+              return parsed;
+            }
+          } catch (e) {
+            // If not valid JSON, split by comma
+            return value.split(",").map((v) => v.trim());
+          }
+        }
+
+        // Try to parse as number
+        if (!isNaN(value) && !isNaN(parseFloat(value))) {
+          return parseFloat(value);
+        }
+
+        // Try to parse as boolean
+        if (value.toLowerCase() === "true") return true;
+        if (value.toLowerCase() === "false") return false;
+
+        // Try to parse as JSON (for objects, etc.)
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          // Return as string if all else fails
+          return value;
+        }
+      };
+
+      // Display query results in the UI
+      window.displayQueryResults = function displayQueryResults(
+        snapshot,
+        queryType
+      ) {
+        const queryResults = document.getElementById("queryResults");
+        queryResults.innerHTML = "";
+
+        if (snapshot.empty) {
+          queryResults.innerHTML = `
+            <div class="data-item" style="justify-content: center; color: #a0aec0;">
+              No results found for ${queryType} query
+            </div>
+          `;
+          return;
+        }
+
+        // Add header to show query type
+        const header = document.createElement("div");
+        header.style.cssText =
+          "padding: 10px; background: #edf2f7; border-bottom: 1px solid #cbd5e0; font-weight: 500; color: #2d3748;";
+        header.innerHTML = `
+          Results from ${
+            queryType === "structured"
+              ? "Structured Query (POST :runQuery)"
+              : "Basic Query (Client-side)"
+          } - ${snapshot.size} documents
+        `;
+        queryResults.appendChild(header);
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const item = document.createElement("div");
+          item.className = "data-item";
+          item.style.flexDirection = "column";
+          item.style.alignItems = "flex-start";
+          item.innerHTML = `
+            <div style="display: flex; justify-content: flex-start; width: 100%; margin-bottom: 8px;">
+              <span class="data-key">ID: ${doc.id}</span>
+            </div>
+            <pre class="data-value" style="margin: 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;">${JSON.stringify(
+              data,
+              null,
+              2
+            )}</pre>
+        `;
+          queryResults.appendChild(item);
+        });
+      };
+
+      // Clear query results display
+      window.clearQueryResults = function clearQueryResults() {
+        const queryResults = document.getElementById("queryResults");
+        queryResults.innerHTML =
+          '<div class="data-item" style="justify-content: center; color: #a0aec0;">No query results</div>';
       };
 
       // ========================================
@@ -768,16 +1237,18 @@
         }
 
         try {
-          // Update the global base URL
-          window.BasebaseSDK.setBasebaseHost(serverHost);
+          // Store the custom base URL for use when re-authenticating
+          window.customBaseUrl = serverHost;
 
           showMessage(
             document.getElementById("serverMessage"),
-            `Server host updated to: ${serverHost}`,
+            `Server host updated to: ${serverHost}. Please re-authenticate to use the new server.`,
             "success"
           );
 
           // Clear auth status since we're connecting to a potentially different server
+          // User needs to re-authenticate with the new server
+          window.BasebaseSDK.signOut();
           updateAuthStatus();
           clearDataDisplay();
         } catch (error) {
@@ -837,7 +1308,9 @@
         }
 
         try {
-          await window.BasebaseSDK.requestCode(username, phone);
+          // Use custom base URL if set
+          const baseUrl = window.customBaseUrl;
+          await window.BasebaseSDK.requestCode(username, phone, baseUrl);
           showMessage(
             document.getElementById("authMessage"),
             "Verification code sent! 📱",
@@ -868,7 +1341,9 @@
         }
 
         try {
-          await window.BasebaseSDK.verifyCode(phone, code, apiKey);
+          // Use custom base URL if set
+          const baseUrl = window.customBaseUrl;
+          await window.BasebaseSDK.verifyCode(phone, code, apiKey, baseUrl);
           showMessage(
             document.getElementById("authMessage"),
             "Authentication successful! 🎉",
@@ -945,10 +1420,215 @@
         element.textContent = message;
       };
 
+      // Add sample data for testing queries
+      window.addSampleData = async function addSampleData() {
+        const { collection, addDoc } = window.BasebaseSDK;
+        const collectionName = document
+          .getElementById("collectionName")
+          .value.trim();
+
+        if (!collectionName) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            "Please enter a collection name to add sample data",
+            "error"
+          );
+          return;
+        }
+
+        try {
+          const sampleData = [
+            {
+              name: "Alice Smith",
+              age: 25,
+              isActive: true,
+              hobbies: ["reading", "hiking"],
+            },
+            {
+              name: "Bob Johnson",
+              age: 35,
+              isActive: false,
+              hobbies: ["gaming", "traveling"],
+            },
+            {
+              name: "Charlie Brown",
+              age: 28,
+              isActive: true,
+              hobbies: ["sports", "music"],
+            },
+            {
+              name: "Diana Prince",
+              age: 22,
+              isActive: true,
+              hobbies: ["art", "dancing"],
+            },
+            {
+              name: "Ethan Hunt",
+              age: 40,
+              isActive: true,
+              hobbies: ["martial arts", "swimming"],
+            },
+            {
+              name: "Fiona Green",
+              age: 29,
+              isActive: true,
+              hobbies: ["cooking", "photography"],
+            },
+            {
+              name: "George Washington",
+              age: 27,
+              isActive: true,
+              hobbies: ["history", "gardening"],
+            },
+            {
+              name: "Hannah Montana",
+              age: 24,
+              isActive: true,
+              hobbies: ["music", "singing"],
+            },
+            {
+              name: "Ian Malcolm",
+              age: 32,
+              isActive: false,
+              hobbies: ["dinosaurs", "gaming"],
+            },
+            {
+              name: "Jasmine Lee",
+              age: 26,
+              isActive: true,
+              hobbies: ["dance", "cooking"],
+            },
+            {
+              name: "Kyle Reese",
+              age: 23,
+              isActive: true,
+              hobbies: ["swimming", "gaming"],
+            },
+            {
+              name: "Lara Croft",
+              age: 31,
+              isActive: true,
+              hobbies: ["treasure hunting", "swimming"],
+            },
+            {
+              name: "Mia Wallace",
+              age: 28,
+              isActive: true,
+              hobbies: ["martial arts", "cooking"],
+            },
+            {
+              name: "Nate Silver",
+              age: 33,
+              isActive: true,
+              hobbies: ["data science", "gaming"],
+            },
+            {
+              name: "Olivia Wilde",
+              age: 27,
+              isActive: true,
+              hobbies: ["acting", "cooking"],
+            },
+            {
+              name: "Peter Parker",
+              age: 21,
+              isActive: true,
+              hobbies: ["web development", "gaming"],
+            },
+            {
+              name: "Quinn Fabray",
+              age: 29,
+              isActive: true,
+              hobbies: ["acting", "cooking"],
+            },
+            {
+              name: "Rachel Berry",
+              age: 25,
+              isActive: true,
+              hobbies: ["singing", "acting"],
+            },
+            {
+              name: "Sam Winchester",
+              age: 28,
+              isActive: true,
+              hobbies: ["hunting", "gaming"],
+            },
+            {
+              name: "Tara Westwood",
+              age: 30,
+              isActive: true,
+              hobbies: ["cooking", "gardening"],
+            },
+            {
+              name: "Ursula K. Le Guin",
+              age: 88,
+              isActive: false,
+              hobbies: ["writing", "reading"],
+            },
+            {
+              name: "Voldemort",
+              age: 100,
+              isActive: false,
+              hobbies: ["evil", "killing"],
+            },
+            {
+              name: "Wanda Maximoff",
+              age: 29,
+              isActive: true,
+              hobbies: ["magic", "cooking"],
+            },
+            {
+              name: "Xavier",
+              age: 100,
+              isActive: true,
+              hobbies: ["teaching", "gardening"],
+            },
+            {
+              name: "Yoda",
+              age: 900,
+              isActive: false,
+              hobbies: ["wisdom", "teaching"],
+            },
+            {
+              name: "Zach Morris",
+              age: 26,
+              isActive: true,
+              hobbies: ["gaming", "cooking"],
+            },
+          ];
+
+          const db = getDbInstance();
+          const collectionRef = collection(
+            db,
+            `test_project/${collectionName}`
+          );
+
+          const addPromises = sampleData.map(async (data) => {
+            const docRef = await addDoc(collectionRef, data);
+            return `ID: ${docRef.id}`;
+          });
+
+          const addedIds = await Promise.all(addPromises);
+
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Added ${addedIds.length} sample documents! 🎉`,
+            "success"
+          );
+          loadDataAuto(); // Refresh the data list
+        } catch (error) {
+          showMessage(
+            document.getElementById("dataMessage"),
+            `Failed to add sample data: ${error.message}`,
+            "error"
+          );
+        }
+      };
+
       // Initialize on page load
       window.addEventListener("load", function () {
         updateAuthStatus();
         clearDataDisplay();
+        clearQueryResults();
       });
     </script>
   </body>

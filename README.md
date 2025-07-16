@@ -12,7 +12,7 @@ This SDK is currently in early development (0.1.x). The API may change between v
 - **Firebase-like API** - Drop-in replacement for Firebase/Firestore
 - **Phone verification authentication** - SMS-based auth with JWT tokens
 - **Real-time data operations** - CRUD operations with collections and documents
-- **Advanced querying** - where, orderBy, limit constraints
+- **Advanced querying** - where, orderBy, limit constraints with server-side structured queries
 - **TypeScript support** - Full type safety and IntelliSense
 - **Cookie & localStorage management** - Automatic token persistence
 - **Cross-platform** - Works in browsers and Node.js environments
@@ -393,7 +393,7 @@ const q = query(
 
 Create a where constraint.
 
-Supported operators: `==`, `!=`, `<`, `<=`, `>`, `>=`, `array-contains`, `in`, `not-in`, `array-contains-any`
+Supported operators: `==`, `!=`, `<`, `<=`, `>`, `>=`, `array-contains`, `in`, `not-in`, `array-contains-any`, `matches`
 
 ```typescript
 where("status", "==", "active");
@@ -417,6 +417,81 @@ Limit the number of results.
 
 ```typescript
 limit(10);
+```
+
+#### `runStructuredQuery(collectionRef, ...constraints)`
+
+**NEW:** Execute queries using server-side structured query processing (recommended for better performance).
+
+This function uses the POST `:runQuery` endpoint with structured query support, providing server-side filtering and sorting instead of client-side processing.
+
+```typescript
+import {
+  db,
+  collection,
+  where,
+  orderBy,
+  limit,
+  runStructuredQuery,
+} from "basebase-js";
+
+// Server-side structured query with filtering, ordering, and limiting
+const usersRef = collection(db, "myproject/users");
+const results = await runStructuredQuery(
+  usersRef,
+  where("age", ">=", 18), // Server-side filtering
+  where("status", "==", "active"), // Multiple filters supported
+  orderBy("name", "asc"), // Server-side sorting
+  limit(10) // Limit results
+);
+
+// Process results
+results.forEach((doc) => {
+  console.log("User:", doc.data());
+});
+```
+
+**Advantages of `runStructuredQuery`:**
+
+- ✅ **Server-side processing** - Better performance for large datasets
+- ✅ **Native database filtering** - More efficient than client-side filtering
+- ✅ **Reduced network traffic** - Only matching documents are returned
+- ✅ **Same API** - Uses the same `where`, `orderBy`, `limit` constraints
+
+**Supported operators:** `==`, `!=`, `<`, `<=`, `>`, `>=`, `array-contains`, `in`, `not-in`, `array-contains-any`, `matches`
+
+**Example with multiple filters:**
+
+```typescript
+// Find active adult users, sorted by creation date, limit 20
+const results = await runStructuredQuery(
+  collection(db, "myproject/users"),
+  where("age", ">=", 21),
+  where("status", "==", "active"),
+  where("role", "in", ["admin", "moderator"]),
+  orderBy("createdAt", "desc"),
+  limit(20)
+);
+```
+
+**Custom server configuration:**
+For custom BaseBase server instances, use explicit database configuration:
+
+```typescript
+import { getDatabase, collection, runStructuredQuery } from "basebase-js";
+
+// Create database instance with custom server
+const db = getDatabase({
+  token: "your_jwt_token",
+  baseUrl: "http://localhost:8000",
+});
+
+const results = await runStructuredQuery(
+  collection(db, "myproject/users"),
+  where("age", ">=", 18),
+  orderBy("name"),
+  limit(10)
+);
 ```
 
 ## 🧪 Testing

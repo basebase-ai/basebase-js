@@ -16,10 +16,40 @@ import { getProject, getToken, getAuthState, setDirectToken } from "./auth";
 export const DEFAULT_BASE_URL = "https://api.basebase.us";
 
 /**
- * Simple database initialization for server environments
- * Takes a token and returns a ready-to-use database instance
+ * Database initialization for server environments
+ *
+ * @param tokenOrOptions - Either a JWT token string (legacy) or BasebaseConfig object
+ * @returns A ready-to-use database instance
+ *
+ * @example
+ * ```typescript
+ * // Legacy usage
+ * const db = getDatabase("your_jwt_token");
+ *
+ * // New usage with custom base URL
+ * const db = getDatabase({
+ *   token: "your_jwt_token",
+ *   baseUrl: "http://localhost:8000"
+ * });
+ * ```
  */
-export function getDatabase(token: string): Basebase {
+export function getDatabase(tokenOrOptions: string | BasebaseConfig): Basebase {
+  let token: string;
+  let baseUrl: string = DEFAULT_BASE_URL;
+
+  // Handle both legacy string parameter and new options object
+  if (typeof tokenOrOptions === "string") {
+    token = tokenOrOptions;
+  } else if (typeof tokenOrOptions === "object" && tokenOrOptions !== null) {
+    token = tokenOrOptions.token || "";
+    baseUrl = tokenOrOptions.baseUrl || DEFAULT_BASE_URL;
+  } else {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "getDatabase requires either a token string or BasebaseConfig object with token"
+    );
+  }
+
   if (!token || typeof token !== "string") {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
@@ -35,12 +65,12 @@ export function getDatabase(token: string): Basebase {
     app: {
       name: "[SERVER]",
       options: {
-        baseUrl: DEFAULT_BASE_URL,
+        baseUrl: baseUrl,
         token: token,
       },
     },
     projectId: "default", // Will be determined from token context
-    baseUrl: DEFAULT_BASE_URL,
+    baseUrl: baseUrl,
   };
 
   return instance;

@@ -17,8 +17,20 @@ import {
   BasebaseError,
   BASEBASE_ERROR_CODES,
   BasebaseListResponse,
+  StructuredQuery,
+  StructuredQueryFilter,
+  StructuredQueryFieldFilter,
+  StructuredQueryOrder,
+  RunQueryRequest,
+  RunQueryResponse,
+  BasebaseValue,
 } from "./types";
-import { makeHttpRequest, buildFirebaseApiPath, parsePath } from "./utils";
+import {
+  makeHttpRequest,
+  buildFirebaseApiPath,
+  parsePath,
+  toBasebaseValue,
+} from "./utils";
 import { getAuthHeader } from "./auth";
 import {
   QuerySnapshotImpl,
@@ -102,9 +114,16 @@ class QueryImpl implements Query {
 
   /**
    * Executes the query and returns the results
+   * Now uses structured query endpoint when constraints are present for better performance
    */
   async get(): Promise<QuerySnapshot> {
     try {
+      // Use structured query endpoint if we have constraints for better performance
+      if (this.constraints.length > 0) {
+        return await this.executeStructuredQuery();
+      }
+
+      // Fallback to legacy list endpoint for simple queries
       const url = this.buildQueryUrl();
       const response = await makeHttpRequest<BasebaseListResponse>(url, {
         method: "GET",
@@ -113,9 +132,6 @@ class QueryImpl implements Query {
 
       // Process and filter results
       let documents = response.documents || [];
-
-      // Apply client-side filtering and sorting for constraints that BaseBase doesn't support natively
-      documents = this.applyClientSideConstraints(documents);
 
       // Convert to QueryDocumentSnapshots
       const docs = documents.map((doc, index) => {
@@ -140,6 +156,59 @@ class QueryImpl implements Query {
       }
       throw error;
     }
+  }
+
+  /**
+   * Executes the query using the structured query endpoint
+   */
+  private async executeStructuredQuery(): Promise<QuerySnapshot> {
+    const { projectId } = parsePath(this.path);
+    const structuredQuery = buildStructuredQuery(this.path, this.constraints);
+
+    const requestData: RunQueryRequest = {
+      structuredQuery,
+      parent: `projects/${projectId}/databases/(default)/documents`,
+    };
+
+    // Build the runQuery endpoint URL
+    const baseUrl = `${this.basebase.baseUrl}/projects/${projectId}/databases/(default)/documents:runQuery`;
+
+    console.log("Sending runQuery request:", {
+      url: baseUrl,
+      collectionPath: this.path,
+      projectId: projectId,
+      constraints: this.constraints,
+      structuredQuery: structuredQuery,
+      requestData: requestData,
+    });
+
+    const response = await makeHttpRequest<RunQueryResponse[]>(baseUrl, {
+      method: "POST",
+      headers: getAuthHeader(),
+      body: requestData,
+    });
+
+    console.log("runQuery response:", response);
+
+    // Process response - runQuery returns an array of responses
+    const documents = response
+      .filter((item) => item.document) // Filter out responses without documents
+      .map((item) => item.document!);
+
+    // Convert to QueryDocumentSnapshots
+    const docs = documents.map((doc, index) => {
+      const docId = extractDocumentIdFromDocument(doc, index);
+      const docPath = `${this.path}/${docId}`;
+      const docRef = new DocumentReferenceImpl(
+        this.basebase,
+        docPath,
+        docId,
+        null as any // We'll fix this type issue later
+      );
+      return new QueryDocumentSnapshotImpl(docRef, doc);
+    });
+
+    return new QuerySnapshotImpl(docs);
   }
 
   /**
@@ -284,6 +353,19 @@ class QueryImpl implements Query {
           Array.isArray(queryValue) &&
           queryValue.some((val) => fieldValue.includes(val))
         );
+      case "matches":
+        if (typeof fieldValue !== "string") {
+          return false; // matches operator only works on string fields
+        }
+        try {
+          const regex = new RegExp(queryValue);
+          return regex.test(fieldValue);
+        } catch (error) {
+          throw new BasebaseError(
+            BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+            `Invalid regular expression: ${queryValue}`
+          );
+        }
       default:
         throw new BasebaseError(
           BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
@@ -336,17 +418,25 @@ class QueryImpl implements Query {
 }
 
 // ========================================
-// Public Query Functions
+// Public Query Functions (Firebase-compatible API)
 // ========================================
 
 /**
- * Creates a query from a collection reference
+ * Creates a query from a collection reference - Firebase v9+ API
  */
 export function query(
   collection: CollectionReference,
   ...queryConstraints: QueryConstraint[]
 ): Query {
   return new QueryImpl(collection.basebase, collection.path, queryConstraints);
+}
+
+/**
+ * Executes a query and returns the results - Firebase v9+ API
+ * This function matches Firebase's getDocs() exactly
+ */
+export async function getDocs(query: Query): Promise<QuerySnapshot> {
+  return await query.get();
 }
 
 /**
@@ -477,6 +567,148 @@ export function getConstraintsOfType<T extends QueryConstraint>(
   return query.constraints.filter(
     (constraint) => constraint.type === type
   ) as T[];
+}
+
+// ========================================
+// Internal Structured Query Helpers
+// ========================================
+
+/**
+ * Maps WhereFilterOp to Firestore API operator format
+ */
+function mapOperatorToFirestore(op: WhereFilterOp): string {
+  const operatorMap: Record<WhereFilterOp, string> = {
+    "==": "EQUAL",
+    "!=": "NOT_EQUAL",
+    "<": "LESS_THAN",
+    "<=": "LESS_THAN_OR_EQUAL",
+    ">": "GREATER_THAN",
+    ">=": "GREATER_THAN_OR_EQUAL",
+    "array-contains": "ARRAY_CONTAINS",
+    in: "IN",
+    "not-in": "NOT_IN",
+    "array-contains-any": "ARRAY_CONTAINS_ANY",
+    matches: "MATCHES",
+  };
+
+  return operatorMap[op] || op;
+}
+
+/**
+ * Converts query constraints to a structured query format
+ */
+function buildStructuredQuery(
+  collectionPath: string,
+  constraints: QueryConstraint[]
+): StructuredQuery {
+  const structuredQuery: StructuredQuery = {
+    from: [
+      {
+        collectionId: collectionPath.split("/").pop() || collectionPath,
+        allDescendants: false,
+      },
+    ],
+  };
+
+  // Build where clauses
+  const whereConstraints = constraints.filter(
+    (c) => c.type === "where"
+  ) as WhereConstraint[];
+
+  if (whereConstraints.length > 0) {
+    if (whereConstraints.length === 1) {
+      const constraint = whereConstraints[0];
+      if (constraint) {
+        structuredQuery.where = {
+          fieldFilter: buildFieldFilter(constraint),
+        };
+      }
+    } else {
+      // Multiple where constraints - combine with AND
+      structuredQuery.where = {
+        compositeFilter: {
+          op: "AND",
+          filters: whereConstraints
+            .filter(
+              (constraint): constraint is WhereConstraint => constraint != null
+            )
+            .map((constraint) => ({
+              fieldFilter: buildFieldFilter(constraint),
+            })),
+        },
+      };
+    }
+  }
+
+  // Build orderBy clauses
+  const orderByConstraints = constraints.filter(
+    (c) => c.type === "orderBy"
+  ) as OrderByConstraint[];
+
+  if (orderByConstraints.length > 0) {
+    structuredQuery.orderBy = orderByConstraints.map(buildOrderBy);
+  }
+
+  // Build limit
+  const limitConstraint = constraints.find(
+    (c) => c.type === "limit"
+  ) as LimitConstraint;
+
+  if (limitConstraint) {
+    structuredQuery.limit = limitConstraint.limit;
+  }
+
+  return structuredQuery;
+}
+
+/**
+ * Builds a field filter from a where constraint
+ */
+function buildFieldFilter(
+  constraint: WhereConstraint
+): StructuredQueryFieldFilter {
+  return {
+    field: {
+      fieldPath: constraint.fieldPath,
+    },
+    op: mapOperatorToFirestore(constraint.opStr),
+    value: toBasebaseValue(constraint.value),
+  };
+}
+
+/**
+ * Builds an order by clause from an orderBy constraint
+ */
+function buildOrderBy(constraint: OrderByConstraint): StructuredQueryOrder {
+  return {
+    field: {
+      fieldPath: constraint.fieldPath,
+    },
+    direction: constraint.directionStr === "desc" ? "DESCENDING" : "ASCENDING",
+  };
+}
+
+/**
+ * Extracts document ID from a BasebaseDocument
+ */
+function extractDocumentIdFromDocument(
+  doc: any,
+  fallbackIndex: number
+): string {
+  if (doc.name) {
+    const nameParts = doc.name.split("/");
+    return nameParts[nameParts.length - 1] || `doc_${fallbackIndex}`;
+  }
+
+  // Look for an ID field in the document fields
+  if (doc.fields) {
+    const idField = doc.fields.id || doc.fields._id || doc.fields.ID;
+    if (idField && idField.stringValue) {
+      return idField.stringValue;
+    }
+  }
+
+  return `doc_${fallbackIndex}_${Date.now()}`;
 }
 
 // Export the QueryImpl class for use in other modules

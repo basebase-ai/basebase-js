@@ -42,7 +42,6 @@ export {
   doc,
   collection,
   getDoc,
-  getDocs,
   addDoc,
   setDoc,
   updateDoc,
@@ -55,6 +54,7 @@ export {
   where,
   orderBy,
   limit,
+  getDocs,
   validateQueryConstraint,
   hasConstraintType,
   getConstraintsOfType,
@@ -118,6 +118,12 @@ export type {
   LimitConstraint,
   WhereFilterOp,
   OrderByDirection,
+  StructuredQuery,
+  StructuredQueryFilter,
+  StructuredQueryFieldFilter,
+  StructuredQueryOrder,
+  RunQueryRequest,
+  RunQueryResponse,
 
   // Operation result types
   WriteResult,
@@ -142,11 +148,7 @@ export type {
 // Constants
 // ========================================
 
-export {
-  DEFAULT_BASE_URL,
-  BASEBASE_ERROR_CODES,
-  setBasebaseHost,
-} from "./types";
+export { DEFAULT_BASE_URL, BASEBASE_ERROR_CODES } from "./types";
 
 // ========================================
 // Default Export for Convenient Imports
@@ -166,14 +168,13 @@ import {
   doc,
   collection,
   getDoc,
-  getDocs,
   addDoc,
   setDoc,
   updateDoc,
   deleteDoc,
 } from "./document";
 
-import { query, where, orderBy, limit } from "./query";
+import { query, where, orderBy, limit, getDocs } from "./query";
 
 export default {
   // Core functionality
@@ -191,7 +192,6 @@ export default {
   doc,
   collection,
   getDoc,
-  getDocs,
   addDoc,
   setDoc,
   updateDoc,
@@ -202,6 +202,7 @@ export default {
   where,
   orderBy,
   limit,
+  getDocs,
 };
 
 // ========================================
@@ -232,7 +233,6 @@ if (typeof window !== "undefined") {
     doc,
     collection,
     getDoc,
-    getDocs,
     addDoc,
     setDoc,
     updateDoc,
@@ -243,6 +243,7 @@ if (typeof window !== "undefined") {
     where,
     orderBy,
     limit,
+    getDocs,
   };
 }
 

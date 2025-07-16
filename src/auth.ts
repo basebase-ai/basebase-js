@@ -324,15 +324,22 @@ export async function requestCode(
 
   try {
     const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
-    const response = await makeHttpRequest<RequestCodeResponse>(
-      `${effectiveBaseUrl}/requestCode`,
-      {
-        method: "POST",
-        body: request,
-        timeout: 10000,
-      }
-    );
+    const requestUrl = `${effectiveBaseUrl}/requestCode`;
 
+    console.log("Sending requestCode request:", {
+      url: requestUrl,
+      request: request,
+      username: username.trim(),
+      phone: phone.trim(),
+    });
+
+    const response = await makeHttpRequest<RequestCodeResponse>(requestUrl, {
+      method: "POST",
+      body: request,
+      timeout: 10000,
+    });
+
+    console.log("requestCode response:", response);
     return response;
   } catch (error) {
     console.error("requestCode error:", error);
@@ -373,14 +380,26 @@ export async function verifyCode(
 
   try {
     const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
+    const requestUrl = `${effectiveBaseUrl}/verifyCode`;
+
+    console.log("Sending verifyCode request:", {
+      url: requestUrl,
+      request: request,
+      phone: phone.trim(),
+      code: code.trim(),
+      projectApiKey: projectApiKey.trim(),
+    });
+
     const rawResponse = await makeHttpRequest<RawVerifyCodeResponse>(
-      `${effectiveBaseUrl}/verifyCode`,
+      requestUrl,
       {
         method: "POST",
         body: request,
         timeout: 10000,
       }
     );
+
+    console.log("verifyCode raw response:", rawResponse);
 
     // Parse the Firebase-like response format
     const parsedUser = parseUserFromFields(rawResponse.user);
@@ -391,6 +410,8 @@ export async function verifyCode(
       user: parsedUser,
       project: parsedProject,
     };
+
+    console.log("verifyCode parsed response:", response);
 
     // Store the token, user data, and project information
     if (response.token && response.user && response.project) {

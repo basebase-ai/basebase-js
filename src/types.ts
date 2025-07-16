@@ -176,7 +176,8 @@ export type WhereFilterOp =
   | "array-contains"
   | "in"
   | "not-in"
-  | "array-contains-any";
+  | "array-contains-any"
+  | "matches";
 
 export type OrderByDirection = "asc" | "desc";
 
@@ -207,6 +208,66 @@ export interface Query {
   path: string;
   constraints: QueryConstraint[];
   get(): Promise<QuerySnapshot>;
+}
+
+// ========================================
+// Structured Query Types (for runQuery endpoint)
+// ========================================
+
+export interface StructuredQueryFieldFilter {
+  field: {
+    fieldPath: string;
+  };
+  op: string;
+  value: BasebaseValue;
+}
+
+export interface StructuredQueryFilter {
+  fieldFilter?: StructuredQueryFieldFilter;
+  compositeFilter?: {
+    op: "AND" | "OR";
+    filters: StructuredQueryFilter[];
+  };
+}
+
+export interface StructuredQueryOrder {
+  field: {
+    fieldPath: string;
+  };
+  direction: "ASCENDING" | "DESCENDING";
+}
+
+export interface StructuredQuery {
+  select?: {
+    fields: Array<{ fieldPath: string }>;
+  };
+  from: Array<{
+    collectionId: string;
+    allDescendants?: boolean;
+  }>;
+  where?: StructuredQueryFilter;
+  orderBy?: StructuredQueryOrder[];
+  limit?: number;
+  offset?: number;
+  startAt?: {
+    values: BasebaseValue[];
+    before?: boolean;
+  };
+  endAt?: {
+    values: BasebaseValue[];
+    before?: boolean;
+  };
+}
+
+export interface RunQueryRequest {
+  structuredQuery: StructuredQuery;
+  parent?: string;
+}
+
+export interface RunQueryResponse {
+  document?: BasebaseDocument;
+  readTime?: string;
+  skippedResults?: number;
 }
 
 // ========================================
