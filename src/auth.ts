@@ -322,13 +322,6 @@ export async function requestCode(
     phone: phone.trim(),
   };
 
-  console.log("Sending requestCode request:", {
-    url: `${baseUrl || getGlobalBaseUrl()}/requestCode`,
-    request,
-    username: request.username,
-    phone: request.phone,
-  });
-
   try {
     const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
     const response = await makeHttpRequest<RequestCodeResponse>(
@@ -340,7 +333,6 @@ export async function requestCode(
       }
     );
 
-    console.log("requestCode response:", response);
     return response;
   } catch (error) {
     console.error("requestCode error:", error);

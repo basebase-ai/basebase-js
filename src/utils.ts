@@ -170,26 +170,11 @@ export async function makeHttpRequest<T = any>(
           : JSON.stringify(options.body);
     }
 
-    console.log("Making HTTP request:", {
-      url,
-      method: options.method,
-      headers,
-      body: fetchOptions.body,
-      bodyType: typeof fetchOptions.body,
-      originalBody: options.body,
-    });
-
     const response = await fetch(url, fetchOptions);
 
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
-
-    console.log("HTTP response received:", {
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers.entries()),
-    });
 
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
@@ -200,7 +185,6 @@ export async function makeHttpRequest<T = any>(
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
           errorBody = await response.json();
-          console.log("Error response body:", errorBody);
           if (errorBody.error) {
             errorMessage = errorBody.error;
           } else if (errorBody.message) {
@@ -208,12 +192,9 @@ export async function makeHttpRequest<T = any>(
           }
         } else {
           const textBody = await response.text();
-          console.log("Error response text:", textBody);
           errorMessage = textBody || errorMessage;
         }
-      } catch (parseError) {
-        console.warn("Failed to parse error response:", parseError);
-      }
+      } catch (parseError) {}
 
       // Map HTTP status codes to BaseBase error codes
       switch (response.status) {
