@@ -25,8 +25,8 @@ export interface BasebaseValue {
 export interface BasebaseDocument {
   name?: string;
   fields: Record<string, BasebaseValue>;
-  createTime?: string;
-  updateTime?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface BasebaseDocumentData {
@@ -44,7 +44,7 @@ export interface BasebaseConfig {
 }
 
 export interface RequestCodeRequest {
-  name: string;
+  username: string;
   phone: string;
 }
 

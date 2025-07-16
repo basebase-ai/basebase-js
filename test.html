@@ -271,8 +271,13 @@
 
           <div id="authForms">
             <div class="form-group">
-              <label for="name">Full Name:</label>
-              <input type="text" id="name" placeholder="John Doe" value="" />
+              <label for="username">Username:</label>
+              <input
+                type="text"
+                id="username"
+                placeholder="john_doe"
+                value=""
+              />
             </div>
             <div class="form-group">
               <label for="phone">Phone Number:</label>
@@ -386,7 +391,10 @@
         try {
           const data = JSON.parse(jsonData);
           console.log("Creating collection reference for:", collectionName);
-          const collectionRef = collection(db, `test_project/${collectionName}`);
+          const collectionRef = collection(
+            db,
+            `test_project/${collectionName}`
+          );
           console.log("Collection reference created:", {
             path: collectionRef.path,
             id: collectionRef.id,
@@ -445,7 +453,9 @@
         }
 
         try {
-          const snapshot = await getDocs(collection(db, `test_project/${collectionName}`));
+          const snapshot = await getDocs(
+            collection(db, `test_project/${collectionName}`)
+          );
 
           displayData(snapshot);
           showMessage(
@@ -488,7 +498,9 @@
         }
 
         try {
-          const snapshot = await getDocs(collection(db, `test_project/${collectionName}`));
+          const snapshot = await getDocs(
+            collection(db, `test_project/${collectionName}`)
+          );
 
           const deletePromises = [];
           snapshot.forEach((docSnap) => {
@@ -513,7 +525,6 @@
           );
         }
       };
-
 
       // ========================================
       // Additional Data Operations Functions
@@ -540,7 +551,10 @@
 
         try {
           const data = JSON.parse(jsonData);
-          const docRef = doc(db, `test_project/${collectionName}/${documentId}`);
+          const docRef = doc(
+            db,
+            `test_project/${collectionName}/${documentId}`
+          );
           await setDoc(docRef, data);
 
           showMessage(
@@ -582,7 +596,10 @@
 
         try {
           const data = JSON.parse(updateDataStr);
-          const docRef = doc(db, `test_project/${collectionName}/${documentId}`);
+          const docRef = doc(
+            db,
+            `test_project/${collectionName}/${documentId}`
+          );
           await updateDoc(docRef, data);
 
           showMessage(
@@ -620,7 +637,10 @@
         }
 
         try {
-          const docRef = doc(db, `test_project/${collectionName}/${documentId}`);
+          const docRef = doc(
+            db,
+            `test_project/${collectionName}/${documentId}`
+          );
           const docSnap = await getDoc(docRef);
 
           if (docSnap.exists) {
@@ -692,7 +712,10 @@
         }
 
         try {
-          const docRef = doc(db, `test_project/${collectionName}/${documentId}`);
+          const docRef = doc(
+            db,
+            `test_project/${collectionName}/${documentId}`
+          );
           await deleteDoc(docRef);
 
           showMessage(
@@ -700,10 +723,10 @@
             `Document "${documentId}" deleted successfully! 🗑️`,
             "success"
           );
-          
+
           // Clear the document ID field
           document.getElementById("documentId").value = "";
-          
+
           // Refresh the data list
           loadDataAuto();
         } catch (error) {
@@ -790,20 +813,31 @@
 
       // Request verification code
       window.requestCode = async function requestCode() {
-        const name = document.getElementById("name").value.trim();
+        const username = document.getElementById("username").value.trim();
         const phone = document.getElementById("phone").value.trim();
 
-        if (!name || !phone) {
+        if (!username || !phone) {
           showMessage(
             document.getElementById("authMessage"),
-            "Please enter name and phone",
+            "Please enter username and phone",
+            "error"
+          );
+          return;
+        }
+
+        // Validate username is alphanumeric with no spaces
+        const usernameRegex = /^[a-zA-Z0-9]+$/;
+        if (!usernameRegex.test(username)) {
+          showMessage(
+            document.getElementById("authMessage"),
+            "Username must contain only alphanumeric characters with no spaces",
             "error"
           );
           return;
         }
 
         try {
-          await window.BasebaseSDK.requestCode(name, phone);
+          await window.BasebaseSDK.requestCode(username, phone);
           showMessage(
             document.getElementById("authMessage"),
             "Verification code sent! 📱",

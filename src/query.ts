@@ -18,7 +18,7 @@ import {
   BASEBASE_ERROR_CODES,
   BasebaseListResponse,
 } from "./types";
-import { makeHttpRequest } from "./utils";
+import { makeHttpRequest, buildFirebaseApiPath, parsePath } from "./utils";
 import { getAuthHeader } from "./auth";
 import {
   QuerySnapshotImpl,
@@ -146,7 +146,12 @@ class QueryImpl implements Query {
    * Builds the query URL with parameters
    */
   private buildQueryUrl(): string {
-    const baseUrl = `${this.basebase.baseUrl}/${this.basebase.projectId}/${this.path}`;
+    const { projectId, path: collectionPath } = parsePath(this.path);
+    const baseUrl = buildFirebaseApiPath(
+      this.basebase.baseUrl,
+      projectId,
+      collectionPath
+    );
     const queryParams = new URLSearchParams();
 
     // For now, we'll implement client-side filtering since BaseBase server

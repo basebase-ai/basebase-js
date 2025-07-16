@@ -45,7 +45,7 @@ let directToken: string | null = null;
 // ========================================
 
 /**
- * Sets a JWT token directly for server environments
+ * Sets a JWT token directly for server environments (internal use only)
  */
 export function setDirectToken(token: string): void {
   directToken = token;
@@ -297,21 +297,37 @@ export function validateStoredToken(): boolean {
  * Requests a verification code to be sent to the phone number
  */
 export async function requestCode(
-  name: string,
+  username: string,
   phone: string,
   baseUrl?: string
 ): Promise<RequestCodeResponse> {
-  if (!name || !phone) {
+  if (!username || !phone) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Name and phone number are required"
+      "Username and phone number are required"
+    );
+  }
+
+  // Validate username is alphanumeric with no spaces
+  const usernameRegex = /^[a-zA-Z0-9]+$/;
+  if (!usernameRegex.test(username.trim())) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Username must contain only alphanumeric characters with no spaces"
     );
   }
 
   const request: RequestCodeRequest = {
-    name: name.trim(),
+    username: username.trim(),
     phone: phone.trim(),
   };
+
+  console.log("Sending requestCode request:", {
+    url: `${baseUrl || getGlobalBaseUrl()}/requestCode`,
+    request,
+    username: request.username,
+    phone: request.phone,
+  });
 
   try {
     const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
@@ -324,8 +340,10 @@ export async function requestCode(
       }
     );
 
+    console.log("requestCode response:", response);
     return response;
   } catch (error) {
+    console.error("requestCode error:", error);
     if (error instanceof BasebaseError) {
       throw error;
     }

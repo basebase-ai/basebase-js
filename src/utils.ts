@@ -170,26 +170,49 @@ export async function makeHttpRequest<T = any>(
           : JSON.stringify(options.body);
     }
 
+    console.log("Making HTTP request:", {
+      url,
+      method: options.method,
+      headers,
+      body: fetchOptions.body,
+      bodyType: typeof fetchOptions.body,
+      originalBody: options.body,
+    });
+
     const response = await fetch(url, fetchOptions);
 
     if (timeoutId) {
       clearTimeout(timeoutId);
     }
 
+    console.log("HTTP response received:", {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries()),
+    });
+
     if (!response.ok) {
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      let errorBody: any = null;
       let errorCode: string = BASEBASE_ERROR_CODES.INTERNAL;
 
       try {
-        const errorData = await response.json();
-        if (errorData.error) {
-          errorMessage = errorData.error;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          errorBody = await response.json();
+          console.log("Error response body:", errorBody);
+          if (errorBody.error) {
+            errorMessage = errorBody.error;
+          } else if (errorBody.message) {
+            errorMessage = errorBody.message;
+          }
+        } else {
+          const textBody = await response.text();
+          console.log("Error response text:", textBody);
+          errorMessage = textBody || errorMessage;
         }
-        if (errorData.message) {
-          errorMessage = errorData.message;
-        }
-      } catch {
-        // Use default error message if response isn't JSON
+      } catch (parseError) {
+        console.warn("Failed to parse error response:", parseError);
       }
 
       // Map HTTP status codes to BaseBase error codes
@@ -244,7 +267,7 @@ export async function makeHttpRequest<T = any>(
 
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.NETWORK_ERROR,
-      `Network error: ${
+      `Server error: ${
         error instanceof Error ? error.message : "Unknown error"
       }`
     );
@@ -408,6 +431,21 @@ export function parsePath(fullPath: string): {
     projectId: parts[0],
     path: parts.slice(1).join("/"),
   };
+}
+
+/**
+ * Builds Firebase-style API path for documents and collections
+ * Converts internal path format to Firebase API format:
+ * /projects/{projectId}/databases/(default)/documents/{collectionPath}/{documentId}
+ */
+export function buildFirebaseApiPath(
+  baseUrl: string,
+  projectId: string,
+  collectionPath: string,
+  documentId?: string
+): string {
+  const basePath = `${baseUrl}/projects/${projectId}/databases/(default)/documents/${collectionPath}`;
+  return documentId ? `${basePath}/${documentId}` : basePath;
 }
 
 // ========================================

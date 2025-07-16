@@ -27,8 +27,62 @@ import {
   getNestedProperty,
   validateProjectId,
   isValidProjectId,
+  makeHttpRequest,
+  toBasebaseValue,
+  fromBasebaseDocument,
+  buildFirebaseApiPath,
+  parsePath,
 } from "./utils";
-import { makeDocumentRequest } from "./document_utils";
+import { getAuthHeader } from "./auth";
+
+// ========================================
+// Document HTTP Request Utility
+// ========================================
+
+/**
+ * Makes a document request with proper formatting and error handling
+ */
+async function makeDocumentRequest<T = any>(
+  url: string,
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
+  data?: BasebaseDocumentData,
+  options?: {
+    merge?: boolean;
+    mergeFields?: string[];
+  }
+): Promise<T> {
+  let requestData: BasebaseDocument | undefined;
+
+  if (data) {
+    if (method === "PATCH") {
+      // For PATCH requests, wrap each field in a fields object
+      requestData = {
+        fields: Object.fromEntries(
+          Object.entries(data).map(([key, value]) => [
+            key,
+            toBasebaseValue(value),
+          ])
+        ),
+      };
+    } else {
+      // For other requests, use standard document format
+      requestData = {
+        fields: Object.fromEntries(
+          Object.entries(data).map(([key, value]) => [
+            key,
+            toBasebaseValue(value),
+          ])
+        ),
+      };
+    }
+  }
+
+  return makeHttpRequest<T>(url, {
+    method,
+    headers: getAuthHeader(),
+    body: requestData,
+  });
+}
 
 // ========================================
 // Document Reference Implementation
@@ -56,7 +110,18 @@ class DocumentReferenceImpl implements DocumentReference {
    * Gets the full API path for this document
    */
   private getApiPath(): string {
-    return this.path; // path already includes project ID
+    const { projectId, path: collectionPath } = parsePath(this.path);
+    // Remove document ID from collection path to get just the collection
+    const pathSegments = collectionPath.split("/");
+    const documentId = pathSegments.pop()!; // Remove and get the document ID
+    const cleanCollectionPath = pathSegments.join("/");
+
+    return buildFirebaseApiPath(
+      this.basebase.baseUrl,
+      projectId,
+      cleanCollectionPath,
+      documentId
+    );
   }
 
   /**
@@ -65,7 +130,7 @@ class DocumentReferenceImpl implements DocumentReference {
   async get(): Promise<DocumentSnapshot> {
     try {
       const response = await makeDocumentRequest<BasebaseDocumentData>(
-        `${this.basebase.baseUrl}/${this.getApiPath()}`,
+        this.getApiPath(),
         "GET"
       );
 
@@ -130,7 +195,7 @@ class DocumentReferenceImpl implements DocumentReference {
     }
 
     const response = await makeDocumentRequest<BasebaseDocumentData>(
-      `${this.basebase.baseUrl}/${this.getApiPath()}`,
+      this.getApiPath(),
       "PUT",
       requestData,
       options
@@ -153,7 +218,7 @@ class DocumentReferenceImpl implements DocumentReference {
     }
 
     const response = await makeDocumentRequest<BasebaseDocumentData>(
-      `${this.basebase.baseUrl}/${this.getApiPath()}`,
+      this.getApiPath(),
       "PATCH",
       data
     );
@@ -167,10 +232,7 @@ class DocumentReferenceImpl implements DocumentReference {
    * Deletes the document
    */
   async delete(): Promise<WriteResult> {
-    await makeDocumentRequest(
-      `${this.basebase.baseUrl}/${this.getApiPath()}`,
-      "DELETE"
-    );
+    await makeDocumentRequest(this.getApiPath(), "DELETE");
 
     return {
       writeTime: new Date().toISOString(),
@@ -222,7 +284,12 @@ class CollectionReferenceImpl implements CollectionReference {
    * Gets the full API path for this collection
    */
   private getApiPath(): string {
-    return this.path; // path already includes project ID
+    const { projectId, path: collectionPath } = parsePath(this.path);
+    return buildFirebaseApiPath(
+      this.basebase.baseUrl,
+      projectId,
+      collectionPath
+    );
   }
 
   /**
@@ -231,7 +298,7 @@ class CollectionReferenceImpl implements CollectionReference {
   async get(): Promise<QuerySnapshot> {
     try {
       const response = await makeDocumentRequest<BasebaseListResponse>(
-        `${this.basebase.baseUrl}/${this.getApiPath()}`,
+        this.getApiPath(),
         "GET"
       );
 
@@ -286,7 +353,7 @@ class CollectionReferenceImpl implements CollectionReference {
     }
 
     const response = await makeDocumentRequest<BasebaseDocumentData>(
-      `${this.basebase.baseUrl}/${this.getApiPath()}`,
+      this.getApiPath(),
       "POST",
       data
     );
@@ -352,21 +419,33 @@ class DocumentSnapshotImpl implements DocumentSnapshot {
   }
 
   /**
-   * Gets the document data
+   * Gets the document data converted from Firestore format to plain JavaScript
    */
   data(): BasebaseDocumentData | undefined {
-    return this._data ? deepClone(this._data) : undefined;
+    if (!this._data) {
+      return undefined;
+    }
+
+    // Check if _data is already in the correct format (has fields property)
+    if (this._data.fields) {
+      // Convert from Firestore REST API format to plain JavaScript
+      return fromBasebaseDocument(this._data as any);
+    }
+
+    // If already converted, return a deep clone
+    return deepClone(this._data);
   }
 
   /**
    * Gets a specific field from the document
    */
   get(fieldPath: string): any {
-    if (!this._data) {
+    const convertedData = this.data();
+    if (!convertedData) {
       return undefined;
     }
 
-    return getNestedProperty(this._data, fieldPath);
+    return getNestedProperty(convertedData, fieldPath);
   }
 }
 
@@ -383,7 +462,7 @@ class QueryDocumentSnapshotImpl
   }
 
   /**
-   * Gets the document data (guaranteed to exist)
+   * Gets the document data (guaranteed to exist) converted from Firestore format to plain JavaScript
    */
   data(): BasebaseDocumentData {
     const data = super.data();
@@ -427,10 +506,7 @@ class QuerySnapshotImpl implements QuerySnapshot {
 /**
  * Creates a document reference
  */
-export function doc(
-  db: Basebase,
-  path: string
-): DocumentReference {
+export function doc(db: Basebase, path: string): DocumentReference {
   validatePath(path);
 
   const pathSegments = path.split("/");
@@ -445,7 +521,7 @@ export function doc(
 
   const projectName = pathSegments[0];
   const documentId = pathSegments[pathSegments.length - 1];
-  
+
   if (!projectName) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
@@ -475,10 +551,7 @@ export function doc(
 /**
  * Creates a collection reference
  */
-export function collection(
-  db: Basebase,
-  path: string
-): CollectionReference {
+export function collection(db: Basebase, path: string): CollectionReference {
   validatePath(path);
 
   const pathSegments = path.split("/");
@@ -493,7 +566,7 @@ export function collection(
 
   const projectName = pathSegments[0];
   const collectionName = pathSegments[pathSegments.length - 1];
-  
+
   if (!projectName) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,

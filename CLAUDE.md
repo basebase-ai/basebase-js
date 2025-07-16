@@ -29,6 +29,7 @@ npm run prepublishOnly  # Clean and build for publishing
 This is a **Firebase-compatible SDK** for BaseBase server with two operational modes:
 
 1. **Auto-initializing Singleton Pattern** (Primary) - For most applications
+
    - Zero-configuration setup for browser apps
    - Automatic token management after authentication
    - Environment variable detection
@@ -54,6 +55,7 @@ This is a **Firebase-compatible SDK** for BaseBase server with two operational m
 ### Build System
 
 **Rollup Configuration** produces multiple output formats:
+
 - ES Modules (`dist/index.esm.js`) - For modern bundlers
 - CommonJS (`dist/index.cjs`) - For Node.js
 - UMD (`dist/index.umd.js`) - For script tag usage
@@ -65,18 +67,21 @@ This is a **Firebase-compatible SDK** for BaseBase server with two operational m
 ### Authentication Architecture
 
 **Phone Verification Flow**:
-1. `requestCode(name, phone)` - SMS verification request
+
+1. `requestCode(username, phone)` - SMS verification request
 2. `verifyCode(phone, code, apiKey)` - Verification and JWT token acquisition
 3. Automatic token storage in cookies and localStorage
 4. Token auto-injection in subsequent API calls
 
 **Environment Compatibility**:
+
 - **Browser**: Automatic token persistence via cookies/localStorage
 - **Server**: Manual configuration required via `configureSingletonBasebase()`
 
 ### Data Model
 
 **Firebase-Compatible API**:
+
 - Document references: `doc("users/user123")`
 - Collection references: `collection("users")`
 - Queries: `query(collection("users"), where("age", ">=", 18), orderBy("name"))`
@@ -89,14 +94,15 @@ This is a **Firebase-compatible SDK** for BaseBase server with two operational m
 **Singleton Proxy Pattern**: The `basebase` export uses a Proxy to lazily initialize the singleton instance only when accessed, enabling immediate usage without explicit setup.
 
 **Smart Configuration Detection**: Environment variables are checked in this order:
+
 1. Standard: `BASEBASE_API_KEY`
-2. Vite: `VITE_BASEBASE_API_KEY` 
+2. Vite: `VITE_BASEBASE_API_KEY`
 3. React: `REACT_APP_BASEBASE_API_KEY`
 4. Import meta: `import.meta.env`
 
 **Type Safety**: Full TypeScript coverage with Firestore-compatible interfaces, enabling drop-in replacement for Firebase projects.
 
-**Flexible Naming**: Project and document IDs support URL-safe strings up to 24 characters (a-z, A-Z, 0-9, _, -).
+**Flexible Naming**: Project and document IDs support URL-safe strings up to 24 characters (a-z, A-Z, 0-9, \_, -).
 
 ## Development Guidelines
 
@@ -109,6 +115,7 @@ This is a **Firebase-compatible SDK** for BaseBase server with two operational m
 ## Testing
 
 Run the included test webapp at `test.html` which demonstrates:
+
 - Automatic SDK initialization
 - Phone verification flow
 - CRUD operations on test collection

@@ -6,14 +6,16 @@
  * ```typescript
  * import { verifyCode, db, collection, doc, getDocs, getDoc } from 'basebase-js';
  *
- * // First authenticate
+ * // Browser: First authenticate
  * await verifyCode('+1234567890', '123456', 'bb_your_api_key');
  *
- * // Then use db with explicit reference
+ * // Then use db directly
  * const usersRef = collection(db, 'myproject/users');
  * const snapshot = await getDocs(usersRef);
  *
- * // Get a document
+ * // Server: Use getDatabase with token
+ * import { getDatabase } from 'basebase-js';
+ * const db = getDatabase('your_jwt_token_here');
  * const userRef = doc(db, 'myproject/users/user123');
  * const userSnap = await getDoc(userRef);
  * ```
@@ -23,19 +25,8 @@
 // Core Exports
 // ========================================
 
-// App initialization
-export {
-  initializeApp,
-  getApp,
-  getApps,
-  deleteApp,
-  getBasebase,
-  hasApp,
-  getAppConfig,
-  validateConfig,
-  clearAllApps,
-  db,
-} from "./app";
+// Database initialization
+export { getDatabase, db } from "./app";
 
 // Authentication
 export {
@@ -44,7 +35,6 @@ export {
   signOut,
   getAuthState,
   onAuthStateChanged,
-  setDirectToken,
 } from "./auth";
 
 // Document operations
@@ -162,7 +152,7 @@ export {
 // Default Export for Convenient Imports
 // ========================================
 
-import { initializeApp, getApp, getApps, deleteApp, db } from "./app";
+import { getDatabase, db } from "./app";
 
 import {
   requestCode,
@@ -170,7 +160,6 @@ import {
   signOut,
   getAuthState,
   onAuthStateChanged,
-  setDirectToken,
 } from "./auth";
 
 import {
@@ -188,10 +177,7 @@ import { query, where, orderBy, limit } from "./query";
 
 export default {
   // Core functionality
-  initializeApp,
-  getApp,
-  getApps,
-  deleteApp,
+  getDatabase,
   db,
 
   // Authentication
@@ -200,7 +186,6 @@ export default {
   signOut,
   getAuthState,
   onAuthStateChanged,
-  setDirectToken,
 
   // Document operations
   doc,
@@ -233,10 +218,7 @@ export const VERSION = "0.1.0";
 if (typeof window !== "undefined") {
   (window as any).BasebaseSDK = {
     // Core functionality
-    initializeApp,
-    getApp,
-    getApps,
-    deleteApp,
+    getDatabase,
     db,
 
     // Authentication
@@ -245,7 +227,6 @@ if (typeof window !== "undefined") {
     signOut,
     getAuthState,
     onAuthStateChanged,
-    setDirectToken,
 
     // Document operations
     doc,

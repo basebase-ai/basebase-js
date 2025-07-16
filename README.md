@@ -53,6 +53,8 @@ console.log("Token:", authResult.token);
 
 ### 2. Start Using Database - No Setup Required!
 
+#### Browser (after authentication):
+
 ```typescript
 import { db, doc, getDoc, collection, getDocs, addDoc } from "basebase-js";
 
@@ -76,6 +78,22 @@ const newUserRef = await addDoc(collection(db, "myproject/users"), {
   email: "jane@example.com",
 });
 console.log("New user ID:", newUserRef.id);
+```
+
+#### Server/Node.js (with token):
+
+```typescript
+import { getDatabase, doc, getDoc, collection, addDoc } from "basebase-js";
+
+// Create database instance with JWT token
+const db = getDatabase("your_jwt_token_here");
+
+// Use exactly the same API as browser
+const userRef = doc(db, "myproject/users/user123");
+const userSnap = await getDoc(userRef);
+if (userSnap.exists) {
+  console.log("User data:", userSnap.data());
+}
 ```
 
 ### 3. Document Operations
@@ -206,9 +224,9 @@ querySnapshot.forEach((doc) => {
 
 ### Authentication
 
-#### `requestCode(name, phone, baseUrl?)`
+#### `requestCode(username, phone, baseUrl?)`
 
-Request an SMS verification code.
+Request an SMS verification code. Username must be alphanumeric characters only with no spaces.
 
 ```typescript
 const response = await requestCode("john_doe", "+1234567890");
@@ -447,13 +465,13 @@ const snapshot = await getDoc(userRef);
 
 ### Server/Node.js Applications
 
-For server environments, you can use an existing JWT token:
+For server environments, use the `getDatabase` function with a JWT token:
 
 ```typescript
-import { setDirectToken, doc, getDoc } from "basebase-js";
+import { getDatabase, doc, getDoc } from "basebase-js";
 
-// Set the user's JWT token directly (for server environments)
-setDirectToken("user_jwt_token_here");
+// Create a database instance with your JWT token
+const db = getDatabase("user_jwt_token_here");
 
 // Now use normally
 const userRef = doc(db, "myproject/users/user123");
@@ -473,7 +491,9 @@ interface User extends BasebaseDocumentData {
   age: number;
 }
 
-const userSnap: DocumentSnapshot = await getDoc(doc(db, "myproject/users/user123"));
+const userSnap: DocumentSnapshot = await getDoc(
+  doc(db, "myproject/users/user123")
+);
 const userData = userSnap.data() as User;
 ```
 
@@ -487,7 +507,7 @@ const userData = userSnap.data() as User;
 
 ### Authentication Flow
 
-1. User provides phone number and full name
+1. User provides phone number and username (alphanumeric only)
 2. SMS verification code is sent
 3. User enters code to get JWT token
 4. Token is stored in cookies and localStorage
