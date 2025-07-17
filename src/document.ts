@@ -18,6 +18,7 @@ import {
   WriteResult,
   SetOptions,
   UpdateData,
+  Query,
 } from "./types";
 import {
   validatePath,
@@ -605,12 +606,13 @@ export async function getDoc(
 }
 
 /**
- * Gets a collection of documents
+ * Gets a collection of documents or executes a query
+ * Supports both CollectionReference and Query objects (Firebase v9+ compatible)
  */
 export async function getDocs(
-  collectionRef: CollectionReference
+  collectionOrQuery: CollectionReference | Query
 ): Promise<QuerySnapshot> {
-  return collectionRef.get();
+  return collectionOrQuery.get();
 }
 
 /**

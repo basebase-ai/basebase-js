@@ -42,6 +42,7 @@ export {
   doc,
   collection,
   getDoc,
+  getDocs,
   addDoc,
   setDoc,
   updateDoc,
@@ -54,7 +55,6 @@ export {
   where,
   orderBy,
   limit,
-  getDocs,
   validateQueryConstraint,
   hasConstraintType,
   getConstraintsOfType,
@@ -168,13 +168,14 @@ import {
   doc,
   collection,
   getDoc,
+  getDocs,
   addDoc,
   setDoc,
   updateDoc,
   deleteDoc,
 } from "./document";
 
-import { query, where, orderBy, limit, getDocs } from "./query";
+import { query, where, orderBy, limit } from "./query";
 
 export default {
   // Core functionality
