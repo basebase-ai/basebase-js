@@ -131,7 +131,7 @@ const newUserRef = await addDoc(collection(db, "myproject/users"), {
   email: "jane@example.com",
 });
 
-// Set document with specific ID (URL-safe string under 24 characters)
+// Set document with specific ID (URL-safe string up to 255 characters)
 const userId = "ben_wen";
 await setDoc(doc(db, `users/${userId}`), {
   name: "John Doe",
@@ -150,12 +150,19 @@ await deleteDoc(doc(db, "myproject/users/user123"));
 
 ### 4. Path Structure & Naming Rules
 
-**Project and Document IDs**: BaseBase allows flexible naming for projects and documents using URL-safe strings up to 24 characters long:
+**Project IDs**: BaseBase allows flexible naming for projects using URL-safe strings up to 24 characters long:
 
 - ✅ Allowed characters: `a-z`, `A-Z`, `0-9`, `_`, `-`
-- ✅ Examples: `test_project`, `user-123`, `myapp2024`, `ben_wen`
+- ✅ Examples: `test_project`, `myapp2024`, `ben_wen`
 - ❌ Not allowed: spaces, special characters like `/`, `@`, `.`, etc.
 - ❌ Must be 24 characters or less
+
+**Document IDs**: Document IDs can be URL-safe strings up to 255 characters long:
+
+- ✅ Allowed characters: `a-z`, `A-Z`, `0-9`, `_`, `-`
+- ✅ Examples: `user-123`, `very-long-document-identifier-with-lots-of-detail`, `ben_wen`
+- ❌ Not allowed: spaces, special characters like `/`, `@`, `.`, etc.
+- ❌ Must be 255 characters or less
 
 **Path Structure**: All paths are relative to the specified project. This eliminates ambiguity:
 

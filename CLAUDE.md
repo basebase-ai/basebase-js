@@ -102,7 +102,7 @@ This is a **Firebase-compatible SDK** for BaseBase server with two operational m
 
 **Type Safety**: Full TypeScript coverage with Firestore-compatible interfaces, enabling drop-in replacement for Firebase projects.
 
-**Flexible Naming**: Project and document IDs support URL-safe strings up to 24 characters (a-z, A-Z, 0-9, \_, -).
+**Flexible Naming**: Project IDs support URL-safe strings up to 24 characters, and document IDs support URL-safe strings up to 255 characters (a-z, A-Z, 0-9, \_, -).
 
 ## Development Guidelines
 

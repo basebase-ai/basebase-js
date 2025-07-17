@@ -288,7 +288,7 @@ export function validatePath(path: string): void {
 
 /**
  * Validates a document ID
- * Allows URL-safe strings under 24 characters
+ * Allows URL-safe strings up to 255 characters
  */
 export function validateDocumentId(id: string): void {
   if (!id || typeof id !== "string") {
@@ -305,10 +305,10 @@ export function validateDocumentId(id: string): void {
     );
   }
 
-  if (id.length > 24) {
+  if (id.length > 255) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Document ID must be 24 characters or less"
+      "Document ID must be 255 characters or less"
     );
   }
 
