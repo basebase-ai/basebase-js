@@ -13,6 +13,7 @@ This SDK is currently in early development (0.1.x). The API may change between v
 - **Phone verification authentication** - SMS-based auth with JWT tokens
 - **Real-time data operations** - CRUD operations with collections and documents
 - **Advanced querying** - where, orderBy, limit constraints with server-side structured queries
+- **Server-side functions** - Call remote functions with parameters and error handling
 - **TypeScript support** - Full type safety and IntelliSense
 - **Cookie & localStorage management** - Automatic token persistence
 - **Cross-platform** - Works in browsers and Node.js environments
@@ -73,9 +74,10 @@ snapshot.forEach((doc) => {
 });
 
 // Add a new document
-const newUserRef = await addDoc(collection(db, "myproject/users"), {
+const newUserRef = await addDoc(collection(db, "myproject/user_profiles"), {
   name: "Jane Doe",
   email: "jane@example.com",
+  preferences: { theme: "dark", notifications: true },
 });
 console.log("New user ID:", newUserRef.id);
 ```
@@ -157,6 +159,15 @@ await deleteDoc(doc(db, "myproject/users/user123"));
 - ❌ Not allowed: spaces, special characters like `/`, `@`, `.`, etc.
 - ❌ Must be 24 characters or less
 
+**Collection Names**: Collection names must be lowercase and use underscores to separate words:
+
+- ✅ Allowed characters: `a-z`, `0-9`, `_`, `-`
+- ✅ Examples: `users`, `user_preferences`, `blog_posts`, `order_items`
+- ✅ **Recommended**: Use underscores (`_`) to separate words for readability
+- ❌ Not allowed: uppercase letters, camelCase, spaces, special characters
+- ❌ Examples of invalid names: `Users`, `userPreferences`, `blog-Posts`, `user preferences`
+- ❌ Must be 255 characters or less
+
 **Document IDs**: Document IDs can be URL-safe strings up to 255 characters long:
 
 - ✅ Allowed characters: `a-z`, `A-Z`, `0-9`, `_`, `-`
@@ -212,9 +223,9 @@ import {
   collection,
 } from "basebase-js";
 
-// Advanced queries
+// Advanced queries with proper collection naming
 const q = query(
-  collection(db, "myproject/users"),
+  collection(db, "myproject/user_profiles"),
   where("age", ">=", 18),
   where("status", "==", "active"),
   orderBy("name", "asc"),
@@ -225,7 +236,52 @@ const querySnapshot = await getDocs(q);
 querySnapshot.forEach((doc) => {
   console.log(doc.data());
 });
+
+// Example with multiple collections using underscore convention
+const ordersQuery = query(
+  collection(db, "myproject/order_items"),
+  where("category", "==", "electronics"),
+  where("price", ">=", 100),
+  orderBy("created_at", "desc"),
+  limit(20)
+);
 ```
+
+### 6. Calling Server-Side Functions
+
+BaseBase supports calling server-side functions with the `callFunction` API:
+
+```typescript
+import { callFunction } from "basebase-js";
+
+// Call a function with parameters
+const result = await callFunction("getPage", {
+  url: "https://example.com",
+  selector: "h1",
+});
+console.log("Page content:", result);
+
+// Call function with custom BaseBase instance (server environment)
+import { getDatabase } from "basebase-js";
+const db = getDatabase("your_jwt_token");
+const processResult = await callFunction(
+  "processData",
+  {
+    data: "some input",
+  },
+  db
+);
+
+// Functions with no parameters
+const status = await callFunction("getStatus");
+```
+
+**Function Requirements:**
+
+- Authentication required (JWT token)
+- Functions are project-scoped (called within your authenticated project)
+- 30-second execution timeout
+- Structured error responses
 
 ## 📚 API Reference
 
@@ -501,6 +557,42 @@ const results = await runStructuredQuery(
 );
 ```
 
+### Functions
+
+#### `callFunction(functionName, parameters?, basebaseInstance?)`
+
+Call a server-side function with optional parameters.
+
+```typescript
+import { callFunction } from "basebase-js";
+
+// Call function with parameters
+const result = await callFunction("getPage", {
+  url: "https://example.com",
+  selector: "h1",
+});
+
+// Call function without parameters
+const status = await callFunction("getStatus");
+
+// Call with custom BaseBase instance (server environment)
+import { getDatabase } from "basebase-js";
+const db = getDatabase("your_jwt_token");
+const result = await callFunction("processData", { data: "input" }, db);
+```
+
+**Parameters:**
+
+- `functionName` (string): The name of the function to call
+- `parameters` (object, optional): Parameters to pass to the function
+- `basebaseInstance` (Basebase, optional): Custom BaseBase instance for server environments
+
+**Returns:** Promise that resolves to the function result
+
+**Throws:** BasebaseError if authentication fails, function doesn't exist, or execution fails
+
+**Note:** Functions are called within the context of your authenticated project. The SDK automatically handles project scoping using your authentication token.
+
 ## 🧪 Testing
 
 A simple test webapp is included at `test.html` to demonstrate SDK functionality:
@@ -634,31 +726,4 @@ const userSnap = await getDoc(userRef);
 ### Key Differences
 
 1. **Authentication required first** - BaseBase uses phone verification
-2. **No initialization required** - BaseBase exports a ready-to-use `db` object after auth
-3. **Path format**: BaseBase uses slash-separated paths instead of separate arguments (e.g., `"users/user123"` vs `"users", "user123"`)
-
-## 📱 Browser Support
-
-- Chrome 60+
-- Firefox 55+
-- Safari 12+
-- Edge 79+
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-- 📖 [Documentation](https://docs.basebase.us)
-- 💬 [Community Discord](https://discord.gg/basebase)
-- 🐛 [Issue Tracker](https://github.com/grenager/basebase-js-sdk/issues)
-- 📧 [Email Support](mailto:support@basebase.us)
-
-## 🔄 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for a list of changes and version history.
+2. **No initialization required** - BaseBase exports a ready-to-use `db`

@@ -4,7 +4,7 @@
  *
  * @example
  * ```typescript
- * import { verifyCode, db, collection, doc, getDocs, getDoc } from 'basebase-js';
+ * import { verifyCode, db, collection, doc, getDocs, getDoc, callFunction } from 'basebase-js';
  *
  * // Browser: First authenticate
  * await verifyCode('+1234567890', '123456', 'bb_your_api_key');
@@ -13,11 +13,20 @@
  * const usersRef = collection(db, 'myproject/users');
  * const snapshot = await getDocs(usersRef);
  *
+ * // Call server-side functions
+ * const result = await callFunction('getPage', {
+ *   url: 'https://example.com',
+ *   selector: 'h1'
+ * });
+ *
  * // Server: Use getDatabase with token
  * import { getDatabase } from 'basebase-js';
  * const db = getDatabase('your_jwt_token_here');
  * const userRef = doc(db, 'myproject/users/user123');
  * const userSnap = await getDoc(userRef);
+ *
+ * // Call functions with custom instance
+ * const functionResult = await callFunction('processData', { data: 'test' }, db);
  * ```
  */
 
@@ -36,6 +45,9 @@ export {
   getAuthState,
   onAuthStateChanged,
 } from "./auth";
+
+// Function operations
+export { callFunction } from "./functions";
 
 // Document operations
 export {
@@ -134,6 +146,10 @@ export type {
   BasebaseErrorInfo,
   BasebaseErrorCode,
 
+  // Function types
+  FunctionCallRequest,
+  FunctionCallResponse,
+
   // API response types
   BasebaseApiResponse,
   BasebaseListResponse,
@@ -177,6 +193,8 @@ import {
 
 import { query, where, orderBy, limit } from "./query";
 
+import { callFunction } from "./functions";
+
 export default {
   // Core functionality
   getDatabase,
@@ -204,6 +222,9 @@ export default {
   orderBy,
   limit,
   getDocs,
+
+  // Function operations
+  callFunction,
 };
 
 // ========================================
@@ -245,6 +266,9 @@ if (typeof window !== "undefined") {
     orderBy,
     limit,
     getDocs,
+
+    // Function operations
+    callFunction,
   };
 }
 

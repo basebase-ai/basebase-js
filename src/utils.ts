@@ -351,6 +351,41 @@ export function validateProjectId(id: string): void {
 }
 
 /**
+ * Validates a collection name
+ * Collection names must be lowercase and can only contain lowercase letters, numbers, hyphens, and underscores
+ */
+export function validateCollectionName(name: string): void {
+  if (!name || typeof name !== "string") {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Collection name must be a non-empty string"
+    );
+  }
+
+  if (name.includes("/")) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Collection name cannot contain slashes"
+    );
+  }
+
+  if (name.length > 255) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Collection name must be 255 characters or less"
+    );
+  }
+
+  // Must be lowercase letters, numbers, hyphens, and underscores only
+  if (!/^[a-z0-9_-]+$/.test(name)) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Collection name must be lowercase and contain only lowercase letters (a-z), numbers (0-9), hyphens (-), and underscores (_). Use underscores to separate words (e.g., 'user_preferences'). Camel case is not allowed."
+    );
+  }
+}
+
+/**
  * Checks if a string is a valid project ID format
  */
 export function isValidProjectId(id: string): boolean {
@@ -428,6 +463,18 @@ export function buildFirebaseApiPath(
 ): string {
   const basePath = `${baseUrl}/${API_VERSION}/projects/${projectId}/databases/(default)/documents/${collectionPath}`;
   return documentId ? `${basePath}/${documentId}` : basePath;
+}
+
+/**
+ * Builds Firebase-style API path for function calls
+ * /v1/projects/{projectId}/functions/{functionName}:call
+ */
+export function buildFunctionCallPath(
+  baseUrl: string,
+  projectId: string,
+  functionName: string
+): string {
+  return `${baseUrl}/${API_VERSION}/projects/${projectId}/functions/${functionName}:call`;
 }
 
 // ========================================

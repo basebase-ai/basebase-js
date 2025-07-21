@@ -4,6 +4,34 @@
  */
 
 // ========================================
+// Function Calling Types
+// ========================================
+
+export interface FunctionCallRequest {
+  [parameterName: string]: any;
+}
+
+export interface FunctionCallResponse {
+  result: any;
+  error?: string;
+  details?: string;
+  functionName?: string;
+  suggestion?: string;
+}
+
+export interface BasebaseFunction {
+  name: string;
+  description?: string;
+  parameters?: Record<string, any>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ListFunctionsResponse {
+  functions: BasebaseFunction[];
+}
+
+// ========================================
 // Core BaseBase Data Types (Firestore-compatible)
 // ========================================
 

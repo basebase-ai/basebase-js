@@ -23,6 +23,7 @@ import {
 import {
   validatePath,
   validateDocumentId,
+  validateCollectionName,
   generateId,
   deepClone,
   getNestedProperty,
@@ -583,6 +584,7 @@ export function collection(db: Basebase, path: string): CollectionReference {
   }
 
   validateProjectId(projectName);
+  validateCollectionName(collectionName);
 
   let parent: DocumentReference | undefined;
   if (pathSegments.length > 2) {
