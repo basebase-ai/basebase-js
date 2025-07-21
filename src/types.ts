@@ -350,6 +350,9 @@ export type PartialWithFieldValue<T> =
 // Global base URL that can be updated
 let GLOBAL_BASE_URL = "https://api.basebase.us";
 
+// API version for path prefixing
+export const API_VERSION = "v1";
+
 export const DEFAULT_BASE_URL = GLOBAL_BASE_URL;
 
 export function setBasebaseHost(url: string) {

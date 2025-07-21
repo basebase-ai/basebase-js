@@ -24,6 +24,7 @@ import {
   RunQueryRequest,
   RunQueryResponse,
   BasebaseValue,
+  API_VERSION,
 } from "./types";
 import {
   makeHttpRequest,
@@ -171,7 +172,7 @@ class QueryImpl implements Query {
     };
 
     // Build the runQuery endpoint URL
-    const baseUrl = `${this.basebase.baseUrl}/projects/${projectId}/databases/(default)/documents:runQuery`;
+    const baseUrl = `${this.basebase.baseUrl}/${API_VERSION}/projects/${projectId}/databases/(default)/documents:runQuery`;
 
     console.log("Sending runQuery request:", {
       url: baseUrl,

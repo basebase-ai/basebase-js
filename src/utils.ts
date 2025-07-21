@@ -12,6 +12,7 @@ import {
   BasebaseApiResponse,
   BasebaseUser,
   BasebaseProject,
+  API_VERSION,
 } from "./types";
 
 // ========================================
@@ -417,7 +418,7 @@ export function parsePath(fullPath: string): {
 /**
  * Builds Firebase-style API path for documents and collections
  * Converts internal path format to Firebase API format:
- * /projects/{projectId}/databases/(default)/documents/{collectionPath}/{documentId}
+ * /v1/projects/{projectId}/databases/(default)/documents/{collectionPath}/{documentId}
  */
 export function buildFirebaseApiPath(
   baseUrl: string,
@@ -425,7 +426,7 @@ export function buildFirebaseApiPath(
   collectionPath: string,
   documentId?: string
 ): string {
-  const basePath = `${baseUrl}/projects/${projectId}/databases/(default)/documents/${collectionPath}`;
+  const basePath = `${baseUrl}/${API_VERSION}/projects/${projectId}/databases/(default)/documents/${collectionPath}`;
   return documentId ? `${basePath}/${documentId}` : basePath;
 }
 

@@ -16,6 +16,7 @@ import {
   BasebaseError,
   BASEBASE_ERROR_CODES,
   getGlobalBaseUrl,
+  API_VERSION,
 } from "./types";
 import {
   makeHttpRequest,
@@ -324,7 +325,7 @@ export async function requestCode(
 
   try {
     const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
-    const requestUrl = `${effectiveBaseUrl}/requestCode`;
+    const requestUrl = `${effectiveBaseUrl}/${API_VERSION}/requestCode`;
 
     console.log("Sending requestCode request:", {
       url: requestUrl,
@@ -380,7 +381,7 @@ export async function verifyCode(
 
   try {
     const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
-    const requestUrl = `${effectiveBaseUrl}/verifyCode`;
+    const requestUrl = `${effectiveBaseUrl}/${API_VERSION}/verifyCode`;
 
     console.log("Sending verifyCode request:", {
       url: requestUrl,
