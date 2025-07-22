@@ -328,6 +328,85 @@ export interface SetOptions {
 }
 
 // ========================================
+// Function Types
+// ========================================
+
+// Function Management Types
+export interface CloudFunction {
+  id: string;
+  implementationCode: string;
+  description: string; // Required by server
+  runtime?: string;
+  timeout?: number;
+  memoryMB?: number;
+  environmentVariables?: Record<string, string>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateFunctionRequest {
+  id: string;
+  implementationCode: string;
+  description: string; // Required by server
+  runtime?: string;
+  timeout?: number;
+  memoryMB?: number;
+  environmentVariables?: Record<string, string>;
+}
+
+export interface UpdateFunctionRequest {
+  implementationCode?: string;
+  description?: string;
+  runtime?: string;
+  timeout?: number;
+  memoryMB?: number;
+  environmentVariables?: Record<string, string>;
+}
+
+export interface FunctionListResponse {
+  functions: CloudFunction[];
+  nextPageToken?: string;
+}
+
+// Function Scheduling Types
+export interface ScheduledFunction {
+  name: string;
+  functionName: string;
+  schedule: string; // Cron expression
+  timeZone?: string;
+  data?: Record<string, any>;
+  description?: string;
+  enabled?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  lastRun?: string;
+  nextRun?: string;
+}
+
+export interface CreateScheduleRequest {
+  name: string;
+  functionName: string;
+  schedule: string;
+  timeZone?: string;
+  data?: Record<string, any>;
+  description?: string;
+  enabled?: boolean;
+}
+
+export interface UpdateScheduleRequest {
+  schedule?: string;
+  timeZone?: string;
+  data?: Record<string, any>;
+  description?: string;
+  enabled?: boolean;
+}
+
+export interface ScheduleListResponse {
+  schedules: ScheduledFunction[];
+  nextPageToken?: string;
+}
+
+// ========================================
 // Error Types
 // ========================================
 

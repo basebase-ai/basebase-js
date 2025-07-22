@@ -47,7 +47,19 @@ export {
 } from "./auth";
 
 // Function operations
-export { callFunction } from "./functions";
+export {
+  callFunction,
+  createFunction,
+  getFunction,
+  listFunctions,
+  updateFunction,
+  deleteFunction,
+  createSchedule,
+  getSchedule,
+  listSchedules,
+  updateSchedule,
+  deleteSchedule,
+} from "./functions";
 
 // Document operations
 export {
@@ -149,6 +161,14 @@ export type {
   // Function types
   FunctionCallRequest,
   FunctionCallResponse,
+  CloudFunction,
+  CreateFunctionRequest,
+  UpdateFunctionRequest,
+  FunctionListResponse,
+  ScheduledFunction,
+  CreateScheduleRequest,
+  UpdateScheduleRequest,
+  ScheduleListResponse,
 
   // API response types
   BasebaseApiResponse,
@@ -193,7 +213,19 @@ import {
 
 import { query, where, orderBy, limit } from "./query";
 
-import { callFunction } from "./functions";
+import {
+  callFunction,
+  createFunction,
+  getFunction,
+  listFunctions,
+  updateFunction,
+  deleteFunction,
+  createSchedule,
+  getSchedule,
+  listSchedules,
+  updateSchedule,
+  deleteSchedule,
+} from "./functions";
 
 export default {
   // Core functionality
@@ -225,6 +257,16 @@ export default {
 
   // Function operations
   callFunction,
+  createFunction,
+  getFunction,
+  listFunctions,
+  updateFunction,
+  deleteFunction,
+  createSchedule,
+  getSchedule,
+  listSchedules,
+  updateSchedule,
+  deleteSchedule,
 };
 
 // ========================================
@@ -269,6 +311,16 @@ if (typeof window !== "undefined") {
 
     // Function operations
     callFunction,
+    createFunction,
+    getFunction,
+    listFunctions,
+    updateFunction,
+    deleteFunction,
+    createSchedule,
+    getSchedule,
+    listSchedules,
+    updateSchedule,
+    deleteSchedule,
   };
 }
 

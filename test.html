@@ -290,7 +290,7 @@
                 type="text"
                 id="apiKey"
                 class="config-input"
-                placeholder="bb_your_api_key_here"
+                placeholder="bb_test_project"
                 value="test-api-key-123"
               />
             </div>
@@ -303,6 +303,113 @@
           </div>
 
           <div id="authMessage"></div>
+        </div>
+
+        <!-- Function Management Section -->
+        <div class="section">
+          <h2>⚙️ Function Management</h2>
+          <p style="margin-bottom: 15px; color: #4a5568; font-size: 14px">
+            Create, manage, and schedule cloud functions with cron syntax.
+          </p>
+
+          <!-- Function CRUD -->
+          <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e0;">
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">📝 Function CRUD</h4>
+            
+            <div class="form-group">
+              <label for="functionNameCrud">Function Name:</label>
+              <input type="text" id="functionNameCrud" placeholder="myFunction" value="" />
+            </div>
+            
+            <div class="form-group">
+              <label for="functionCode">Function Code:</label>
+              <textarea 
+                id="functionCode" 
+                placeholder='exports.handler = async (data) => { return { message: "Hello World!" }; }'
+                style="height: 120px; font-family: monospace; font-size: 13px; width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical;"
+              ></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="functionDescription">Description (required):</label>
+              <input type="text" id="functionDescription" placeholder="A BaseBase function" required />
+              <small style="color: #718096; font-size: 12px;">
+                Description is required by the BaseBase server
+              </small>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group" style="margin: 0;">
+                <label for="functionTimeout">Timeout (seconds):</label>
+                <input type="number" id="functionTimeout" placeholder="30" min="1" max="300" />
+              </div>
+              <div class="form-group" style="margin: 0;">
+                <label for="functionMemory">Memory (MB):</label>
+                <input type="number" id="functionMemory" placeholder="128" min="128" max="1024" step="64" />
+              </div>
+            </div>
+
+            <button onclick="createFunctionTest()">Create Function</button>
+            <button onclick="getFunctionTest()">Get Function</button>
+            <button onclick="updateFunctionTest()">Update Function</button>
+            <button onclick="deleteFunctionTest()">Delete Function</button>
+            <button onclick="listFunctionsTest()">List All Functions</button>
+          </div>
+
+          <!-- Function Scheduling -->
+          <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e0;">
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">⏰ Function Scheduling</h4>
+            
+            <div class="form-group">
+              <label for="scheduleName">Schedule Name:</label>
+              <input type="text" id="scheduleName" placeholder="dailyCleanup" value="" />
+            </div>
+            
+            <div class="form-group">
+              <label for="scheduleFunction">Function to Schedule:</label>
+              <input type="text" id="scheduleFunction" placeholder="myFunction" value="" />
+            </div>
+            
+            <div class="form-group">
+              <label for="cronExpression">Cron Expression:</label>
+              <input type="text" id="cronExpression" placeholder="0 2 * * *" value="0 2 * * *" />
+              <small style="color: #718096; font-size: 12px;">
+                Examples: "0 2 * * *" (daily 2 AM), "*/15 * * * *" (every 15 min), "0 9 * * 1" (Mondays 9 AM)
+              </small>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group" style="margin: 0;">
+                <label for="scheduleTimezone">Timezone:</label>
+                <input type="text" id="scheduleTimezone" placeholder="America/New_York" value="UTC" />
+              </div>
+              <div class="form-group" style="margin: 0;">
+                <label for="scheduleEnabled">Enabled:</label>
+                <select id="scheduleEnabled" style="width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px;">
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="scheduleData">Schedule Data (JSON):</label>
+              <textarea 
+                id="scheduleData" 
+                placeholder='{"target": "temp_files", "cleanup": true}'
+                style="height: 80px; font-family: monospace; font-size: 13px; width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical;"
+              ></textarea>
+            </div>
+
+            <button onclick="createScheduleTest()">Create Schedule</button>
+            <button onclick="getScheduleTest()">Get Schedule</button>
+            <button onclick="updateScheduleTest()">Update Schedule</button>
+            <button onclick="deleteScheduleTest()">Delete Schedule</button>
+            <button onclick="listSchedulesTest()">List All Schedules</button>
+          </div>
+
+          <div id="function-management-message"></div>
+          <div id="function-management-result"></div>
         </div>
 
         <!-- Function calling example -->
@@ -1731,6 +1838,293 @@
           functionResultDiv.appendChild(errorPre);
           showMessage(functionMessageDiv, "Function call failed.", "error");
         }
+      };
+
+      // ========================================
+      // Function Management Operations
+      // ========================================
+
+      // Create Function
+      window.createFunctionTest = async function createFunctionTest() {
+        const functionName = document.getElementById('functionNameCrud').value.trim();
+        const functionCode = document.getElementById('functionCode').value.trim();
+        const description = document.getElementById('functionDescription').value.trim() || 'A BaseBase function'; // Default description if empty
+        const timeout = parseInt(document.getElementById('functionTimeout').value) || undefined;
+        const memoryMB = parseInt(document.getElementById('functionMemory').value) || undefined;
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        if (!functionName || !functionCode) {
+          showMessage(messageDiv, "Please enter function name and code.", "error");
+          return;
+        }
+
+        try {
+          const functionData = {
+            name: functionName,
+            code: functionCode,
+            description: description, // Always include description (required by server)
+            ...(timeout && { timeout }),
+            ...(memoryMB && { memoryMB })
+          };
+
+          const result = await window.BasebaseSDK.createFunction(functionData);
+          displayManagementResult(resultDiv, result, 'Function created successfully');
+          showMessage(messageDiv, `Function "${functionName}" created successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to create function: ${error.message}`, "error");
+          resultDiv.innerHTML = '';
+        }
+      };
+
+      // Get Function
+      window.getFunctionTest = async function getFunctionTest() {
+        const functionName = document.getElementById('functionNameCrud').value.trim();
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        if (!functionName) {
+          showMessage(messageDiv, "Please enter a function name.", "error");
+          return;
+        }
+
+        try {
+          const result = await window.BasebaseSDK.getFunction(functionName);
+          displayManagementResult(resultDiv, result, 'Function retrieved successfully');
+          showMessage(messageDiv, `Function "${functionName}" retrieved successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to get function: ${error.message}`, "error");
+          resultDiv.innerHTML = '';
+        }
+      };
+
+      // Update Function
+      window.updateFunctionTest = async function updateFunctionTest() {
+        const functionName = document.getElementById('functionNameCrud').value.trim();
+        const functionCode = document.getElementById('functionCode').value.trim();
+        const description = document.getElementById('functionDescription').value.trim();
+        const timeout = parseInt(document.getElementById('functionTimeout').value) || undefined;
+        const memoryMB = parseInt(document.getElementById('functionMemory').value) || undefined;
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        if (!functionName) {
+          showMessage(messageDiv, "Please enter a function name.", "error");
+          return;
+        }
+
+        try {
+          const updates = {};
+          if (functionCode) updates.code = functionCode;
+          if (description) updates.description = description; // Only update description if provided
+          if (timeout) updates.timeout = timeout;
+          if (memoryMB) updates.memoryMB = memoryMB;
+
+          if (Object.keys(updates).length === 0) {
+            showMessage(messageDiv, "Please provide at least one field to update.", "error");
+            return;
+          }
+
+          const result = await window.BasebaseSDK.updateFunction(functionName, updates);
+          displayManagementResult(resultDiv, result, 'Function updated successfully');
+          showMessage(messageDiv, `Function "${functionName}" updated successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to update function: ${error.message}`, "error");
+          resultDiv.innerHTML = '';
+        }
+      };
+
+      // Delete Function
+      window.deleteFunctionTest = async function deleteFunctionTest() {
+        const functionName = document.getElementById('functionNameCrud').value.trim();
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        if (!functionName) {
+          showMessage(messageDiv, "Please enter a function name.", "error");
+          return;
+        }
+
+        if (!confirm(`Are you sure you want to delete function "${functionName}"?`)) {
+          return;
+        }
+
+        try {
+          await window.BasebaseSDK.deleteFunction(functionName);
+          resultDiv.innerHTML = '';
+          showMessage(messageDiv, `Function "${functionName}" deleted successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to delete function: ${error.message}`, "error");
+        }
+      };
+
+      // List Functions
+      window.listFunctionsTest = async function listFunctionsTest() {
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        try {
+          const functions = await window.BasebaseSDK.listFunctions();
+          displayManagementResult(resultDiv, functions, `Found ${functions.length} functions`);
+          showMessage(messageDiv, `Listed ${functions.length} functions successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to list functions: ${error.message}`, "error");
+          resultDiv.innerHTML = '';
+        }
+      };
+
+      // Create Schedule
+      window.createScheduleTest = async function createScheduleTest() {
+        const scheduleName = document.getElementById('scheduleName').value.trim();
+        const functionName = document.getElementById('scheduleFunction').value.trim();
+        const cronExpression = document.getElementById('cronExpression').value.trim();
+        const timeZone = document.getElementById('scheduleTimezone').value.trim();
+        const enabled = document.getElementById('scheduleEnabled').value === 'true';
+        const dataText = document.getElementById('scheduleData').value.trim();
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        if (!scheduleName || !functionName || !cronExpression) {
+          showMessage(messageDiv, "Please enter schedule name, function name, and cron expression.", "error");
+          return;
+        }
+
+        try {
+          const scheduleData = {
+            name: scheduleName,
+            functionName: functionName,
+            schedule: cronExpression,
+            enabled: enabled,
+            ...(timeZone && { timeZone }),
+          };
+
+          if (dataText) {
+            try {
+              scheduleData.data = JSON.parse(dataText);
+            } catch (e) {
+              showMessage(messageDiv, "Invalid JSON in schedule data field.", "error");
+              return;
+            }
+          }
+
+          const result = await window.BasebaseSDK.createSchedule(scheduleData);
+          displayManagementResult(resultDiv, result, 'Schedule created successfully');
+          showMessage(messageDiv, `Schedule "${scheduleName}" created successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to create schedule: ${error.message}`, "error");
+          resultDiv.innerHTML = '';
+        }
+      };
+
+      // Get Schedule
+      window.getScheduleTest = async function getScheduleTest() {
+        const scheduleName = document.getElementById('scheduleName').value.trim();
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        if (!scheduleName) {
+          showMessage(messageDiv, "Please enter a schedule name.", "error");
+          return;
+        }
+
+        try {
+          const result = await window.BasebaseSDK.getSchedule(scheduleName);
+          displayManagementResult(resultDiv, result, 'Schedule retrieved successfully');
+          showMessage(messageDiv, `Schedule "${scheduleName}" retrieved successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to get schedule: ${error.message}`, "error");
+          resultDiv.innerHTML = '';
+        }
+      };
+
+      // Update Schedule
+      window.updateScheduleTest = async function updateScheduleTest() {
+        const scheduleName = document.getElementById('scheduleName').value.trim();
+        const cronExpression = document.getElementById('cronExpression').value.trim();
+        const timeZone = document.getElementById('scheduleTimezone').value.trim();
+        const enabled = document.getElementById('scheduleEnabled').value === 'true';
+        const dataText = document.getElementById('scheduleData').value.trim();
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        if (!scheduleName) {
+          showMessage(messageDiv, "Please enter a schedule name.", "error");
+          return;
+        }
+
+        try {
+          const updates = {};
+          if (cronExpression) updates.schedule = cronExpression;
+          if (timeZone) updates.timeZone = timeZone;
+          updates.enabled = enabled;
+
+          if (dataText) {
+            try {
+              updates.data = JSON.parse(dataText);
+            } catch (e) {
+              showMessage(messageDiv, "Invalid JSON in schedule data field.", "error");
+              return;
+            }
+          }
+
+          const result = await window.BasebaseSDK.updateSchedule(scheduleName, updates);
+          displayManagementResult(resultDiv, result, 'Schedule updated successfully');
+          showMessage(messageDiv, `Schedule "${scheduleName}" updated successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to update schedule: ${error.message}`, "error");
+          resultDiv.innerHTML = '';
+        }
+      };
+
+      // Delete Schedule
+      window.deleteScheduleTest = async function deleteScheduleTest() {
+        const scheduleName = document.getElementById('scheduleName').value.trim();
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        if (!scheduleName) {
+          showMessage(messageDiv, "Please enter a schedule name.", "error");
+          return;
+        }
+
+        if (!confirm(`Are you sure you want to delete schedule "${scheduleName}"?`)) {
+          return;
+        }
+
+        try {
+          await window.BasebaseSDK.deleteSchedule(scheduleName);
+          resultDiv.innerHTML = '';
+          showMessage(messageDiv, `Schedule "${scheduleName}" deleted successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to delete schedule: ${error.message}`, "error");
+        }
+      };
+
+      // List Schedules
+      window.listSchedulesTest = async function listSchedulesTest() {
+        const messageDiv = document.getElementById('function-management-message');
+        const resultDiv = document.getElementById('function-management-result');
+
+        try {
+          const schedules = await window.BasebaseSDK.listSchedules();
+          displayManagementResult(resultDiv, schedules, `Found ${schedules.length} schedules`);
+          showMessage(messageDiv, `Listed ${schedules.length} schedules successfully!`, "success");
+        } catch (error) {
+          showMessage(messageDiv, `Failed to list schedules: ${error.message}`, "error");
+          resultDiv.innerHTML = '';
+        }
+      };
+
+      // Display Management Result Helper
+      window.displayManagementResult = function displayManagementResult(resultDiv, data, title) {
+        const resultPre = document.createElement('pre');
+        resultPre.style.cssText = 'white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto; max-height: 400px; overflow-y: auto; margin-top: 10px;';
+        
+        const displayText = JSON.stringify(data, null, 2);
+        resultPre.textContent = `${title}:\n\n${displayText}`;
+        
+        resultDiv.innerHTML = '';
+        resultDiv.appendChild(resultPre);
       };
 
       // Initialize on page load

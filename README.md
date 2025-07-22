@@ -10,12 +10,11 @@ This SDK is currently in early development (0.1.x). The API may change between v
 
 - **No initialization required** - Set environment variable and start using immediately
 - **Firebase-like API** - Drop-in replacement for Firebase/Firestore
-- **Phone verification authentication** - SMS-based auth with JWT tokens
-- **Real-time data operations** - CRUD operations with collections and documents
-- **Advanced querying** - where, orderBy, limit constraints with server-side structured queries
-- **Server-side functions** - Call remote functions with parameters and error handling
+- **Simple user authentication** - SMS-based auth with JWT tokens
+- **Real-time data storage and retrieval** - CRUD operations with collections and documents
+- **Advanced queries** - User where, orderBy, limit constraints with server-side structured queries
+- **BaseBase functions** - Define, call and schedule BaseBase server-side functions with parameters and error handling
 - **TypeScript support** - Full type safety and IntelliSense
-- **Cookie & localStorage management** - Automatic token persistence
 - **Cross-platform** - Works in browsers and Node.js environments
 
 ## 📦 Installation
@@ -283,7 +282,120 @@ const status = await callFunction("getStatus");
 - 30-second execution timeout
 - Structured error responses
 
-## 📚 API Reference
+### 7. Function Management (CRUD & Scheduling)
+
+BaseBase supports creating, managing, and scheduling cloud functions with Firebase-like syntax:
+
+#### Function CRUD Operations
+
+```typescript
+import {
+  createFunction,
+  getFunction,
+  listFunctions,
+  updateFunction,
+  deleteFunction,
+} from "basebase-js";
+
+// Create a new function
+const newFunction = await createFunction({
+  name: "myFunction",
+  code: 'exports.handler = async (data) => { return { message: "Hello World!" }; }',
+  description: "My custom function",
+  timeout: 30,
+  memoryMB: 128,
+});
+
+// Get function details
+const func = await getFunction("myFunction");
+console.log(func.implementationCode);
+
+// List all functions
+const functions = await listFunctions();
+functions.forEach((func) => console.log(func.id));
+
+// Update a function
+const updatedFunc = await updateFunction("myFunction", {
+  code: 'exports.handler = async (data) => { return { message: "Updated!" }; }',
+  timeout: 60,
+});
+
+// Delete a function
+await deleteFunction("myFunction");
+```
+
+#### Function Scheduling with Cron
+
+```typescript
+import {
+  createSchedule,
+  getSchedule,
+  listSchedules,
+  updateSchedule,
+  deleteSchedule,
+} from "basebase-js";
+
+// Create a scheduled function
+const schedule = await createSchedule({
+  name: "dailyCleanup",
+  functionName: "cleanupFunction",
+  schedule: "0 2 * * *", // Daily at 2 AM
+  timeZone: "America/New_York",
+  data: { target: "temp_files" },
+  enabled: true,
+});
+
+// Get schedule details
+const scheduleInfo = await getSchedule("dailyCleanup");
+console.log(`Next run: ${scheduleInfo.nextRun}`);
+
+// List all schedules
+const schedules = await listSchedules();
+schedules.forEach((schedule) =>
+  console.log(`${schedule.name}: ${schedule.schedule}`)
+);
+
+// Update a schedule
+const updatedSchedule = await updateSchedule("dailyCleanup", {
+  schedule: "0 3 * * *", // Change to 3 AM
+  enabled: false,
+});
+
+// Delete a schedule
+await deleteSchedule("dailyCleanup");
+```
+
+#### Cron Expression Examples
+
+```typescript
+// Every minute
+"* * * * *";
+
+// Every 15 minutes
+"*/15 * * * *";
+
+// Daily at 2 AM
+"0 2 * * *";
+
+// Every Monday at 9 AM
+"0 9 * * 1";
+
+// First day of every month at midnight
+"0 0 1 * *";
+
+// Every weekday at 6 PM
+"0 18 * * 1-5";
+```
+
+**Function Management Requirements:**
+
+- Authentication required (JWT token)
+- Functions and schedules are project-scoped
+- Function code must export a `handler` function
+- Cron expressions use standard 5-field format
+- Timezone support for scheduling
+
+## 📖 API Reference
 
 ### Authentication
 
@@ -561,29 +673,27 @@ const results = await runStructuredQuery(
 
 #### `callFunction(functionName, parameters?, basebaseInstance?)`
 
-Call a server-side function with optional parameters.
+Call a server-side function with optional parameters. Supports fully qualified function names using `project/function` syntax.
 
 ```typescript
 import { callFunction } from "basebase-js";
 
-// Call function with parameters
-const result = await callFunction("getPage", {
+// Call function from your project
+const result = await callFunction("myFunction", { param: "value" });
+
+// Call system function from basebase project
+const page = await callFunction("basebase/getPage", {
   url: "https://example.com",
   selector: "h1",
 });
 
-// Call function without parameters
-const status = await callFunction("getStatus");
-
-// Call with custom BaseBase instance (server environment)
-import { getDatabase } from "basebase-js";
-const db = getDatabase("your_jwt_token");
-const result = await callFunction("processData", { data: "input" }, db);
+// Call function from specific project
+const data = await callFunction("project_id/processData", { input: "test" });
 ```
 
 **Parameters:**
 
-- `functionName` (string): The name of the function to call
+- `functionName` (string): The name of the function to call, optionally fully qualified as `project/function`
 - `parameters` (object, optional): Parameters to pass to the function
 - `basebaseInstance` (Basebase, optional): Custom BaseBase instance for server environments
 
@@ -591,7 +701,122 @@ const result = await callFunction("processData", { data: "input" }, db);
 
 **Throws:** BasebaseError if authentication fails, function doesn't exist, or execution fails
 
-**Note:** Functions are called within the context of your authenticated project. The SDK automatically handles project scoping using your authentication token.
+**Function Name Formats:**
+
+- `"myFunction"` - Calls function from your authenticated project
+- `"basebase/getPage"` - Calls system function from the basebase project
+- `"project_id/functionName"` - Calls function from a specific project
+
+**Note:** Functions are called within the context of the specified project. If no project is specified, your authenticated project is used.
+
+#### Function Management
+
+##### `createFunction(functionData, basebaseInstance?)`
+
+Create a new cloud function.
+
+```typescript
+const func = await createFunction({
+  name: "myFunction",
+  code: 'exports.handler = async (data) => { return { message: "Hello!" }; }',
+  description: "My custom function",
+  timeout: 30,
+  memoryMB: 128,
+});
+```
+
+##### `getFunction(functionName, basebaseInstance?)`
+
+Retrieve a cloud function by name.
+
+```typescript
+const func = await getFunction("myFunction");
+console.log(func.implementationCode);
+```
+
+##### `listFunctions(basebaseInstance?)`
+
+List all cloud functions in the project.
+
+```typescript
+const functions = await listFunctions();
+functions.forEach((func) => console.log(func.id));
+```
+
+##### `updateFunction(functionName, updates, basebaseInstance?)`
+
+Update an existing cloud function.
+
+```typescript
+const updatedFunc = await updateFunction("myFunction", {
+  code: 'exports.handler = async (data) => { return { message: "Updated!" }; }',
+  timeout: 60,
+});
+```
+
+##### `deleteFunction(functionName, basebaseInstance?)`
+
+Delete a cloud function.
+
+```typescript
+await deleteFunction("myFunction");
+```
+
+#### Function Scheduling
+
+##### `createSchedule(scheduleData, basebaseInstance?)`
+
+Create a scheduled function with cron syntax.
+
+```typescript
+const schedule = await createSchedule({
+  name: "dailyCleanup",
+  functionName: "cleanupFunction",
+  schedule: "0 2 * * *", // Daily at 2 AM
+  timeZone: "America/New_York",
+  data: { target: "temp_files" },
+  enabled: true,
+});
+```
+
+##### `getSchedule(scheduleName, basebaseInstance?)`
+
+Retrieve a scheduled function by name.
+
+```typescript
+const schedule = await getSchedule("dailyCleanup");
+console.log(`Next run: ${schedule.nextRun}`);
+```
+
+##### `listSchedules(basebaseInstance?)`
+
+List all scheduled functions in the project.
+
+```typescript
+const schedules = await listSchedules();
+schedules.forEach((schedule) =>
+  console.log(`${schedule.name}: ${schedule.schedule}`)
+);
+```
+
+##### `updateSchedule(scheduleName, updates, basebaseInstance?)`
+
+Update an existing scheduled function.
+
+```typescript
+const updatedSchedule = await updateSchedule("dailyCleanup", {
+  schedule: "0 3 * * *", // Change to 3 AM
+  enabled: false,
+});
+```
+
+##### `deleteSchedule(scheduleName, basebaseInstance?)`
+
+Delete a scheduled function.
+
+```typescript
+await deleteSchedule("dailyCleanup");
+```
 
 ## 🧪 Testing
 
