@@ -104,7 +104,9 @@ class TaskReferenceImpl implements TaskReference {
   }
 
   async get(): Promise<CloudTask> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Extract project ID from the task path
+    const projectId = this.path.split("/")[0];
     const url = `${baseUrl}/v1/projects/${projectId}/tasks/${this.id}`;
 
     const response = await makeHttpRequest<CloudTask>(url, {
@@ -118,7 +120,9 @@ class TaskReferenceImpl implements TaskReference {
   }
 
   async set(data: SetTaskData): Promise<CloudTask> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Extract project ID from the task path
+    const projectId = this.path.split("/")[0];
     const url = `${baseUrl}/v1/projects/${projectId}/tasks/${this.id}`;
 
     const serverTaskData: SetTaskRequest = {
@@ -143,7 +147,9 @@ class TaskReferenceImpl implements TaskReference {
   }
 
   async update(data: UpdateTaskData): Promise<CloudTask> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Extract project ID from the task path
+    const projectId = this.path.split("/")[0];
     const url = `${baseUrl}/v1/projects/${projectId}/tasks/${this.id}`;
 
     const serverUpdates: UpdateTaskRequest = {};
@@ -168,7 +174,9 @@ class TaskReferenceImpl implements TaskReference {
   }
 
   async delete(): Promise<void> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Extract project ID from the task path
+    const projectId = this.path.split("/")[0];
     const url = `${baseUrl}/v1/projects/${projectId}/tasks/${this.id}`;
 
     await makeHttpRequest<void>(url, {
@@ -196,7 +204,9 @@ class TriggersReferenceImpl implements TriggersReference {
   }
 
   async add(data: CreateTriggerData): Promise<TriggeredTask> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Use the project ID from this triggers reference
+    const projectId = this.id; // this.id is the project ID in TriggersReferenceImpl
     const url = `${baseUrl}/v1/projects/${projectId}/triggers`;
 
     const serverTriggerData = {
@@ -247,7 +257,9 @@ class TriggerReferenceImpl implements TriggerReference {
   }
 
   async get(): Promise<TriggeredTask> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Extract project ID from the trigger path
+    const projectId = this.path.split("/")[0];
     const url = `${baseUrl}/v1/projects/${projectId}/triggers/${this.id}`;
 
     const response = await makeHttpRequest<TriggeredTask>(url, {
@@ -261,7 +273,9 @@ class TriggerReferenceImpl implements TriggerReference {
   }
 
   async set(data: CreateTriggerData): Promise<TriggeredTask> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Extract project ID from the trigger path
+    const projectId = this.path.split("/")[0];
     const url = `${baseUrl}/v1/projects/${projectId}/triggers/${this.id}`;
 
     const serverTriggerData = {
@@ -288,7 +302,9 @@ class TriggerReferenceImpl implements TriggerReference {
   }
 
   async update(data: UpdateTriggerData): Promise<TriggeredTask> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Extract project ID from the trigger path
+    const projectId = this.path.split("/")[0];
     const url = `${baseUrl}/v1/projects/${projectId}/triggers/${this.id}`;
 
     const serverUpdates: any = {};
@@ -316,7 +332,9 @@ class TriggerReferenceImpl implements TriggerReference {
   }
 
   async delete(): Promise<void> {
-    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const { token, baseUrl } = await getAuthContextBasic(this.basebase);
+    // Extract project ID from the trigger path
+    const projectId = this.path.split("/")[0];
     const url = `${baseUrl}/v1/projects/${projectId}/triggers/${this.id}`;
 
     await makeHttpRequest<void>(url, {
@@ -797,4 +815,40 @@ async function getAuthContext(basebaseInstance?: Basebase): Promise<{
   }
 
   return { token, baseUrl, projectId };
+}
+
+/**
+ * Helper function to get basic authentication context (token and baseUrl only)
+ */
+async function getAuthContextBasic(basebaseInstance?: Basebase): Promise<{
+  token: string;
+  baseUrl: string;
+}> {
+  let token: string;
+  let baseUrl: string;
+
+  if (basebaseInstance) {
+    // Use provided instance
+    token = basebaseInstance.app.options.token || "";
+    baseUrl = basebaseInstance.baseUrl;
+  } else {
+    // Use default authentication
+    const authToken = getToken();
+    if (!authToken) {
+      throw new BasebaseError(
+        BASEBASE_ERROR_CODES.UNAUTHENTICATED,
+        "No authentication token available. Please authenticate first or provide a BaseBase instance."
+      );
+    }
+    token = authToken;
+
+    // Get the base URL that was used for authentication
+    if (typeof window !== "undefined" && (window as any).customBaseUrl) {
+      baseUrl = (window as any).customBaseUrl;
+    } else {
+      baseUrl = "https://api.basebase.us";
+    }
+  }
+
+  return { token, baseUrl };
 }

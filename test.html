@@ -206,26 +206,6 @@
         font-size: 13px;
       }
 
-      .new-api-section {
-        background: #e6fffa;
-        border: 1px solid #81e6d9;
-      }
-
-      .badge {
-        display: inline-block;
-        padding: 3px 8px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        margin-left: 8px;
-      }
-
-      .badge-new {
-        background: #c6f6d5;
-        color: #22543d;
-      }
-
       @media (max-width: 768px) {
         .container {
           margin: 10px;
@@ -305,139 +285,12 @@
           <div id="authMessage"></div>
         </div>
 
-        <!-- Task Management Section -->
+        <!-- Document Management Section -->
         <div class="section">
-          <h2>⚙️ Task Management</h2>
+          <h2>📄 Document Management</h2>
           <p style="margin-bottom: 15px; color: #4a5568; font-size: 14px">
-            Create, manage, and trigger cloud tasks with cron syntax.
+            Store and retrieve data using Firebase-style document operations.
           </p>
-
-          <!-- Task CRUD -->
-          <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e0;">
-            <h4 style="margin: 0 0 10px 0; color: #2d3748">📝 Task CRUD</h4>
-            
-            <div class="form-group">
-                        <label for="functionNameCrud">Task Name:</label>
-          <input type="text" id="functionNameCrud" placeholder="myTask" value="" />
-            </div>
-            
-            <div class="form-group">
-              <label for="functionCode">Task Code:</label>
-              <textarea 
-                id="functionCode" 
-                placeholder='exports.handler = async (data) => { return { message: "Hello World!" }; }'
-                style="height: 120px; font-family: monospace; font-size: 13px; width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical;"
-              ></textarea>
-            </div>
-            
-            <div class="form-group">
-              <label for="functionDescription">Description (required):</label>
-          <input type="text" id="functionDescription" placeholder="A BaseBase task" required />
-              <small style="color: #718096; font-size: 12px;">
-                Description is required by the BaseBase server
-              </small>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div class="form-group" style="margin: 0;">
-                <label for="functionTimeout">Timeout (seconds):</label>
-                <input type="number" id="functionTimeout" placeholder="30" min="1" max="300" />
-              </div>
-              <div class="form-group" style="margin: 0;">
-                <label for="functionMemory">Memory (MB):</label>
-                <input type="number" id="functionMemory" placeholder="128" min="128" max="1024" step="64" />
-              </div>
-            </div>
-
-                      <button onclick="setTaskTest()">Set Task</button>
-          <button onclick="getTaskTest()">Get Task</button>
-          <button onclick="updateTaskTest()">Update Task</button>
-          <button onclick="deleteTaskTest()">Delete Task</button>
-          <button onclick="listTasksTest()">List All Tasks</button>
-          </div>
-
-          <!-- Task Scheduling -->
-          <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #cbd5e0;">
-            <h4 style="margin: 0 0 10px 0; color: #2d3748">⏰ Task Triggering</h4>
-            
-            <div class="form-group">
-              <label for="triggerName">Trigger Name:</label>
-              <input type="text" id="triggerName" placeholder="dailyCleanup" value="" />
-            </div>
-            
-            <div class="form-group">
-                        <label for="triggerFunction">Task to Trigger:</label>
-          <input type="text" id="triggerFunction" placeholder="myTask" value="" />
-            </div>
-            
-            <div class="form-group">
-              <label for="cronExpression">Cron Expression:</label>
-              <input type="text" id="cronExpression" placeholder="0 2 * * *" value="0 2 * * *" />
-              <small style="color: #718096; font-size: 12px;">
-                Examples: "0 2 * * *" (daily 2 AM), "*/15 * * * *" (every 15 min), "0 9 * * 1" (Mondays 9 AM)
-              </small>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div class="form-group" style="margin: 0;">
-                <label for="triggerTimezone">Timezone:</label>
-                <input type="text" id="triggerTimezone" placeholder="America/New_York" value="UTC" />
-              </div>
-              <div class="form-group" style="margin: 0;">
-                <label for="triggerEnabled">Enabled:</label>
-                <select id="triggerEnabled" style="width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px;">
-                  <option value="true">Yes</option>
-                  <option value="false">No</option>
-                </select>
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="triggerData">Task Parameters (JSON):</label>
-              <textarea 
-                id="triggerData" 
-                placeholder='{"to": "+1234567890", "message": "Hello!"}'
-                style="height: 80px; font-family: monospace; font-size: 13px; width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical;"
-              ></textarea>
-              <small style="color: #718096; font-size: 12px;">
-                Parameters that will be passed to the task when executed
-              </small>
-            </div>
-
-            <button onclick="addTriggerTest()">Add Trigger (Server ID)</button>
-            <button onclick="setTriggerTest()">Set Trigger (Custom ID)</button>
-            <button onclick="getTriggerTest()">Get Trigger</button>
-            <button onclick="updateTriggerTest()">Update Trigger</button>
-            <button onclick="deleteTriggerTest()">Delete Trigger</button>
-            <button onclick="listTriggersTest()">List All Triggers</button>
-          </div>
-
-          <div id="function-management-message"></div>
-          <div id="function-management-result"></div>
-        </div>
-
-        <!-- Task execution example -->
-        <div class="section">
-          <h2>🔧 Task Execution</h2>
-          <div class="form-group">
-            <label for="functionName">Task Name:</label>
-            <input type="text" id="functionName" placeholder="Task name (e.g., getPage)" />
-          </div>
-          <div class="form-group">
-            <label for="functionParams">Task Parameters (JSON):</label>
-            <textarea
-              id="functionParams"
-              placeholder='{"url": "https://example.com", "selector": "h1"}'
-              style="height: 80px; font-family: monospace; font-size: 13px; width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical;"
-            ></textarea>
-          </div>
-          <button onclick="callServerTask()">Execute Task</button>
-          <div id="function-message"></div>
-          <div id="function-result"></div>
-        </div>
-
-        <!-- Document management example -->
-        <h3>Document Management</h3>
 
           <div class="form-group">
             <label for="collectionName">Collection Name:</label>
@@ -488,30 +341,300 @@
           <div id="dataList" class="data-list" style="margin-top: 15px">
             <!-- Data items will be populated here -->
           </div>
+
+          <!-- Advanced Query Operations Subsection -->
+          <div
+            style="
+              background: #e6fffa;
+              padding: 15px;
+              border-radius: 6px;
+              margin-top: 15px;
+              border: 1px solid #81e6d9;
+            "
+          >
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">
+              🔍 Advanced Query Operations
+              <span
+                style="
+                  display: inline-block;
+                  padding: 3px 8px;
+                  border-radius: 12px;
+                  font-size: 11px;
+                  font-weight: 600;
+                  text-transform: uppercase;
+                  margin-left: 8px;
+                  background: #c6f6d5;
+                  color: #22543d;
+                "
+                >New</span
+              >
+            </h4>
+            <p style="margin-bottom: 15px; color: #4a5568; font-size: 14px">
+              Test structured query functionality with field filtering and
+              ordering.
+            </p>
+
+            <div class="form-group">
+              <label for="queryCollectionName">Collection Name:</label>
+              <input
+                type="text"
+                id="queryCollectionName"
+                placeholder="test"
+                value="test"
+              />
+            </div>
+
+            <!-- Where Clause Section -->
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                margin-bottom: 15px;
+                border: 1px solid #cbd5e0;
+              "
+            >
+              <h5 style="margin: 0 0 10px 0; color: #2d3748">
+                Where Clause (Filter)
+              </h5>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 120px 1fr;
+                  gap: 10px;
+                  align-items: end;
+                "
+              >
+                <div class="form-group" style="margin: 0">
+                  <label for="whereField">Field:</label>
+                  <input
+                    type="text"
+                    id="whereField"
+                    placeholder="age"
+                    value="age"
+                  />
+                </div>
+                <div class="form-group" style="margin: 0">
+                  <label for="whereOperator">Operator:</label>
+                  <select
+                    id="whereOperator"
+                    style="
+                      width: 100%;
+                      padding: 10px;
+                      border: 1px solid #cbd5e0;
+                      border-radius: 6px;
+                      font-size: 14px;
+                    "
+                  >
+                    <option value="==">=</option>
+                    <option value="!=">=</option>
+                    <option value="<"><</option>
+                    <option value="<="><=</option>
+                    <option value=">">></option>
+                    <option value=">=" selected>>=</option>
+                    <option value="array-contains">array-contains</option>
+                    <option value="in">in</option>
+                    <option value="not-in">not-in</option>
+                    <option value="array-contains-any">
+                      array-contains-any
+                    </option>
+                    <option value="matches">matches (regex)</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin: 0">
+                  <label for="whereValue">Value:</label>
+                  <input
+                    type="text"
+                    id="whereValue"
+                    placeholder="18"
+                    value="18"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Order By Section -->
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                margin-bottom: 15px;
+                border: 1px solid #cbd5e0;
+              "
+            >
+              <h5 style="margin: 0 0 10px 0; color: #2d3748">Order By</h5>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 120px;
+                  gap: 10px;
+                  align-items: end;
+                "
+              >
+                <div class="form-group" style="margin: 0">
+                  <label for="orderField">Field:</label>
+                  <input
+                    type="text"
+                    id="orderField"
+                    placeholder="name"
+                    value="name"
+                  />
+                </div>
+                <div class="form-group" style="margin: 0">
+                  <label for="orderDirection">Direction:</label>
+                  <select
+                    id="orderDirection"
+                    style="
+                      width: 100%;
+                      padding: 10px;
+                      border: 1px solid #cbd5e0;
+                      border-radius: 6px;
+                      font-size: 14px;
+                    "
+                  >
+                    <option value="asc" selected>Ascending</option>
+                    <option value="desc">Descending</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Limit Section -->
+            <div
+              style="
+                background: white;
+                padding: 15px;
+                border-radius: 6px;
+                margin-bottom: 15px;
+                border: 1px solid #cbd5e0;
+              "
+            >
+              <h5 style="margin: 0 0 10px 0; color: #2d3748">Limit</h5>
+              <div class="form-group" style="margin: 0">
+                <label for="queryLimit">Max Results:</label>
+                <input
+                  type="number"
+                  id="queryLimit"
+                  placeholder="10"
+                  value="10"
+                  min="1"
+                  max="100"
+                  style="width: 150px"
+                />
+              </div>
+            </div>
+
+            <button onclick="runStructuredQueryTest()">
+              🚀 Run Structured Query
+            </button>
+            <button onclick="runBasicQueryTest()">
+              📋 Run Basic Query (Legacy)
+            </button>
+            <button onclick="clearQueryFilters()">🧹 Clear Filters</button>
+
+            <div id="queryMessage"></div>
+
+            <div id="queryResults" class="data-list" style="margin-top: 15px">
+              <!-- Query results will be populated here -->
+            </div>
+          </div>
         </div>
 
-        <!-- Advanced Query Operations Section -->
-        <div class="section new-api-section">
-          <h2>
-            🔍 Advanced Query Operations
-            <span class="badge badge-new">New</span>
-          </h2>
+        <!-- Task Management Section -->
+        <div class="section">
+          <h2>⚙️ Task Management</h2>
           <p style="margin-bottom: 15px; color: #4a5568; font-size: 14px">
-            Test the new structured query functionality with field filtering and
-            ordering.
+            Create, manage, and trigger cloud tasks with cron syntax.
           </p>
 
-          <div class="form-group">
-            <label for="queryCollectionName">Collection Name:</label>
-            <input
-              type="text"
-              id="queryCollectionName"
-              placeholder="test"
-              value="test"
-            />
+          <!-- Task CRUD -->
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-bottom: 15px;
+              border: 1px solid #cbd5e0;
+            "
+          >
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">📝 Task CRUD</h4>
+
+            <div class="form-group">
+              <label for="functionNameCrud">Task Name:</label>
+              <input
+                type="text"
+                id="functionNameCrud"
+                placeholder="myTask"
+                value=""
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="functionCode">Task Code:</label>
+              <textarea
+                id="functionCode"
+                placeholder='exports.handler = async (data) => { return { message: "Hello World!" }; }'
+                style="
+                  height: 120px;
+                  font-family: monospace;
+                  font-size: 13px;
+                  width: 100%;
+                  padding: 10px;
+                  border: 1px solid #cbd5e0;
+                  border-radius: 6px;
+                  resize: vertical;
+                "
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="functionDescription">Description (required):</label>
+              <input
+                type="text"
+                id="functionDescription"
+                placeholder="A BaseBase task"
+                required
+              />
+              <small style="color: #718096; font-size: 12px">
+                Description is required by the BaseBase server
+              </small>
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="form-group" style="margin: 0">
+                <label for="functionTimeout">Timeout (seconds):</label>
+                <input
+                  type="number"
+                  id="functionTimeout"
+                  placeholder="30"
+                  min="1"
+                  max="300"
+                />
+              </div>
+              <div class="form-group" style="margin: 0">
+                <label for="functionMemory">Memory (MB):</label>
+                <input
+                  type="number"
+                  id="functionMemory"
+                  placeholder="128"
+                  min="128"
+                  max="1024"
+                  step="64"
+                />
+              </div>
+            </div>
+
+            <button onclick="setTaskTest()">Set Task</button>
+            <button onclick="getTaskTest()">Get Task</button>
+            <button onclick="updateTaskTest()">Update Task</button>
+            <button onclick="deleteTaskTest()">Delete Task</button>
+            <button onclick="listTasksTest()">List All Tasks</button>
           </div>
 
-          <!-- Where Clause Section -->
+          <!-- Task Execution -->
           <div
             style="
               background: white;
@@ -522,147 +645,147 @@
             "
           >
             <h4 style="margin: 0 0 10px 0; color: #2d3748">
-              Where Clause (Filter)
+              🚀 Task Execution
             </h4>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 120px 1fr;
-                gap: 10px;
-                align-items: end;
-              "
-            >
-              <div class="form-group" style="margin: 0">
-                <label for="whereField">Field:</label>
-                <input
-                  type="text"
-                  id="whereField"
-                  placeholder="age"
-                  value="age"
-                />
-              </div>
-              <div class="form-group" style="margin: 0">
-                <label for="whereOperator">Operator:</label>
-                <select
-                  id="whereOperator"
-                  style="
-                    width: 100%;
-                    padding: 10px;
-                    border: 1px solid #cbd5e0;
-                    border-radius: 6px;
-                    font-size: 14px;
-                  "
-                >
-                  <option value="==">=</option>
-                  <option value="!=">=</option>
-                  <option value="<"><</option>
-                  <option value="<="><=</option>
-                  <option value=">">></option>
-                  <option value=">=" selected>>=</option>
-                  <option value="array-contains">array-contains</option>
-                  <option value="in">in</option>
-                  <option value="not-in">not-in</option>
-                  <option value="array-contains-any">array-contains-any</option>
-                  <option value="matches">matches (regex)</option>
-                </select>
-              </div>
-              <div class="form-group" style="margin: 0">
-                <label for="whereValue">Value:</label>
-                <input
-                  type="text"
-                  id="whereValue"
-                  placeholder="18"
-                  value="18"
-                />
-              </div>
-            </div>
-          </div>
 
-          <!-- Order By Section -->
-          <div
-            style="
-              background: white;
-              padding: 15px;
-              border-radius: 6px;
-              margin-bottom: 15px;
-              border: 1px solid #cbd5e0;
-            "
-          >
-            <h4 style="margin: 0 0 10px 0; color: #2d3748">Order By</h4>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 120px;
-                gap: 10px;
-                align-items: end;
-              "
-            >
-              <div class="form-group" style="margin: 0">
-                <label for="orderField">Field:</label>
-                <input
-                  type="text"
-                  id="orderField"
-                  placeholder="name"
-                  value="name"
-                />
-              </div>
-              <div class="form-group" style="margin: 0">
-                <label for="orderDirection">Direction:</label>
-                <select
-                  id="orderDirection"
-                  style="
-                    width: 100%;
-                    padding: 10px;
-                    border: 1px solid #cbd5e0;
-                    border-radius: 6px;
-                    font-size: 14px;
-                  "
-                >
-                  <option value="asc" selected>Ascending</option>
-                  <option value="desc">Descending</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <!-- Limit Section -->
-          <div
-            style="
-              background: white;
-              padding: 15px;
-              border-radius: 6px;
-              margin-bottom: 15px;
-              border: 1px solid #cbd5e0;
-            "
-          >
-            <h4 style="margin: 0 0 10px 0; color: #2d3748">Limit</h4>
-            <div class="form-group" style="margin: 0">
-              <label for="queryLimit">Max Results:</label>
+            <div class="form-group">
+              <label for="doTaskName">Task Name:</label>
               <input
-                type="number"
-                id="queryLimit"
-                placeholder="10"
-                value="10"
-                min="1"
-                max="100"
-                style="width: 150px"
+                type="text"
+                id="doTaskName"
+                placeholder="Task name (e.g., getPage)"
               />
             </div>
+            <div class="form-group">
+              <label for="doTaskParams">Task Parameters (JSON):</label>
+              <textarea
+                id="doTaskParams"
+                placeholder='{"url": "https://example.com", "selector": "h1"}'
+                style="
+                  height: 80px;
+                  font-family: monospace;
+                  font-size: 13px;
+                  width: 100%;
+                  padding: 10px;
+                  border: 1px solid #cbd5e0;
+                  border-radius: 6px;
+                  resize: vertical;
+                "
+              ></textarea>
+            </div>
+            <button onclick="doTaskTest()">Do Task</button>
+            <div id="doTask-message"></div>
+            <div id="doTask-result"></div>
           </div>
 
-          <button onclick="runStructuredQueryTest()">
-            🚀 Run Structured Query
-          </button>
-          <button onclick="runBasicQueryTest()">
-            📋 Run Basic Query (Legacy)
-          </button>
-          <button onclick="clearQueryFilters()">🧹 Clear Filters</button>
+          <!-- Task Scheduling -->
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-bottom: 15px;
+              border: 1px solid #cbd5e0;
+            "
+          >
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">
+              ⏰ Task Triggering
+            </h4>
 
-          <div id="queryMessage"></div>
+            <div class="form-group">
+              <label for="triggerName">Trigger Name:</label>
+              <input
+                type="text"
+                id="triggerName"
+                placeholder="dailyCleanup"
+                value=""
+              />
+            </div>
 
-          <div id="queryResults" class="data-list" style="margin-top: 15px">
-            <!-- Query results will be populated here -->
+            <div class="form-group">
+              <label for="triggerFunction">Task to Trigger:</label>
+              <input
+                type="text"
+                id="triggerFunction"
+                placeholder="myTask"
+                value=""
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="cronExpression">Cron Expression:</label>
+              <input
+                type="text"
+                id="cronExpression"
+                placeholder="0 2 * * *"
+                value="0 2 * * *"
+              />
+              <small style="color: #718096; font-size: 12px">
+                Examples: "0 2 * * *" (daily 2 AM), "*/15 * * * *" (every 15
+                min), "0 9 * * 1" (Mondays 9 AM)
+              </small>
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+            >
+              <div class="form-group" style="margin: 0">
+                <label for="triggerTimezone">Timezone:</label>
+                <input
+                  type="text"
+                  id="triggerTimezone"
+                  placeholder="America/New_York"
+                  value="UTC"
+                />
+              </div>
+              <div class="form-group" style="margin: 0">
+                <label for="triggerEnabled">Enabled:</label>
+                <select
+                  id="triggerEnabled"
+                  style="
+                    width: 100%;
+                    padding: 10px;
+                    border: 1px solid #cbd5e0;
+                    border-radius: 6px;
+                  "
+                >
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="triggerData">Task Parameters (JSON):</label>
+              <textarea
+                id="triggerData"
+                placeholder='{"to": "+1234567890", "message": "Hello!"}'
+                style="
+                  height: 80px;
+                  font-family: monospace;
+                  font-size: 13px;
+                  width: 100%;
+                  padding: 10px;
+                  border: 1px solid #cbd5e0;
+                  border-radius: 6px;
+                  resize: vertical;
+                "
+              ></textarea>
+              <small style="color: #718096; font-size: 12px">
+                Parameters that will be passed to the task when executed
+              </small>
+            </div>
+
+            <button onclick="addTriggerTest()">Add Trigger (Server ID)</button>
+            <button onclick="setTriggerTest()">Set Trigger (Custom ID)</button>
+            <button onclick="getTriggerTest()">Get Trigger</button>
+            <button onclick="updateTriggerTest()">Update Trigger</button>
+            <button onclick="deleteTriggerTest()">Delete Trigger</button>
+            <button onclick="listTriggersTest()">List All Triggers</button>
           </div>
+
+          <div id="function-management-message"></div>
+          <div id="function-management-result"></div>
         </div>
       </div>
     </div>
@@ -1368,9 +1491,9 @@
         try {
           // Store the custom base URL for use when re-authenticating
           window.customBaseUrl = serverHost;
-          
+
           // Save to localStorage for persistence across reloads
-          localStorage.setItem('basebase-server-host', serverHost);
+          localStorage.setItem("basebase-server-host", serverHost);
 
           showMessage(
             document.getElementById("serverMessage"),
@@ -1759,7 +1882,9 @@
       // Function to call a server function
       window.callServerTask = async function callServerTask() {
         const taskName = document.getElementById("functionName").value.trim();
-        const taskParams = document.getElementById("functionParams").value.trim();
+        const taskParams = document
+          .getElementById("functionParams")
+          .value.trim();
         const taskResultDiv = document.getElementById("function-result");
         const taskMessageDiv = document.getElementById("function-message");
 
@@ -1776,71 +1901,98 @@
           }
 
           const result = await window.BasebaseSDK.doTask(taskName, params);
-          
+
           // Format result for display (safely escape HTML and truncate if needed)
           let displayText;
           let contentType;
-          
+
           // Check if result has the expected structure with data field
-          if (result && typeof result === 'object' && result.data) {
+          if (result && typeof result === "object" && result.data) {
             // Extract the actual content from result.data
             const content = result.data;
-                            contentType = 'task result data';
-            
-            if (typeof content === 'string') {
-              displayText = content.length > 1000 ? 
-                content.substring(0, 1000) + '\n\n... (truncated, full length: ' + content.length + ' characters)' :
-                content;
+            contentType = "task result data";
+
+            if (typeof content === "string") {
+              displayText =
+                content.length > 1000
+                  ? content.substring(0, 1000) +
+                    "\n\n... (truncated, full length: " +
+                    content.length +
+                    " characters)"
+                  : content;
             } else {
               const jsonStr = JSON.stringify(content, null, 2);
-              displayText = jsonStr.length > 1000 ? 
-                jsonStr.substring(0, 1000) + '\n\n... (truncated, full length: ' + jsonStr.length + ' characters)' :
-                jsonStr;
+              displayText =
+                jsonStr.length > 1000
+                  ? jsonStr.substring(0, 1000) +
+                    "\n\n... (truncated, full length: " +
+                    jsonStr.length +
+                    " characters)"
+                  : jsonStr;
             }
-          } else if (typeof result === 'string') {
+          } else if (typeof result === "string") {
             // For direct string results
-            contentType = 'string result';
-            displayText = result.length > 1000 ? 
-              result.substring(0, 1000) + '\n\n... (truncated, full length: ' + result.length + ' characters)' :
-              result;
+            contentType = "string result";
+            displayText =
+              result.length > 1000
+                ? result.substring(0, 1000) +
+                  "\n\n... (truncated, full length: " +
+                  result.length +
+                  " characters)"
+                : result;
           } else {
             // For other objects, show full JSON structure
-            contentType = 'full response';
+            contentType = "full response";
             const jsonStr = JSON.stringify(result, null, 2);
-            displayText = jsonStr.length > 1000 ? 
-              jsonStr.substring(0, 1000) + '\n\n... (truncated, full length: ' + jsonStr.length + ' characters)' :
-              jsonStr;
+            displayText =
+              jsonStr.length > 1000
+                ? jsonStr.substring(0, 1000) +
+                  "\n\n... (truncated, full length: " +
+                  jsonStr.length +
+                  " characters)"
+                : jsonStr;
           }
-          
+
           // Safely set text content (no HTML injection)
-          const resultPre = document.createElement('pre');
-          resultPre.style.cssText = 'white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto; max-height: 400px; overflow-y: auto;';
+          const resultPre = document.createElement("pre");
+          resultPre.style.cssText =
+            "white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto; max-height: 400px; overflow-y: auto;";
           resultPre.textContent = displayText;
-          
-                          taskResultDiv.innerHTML = '';
-                taskResultDiv.appendChild(resultPre);
-          
+
+          taskResultDiv.innerHTML = "";
+          taskResultDiv.appendChild(resultPre);
+
           // Show success message with result info in separate div
           let resultInfo;
-                          if (contentType === 'task result data' && typeof result.data === 'string') {
+          if (
+            contentType === "task result data" &&
+            typeof result.data === "string"
+          ) {
             resultInfo = `${result.data.length} characters from result.data`;
-          } else if (contentType === 'string result') {
+          } else if (contentType === "string result") {
             resultInfo = `${result.length} characters`;
-          } else if (result && typeof result === 'object') {
-            resultInfo = `${Object.keys(result).length} properties (showing ${contentType})`;
+          } else if (result && typeof result === "object") {
+            resultInfo = `${
+              Object.keys(result).length
+            } properties (showing ${contentType})`;
           } else {
             resultInfo = `${typeof result} result`;
           }
-                          showMessage(taskMessageDiv, `Task execution successful! (${resultInfo})`, "success");
+          showMessage(
+            taskMessageDiv,
+            `Task execution successful! (${resultInfo})`,
+            "success"
+          );
         } catch (error) {
           // Safely display error message (no HTML injection)
-          const errorPre = document.createElement('pre');
-          errorPre.style.cssText = 'white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #e53e3e; background: #fff5f5; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;';
-          errorPre.textContent = error.message || 'Unknown error occurred';
-          
-                          taskResultDiv.innerHTML = '';
-                taskResultDiv.appendChild(errorPre);
-                showMessage(taskMessageDiv, "Task execution failed.", "error");
+          const errorPre = document.createElement("pre");
+          errorPre.style.cssText =
+            "white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #e53e3e; background: #fff5f5; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;";
+          errorPre.textContent = error.message || "Unknown error occurred";
+
+          taskResultDiv.innerHTML = "";
+          taskResultDiv.appendChild(errorPre);
+          showMessage(taskMessageDiv, "Task execution failed.", "error");
         }
       };
 
@@ -1850,13 +2002,25 @@
 
       // Create Task
       window.setTaskTest = async function setTaskTest() {
-        const functionName = document.getElementById('functionNameCrud').value.trim();
-        const functionCode = document.getElementById('functionCode').value.trim();
-        const description = document.getElementById('functionDescription').value.trim() || 'A BaseBase function'; // Default description if empty
-        const timeout = parseInt(document.getElementById('functionTimeout').value) || undefined;
-        const memoryMB = parseInt(document.getElementById('functionMemory').value) || undefined;
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const functionName = document
+          .getElementById("functionNameCrud")
+          .value.trim();
+        const functionCode = document
+          .getElementById("functionCode")
+          .value.trim();
+        const description =
+          document.getElementById("functionDescription").value.trim() ||
+          "A BaseBase function"; // Default description if empty
+        const timeout =
+          parseInt(document.getElementById("functionTimeout").value) ||
+          undefined;
+        const memoryMB =
+          parseInt(document.getElementById("functionMemory").value) ||
+          undefined;
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!functionName || !functionCode) {
           showMessage(messageDiv, "Please enter task name and code.", "error");
@@ -1864,28 +2028,53 @@
         }
 
         try {
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create task reference using Firebase-style API
+          const taskRef = window.BasebaseSDK.task(
+            db,
+            `${projectId}/${functionName}`
+          );
+
           const taskData = {
-            name: functionName,
             code: functionCode,
             description: description, // Always include description (required by server)
             ...(timeout && { timeout }),
-            ...(memoryMB && { memoryMB })
+            ...(memoryMB && { memoryMB }),
           };
 
-          const result = await window.BasebaseSDK.setTask(taskData);
-          displayManagementResult(resultDiv, result, 'Task created successfully');
-          showMessage(messageDiv, `Task "${functionName}" created successfully!`, "success");
+          const result = await window.BasebaseSDK.setTask(taskRef, taskData);
+          displayManagementResult(
+            resultDiv,
+            result,
+            "Task created successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Task "${functionName}" created successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to create task: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to create task: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
         }
       };
 
       // Get Task
       window.getTaskTest = async function getTaskTest() {
-        const functionName = document.getElementById('functionNameCrud').value.trim();
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const functionName = document
+          .getElementById("functionNameCrud")
+          .value.trim();
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!functionName) {
           showMessage(messageDiv, "Please enter a task name.", "error");
@@ -1893,24 +2082,58 @@
         }
 
         try {
-          const result = await window.BasebaseSDK.getTask(functionName);
-          displayManagementResult(resultDiv, result, 'Task retrieved successfully');
-          showMessage(messageDiv, `Task "${functionName}" retrieved successfully!`, "success");
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create task reference using Firebase-style API
+          const taskRef = window.BasebaseSDK.task(
+            db,
+            `${projectId}/${functionName}`
+          );
+
+          const result = await window.BasebaseSDK.getTask(taskRef);
+          displayManagementResult(
+            resultDiv,
+            result,
+            "Task retrieved successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Task "${functionName}" retrieved successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to get task: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to get task: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
         }
       };
 
       // Update Task
       window.updateTaskTest = async function updateTaskTest() {
-        const functionName = document.getElementById('functionNameCrud').value.trim();
-        const functionCode = document.getElementById('functionCode').value.trim();
-        const description = document.getElementById('functionDescription').value.trim();
-        const timeout = parseInt(document.getElementById('functionTimeout').value) || undefined;
-        const memoryMB = parseInt(document.getElementById('functionMemory').value) || undefined;
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const functionName = document
+          .getElementById("functionNameCrud")
+          .value.trim();
+        const functionCode = document
+          .getElementById("functionCode")
+          .value.trim();
+        const description = document
+          .getElementById("functionDescription")
+          .value.trim();
+        const timeout =
+          parseInt(document.getElementById("functionTimeout").value) ||
+          undefined;
+        const memoryMB =
+          parseInt(document.getElementById("functionMemory").value) ||
+          undefined;
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!functionName) {
           showMessage(messageDiv, "Please enter a task name.", "error");
@@ -1925,75 +2148,159 @@
           if (memoryMB) updates.memoryMB = memoryMB;
 
           if (Object.keys(updates).length === 0) {
-            showMessage(messageDiv, "Please provide at least one field to update.", "error");
+            showMessage(
+              messageDiv,
+              "Please provide at least one field to update.",
+              "error"
+            );
             return;
           }
 
-          const result = await window.BasebaseSDK.updateTask(functionName, updates);
-          displayManagementResult(resultDiv, result, 'Task updated successfully');
-          showMessage(messageDiv, `Task "${functionName}" updated successfully!`, "success");
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create task reference using Firebase-style API
+          const taskRef = window.BasebaseSDK.task(
+            db,
+            `${projectId}/${functionName}`
+          );
+
+          const result = await window.BasebaseSDK.updateTask(taskRef, updates);
+          displayManagementResult(
+            resultDiv,
+            result,
+            "Task updated successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Task "${functionName}" updated successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to update task: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to update task: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
         }
       };
 
       // Delete Task
       window.deleteTaskTest = async function deleteTaskTest() {
-        const functionName = document.getElementById('functionNameCrud').value.trim();
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const functionName = document
+          .getElementById("functionNameCrud")
+          .value.trim();
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!functionName) {
           showMessage(messageDiv, "Please enter a task name.", "error");
           return;
         }
 
-        if (!confirm(`Are you sure you want to delete task "${functionName}"?`)) {
+        if (
+          !confirm(`Are you sure you want to delete task "${functionName}"?`)
+        ) {
           return;
         }
 
         try {
-          await window.BasebaseSDK.deleteTask(functionName);
-          resultDiv.innerHTML = '';
-          showMessage(messageDiv, `Task "${functionName}" deleted successfully!`, "success");
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create task reference using Firebase-style API
+          const taskRef = window.BasebaseSDK.task(
+            db,
+            `${projectId}/${functionName}`
+          );
+
+          await window.BasebaseSDK.deleteTask(taskRef);
+          resultDiv.innerHTML = "";
+          showMessage(
+            messageDiv,
+            `Task "${functionName}" deleted successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to delete task: ${error.message}`, "error");
+          showMessage(
+            messageDiv,
+            `Failed to delete task: ${error.message}`,
+            "error"
+          );
         }
       };
 
       // List Tasks
       window.listTasksTest = async function listTasksTest() {
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         try {
           const tasks = await window.BasebaseSDK.listTasks();
-          displayManagementResult(resultDiv, tasks, `Found ${tasks.length} tasks`);
-          showMessage(messageDiv, `Listed ${tasks.length} tasks successfully!`, "success");
+          displayManagementResult(
+            resultDiv,
+            tasks,
+            `Found ${tasks.length} tasks`
+          );
+          showMessage(
+            messageDiv,
+            `Listed ${tasks.length} tasks successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to list tasks: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to list tasks: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
         }
       };
 
       // Add Trigger
       window.addTriggerTest = async function addTriggerTest() {
-        const triggerName = document.getElementById('triggerName').value.trim();
-        const functionName = document.getElementById('triggerFunction').value.trim();
-        const cronExpression = document.getElementById('cronExpression').value.trim();
-        const timeZone = document.getElementById('triggerTimezone').value.trim();
-        const enabled = document.getElementById('triggerEnabled').value === 'true';
-        const dataText = document.getElementById('triggerData').value.trim();
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const triggerName = document.getElementById("triggerName").value.trim();
+        const functionName = document
+          .getElementById("triggerFunction")
+          .value.trim();
+        const cronExpression = document
+          .getElementById("cronExpression")
+          .value.trim();
+        const timeZone = document
+          .getElementById("triggerTimezone")
+          .value.trim();
+        const enabled =
+          document.getElementById("triggerEnabled").value === "true";
+        const dataText = document.getElementById("triggerData").value.trim();
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!triggerName || !functionName || !cronExpression) {
-          showMessage(messageDiv, "Please enter trigger name, task name, and cron expression.", "error");
+          showMessage(
+            messageDiv,
+            "Please enter trigger name, task name, and cron expression.",
+            "error"
+          );
           return;
         }
 
         try {
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create triggers reference using Firebase-style API
+          const triggersRef = window.BasebaseSDK.triggers(db, projectId);
+
           const triggerData = {
             name: triggerName,
             taskName: functionName,
@@ -2006,37 +2313,77 @@
             try {
               triggerData.data = JSON.parse(dataText);
             } catch (e) {
-              showMessage(messageDiv, "Invalid JSON in task parameters field.", "error");
+              showMessage(
+                messageDiv,
+                "Invalid JSON in task parameters field.",
+                "error"
+              );
               return;
             }
           }
 
-          const result = await window.BasebaseSDK.addTrigger(triggerData);
-          displayManagementResult(resultDiv, result, 'Trigger added successfully');
-          showMessage(messageDiv, `Trigger "${triggerName}" added successfully!`, "success");
+          const result = await window.BasebaseSDK.addTrigger(
+            triggersRef,
+            triggerData
+          );
+          displayManagementResult(
+            resultDiv,
+            result,
+            "Trigger added successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Trigger "${triggerName}" added successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to add trigger: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to add trigger: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
         }
       };
 
       // Set Trigger (with custom ID)
       window.setTriggerTest = async function setTriggerTest() {
-        const triggerName = document.getElementById('triggerName').value.trim();
-        const functionName = document.getElementById('triggerFunction').value.trim();
-        const cronExpression = document.getElementById('cronExpression').value.trim();
-        const timeZone = document.getElementById('triggerTimezone').value.trim();
-        const enabled = document.getElementById('triggerEnabled').value === 'true';
-        const dataText = document.getElementById('triggerData').value.trim();
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const triggerName = document.getElementById("triggerName").value.trim();
+        const functionName = document
+          .getElementById("triggerFunction")
+          .value.trim();
+        const cronExpression = document
+          .getElementById("cronExpression")
+          .value.trim();
+        const timeZone = document
+          .getElementById("triggerTimezone")
+          .value.trim();
+        const enabled =
+          document.getElementById("triggerEnabled").value === "true";
+        const dataText = document.getElementById("triggerData").value.trim();
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!triggerName || !functionName || !cronExpression) {
-          showMessage(messageDiv, "Please enter trigger name, task name, and cron expression.", "error");
+          showMessage(
+            messageDiv,
+            "Please enter trigger name, task name, and cron expression.",
+            "error"
+          );
           return;
         }
 
         try {
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create trigger reference using Firebase-style API
+          const triggersRef = window.BasebaseSDK.triggers(db, projectId);
+          const triggerRef = triggersRef.trigger(triggerName);
+
           const triggerData = {
             name: triggerName,
             taskName: functionName,
@@ -2049,26 +2396,46 @@
             try {
               triggerData.data = JSON.parse(dataText);
             } catch (e) {
-              showMessage(messageDiv, "Invalid JSON in task parameters field.", "error");
+              showMessage(
+                messageDiv,
+                "Invalid JSON in task parameters field.",
+                "error"
+              );
               return;
             }
           }
 
-          // Use the trigger name as the custom ID
-          const result = await window.BasebaseSDK.setTrigger(triggerName, triggerData);
-          displayManagementResult(resultDiv, result, 'Trigger set successfully');
-          showMessage(messageDiv, `Trigger "${triggerName}" set successfully with custom ID!`, "success");
+          const result = await window.BasebaseSDK.setTrigger(
+            triggerRef,
+            triggerData
+          );
+          displayManagementResult(
+            resultDiv,
+            result,
+            "Trigger set successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Trigger "${triggerName}" set successfully with custom ID!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to set trigger: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to set trigger: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
         }
       };
 
       // Get Trigger
       window.getTriggerTest = async function getTriggerTest() {
-        const triggerName = document.getElementById('triggerName').value.trim();
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const triggerName = document.getElementById("triggerName").value.trim();
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!triggerName) {
           showMessage(messageDiv, "Please enter a trigger name.", "error");
@@ -2076,24 +2443,51 @@
         }
 
         try {
-          const result = await window.BasebaseSDK.getTrigger(triggerName);
-          displayManagementResult(resultDiv, result, 'Trigger retrieved successfully');
-          showMessage(messageDiv, `Trigger "${triggerName}" retrieved successfully!`, "success");
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create trigger reference using Firebase-style API
+          const triggersRef = window.BasebaseSDK.triggers(db, projectId);
+          const triggerRef = triggersRef.trigger(triggerName);
+
+          const result = await window.BasebaseSDK.getTrigger(triggerRef);
+          displayManagementResult(
+            resultDiv,
+            result,
+            "Trigger retrieved successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Trigger "${triggerName}" retrieved successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to get trigger: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to get trigger: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
         }
       };
 
       // Update Trigger
       window.updateTriggerTest = async function updateTriggerTest() {
-        const triggerName = document.getElementById('triggerName').value.trim();
-        const cronExpression = document.getElementById('cronExpression').value.trim();
-        const timeZone = document.getElementById('triggerTimezone').value.trim();
-        const enabled = document.getElementById('triggerEnabled').value === 'true';
-        const dataText = document.getElementById('triggerData').value.trim();
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const triggerName = document.getElementById("triggerName").value.trim();
+        const cronExpression = document
+          .getElementById("cronExpression")
+          .value.trim();
+        const timeZone = document
+          .getElementById("triggerTimezone")
+          .value.trim();
+        const enabled =
+          document.getElementById("triggerEnabled").value === "true";
+        const dataText = document.getElementById("triggerData").value.trim();
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!triggerName) {
           showMessage(messageDiv, "Please enter a trigger name.", "error");
@@ -2110,77 +2504,266 @@
             try {
               updates.data = JSON.parse(dataText);
             } catch (e) {
-              showMessage(messageDiv, "Invalid JSON in task parameters field.", "error");
+              showMessage(
+                messageDiv,
+                "Invalid JSON in task parameters field.",
+                "error"
+              );
               return;
             }
           }
 
-          const result = await window.BasebaseSDK.updateTrigger(triggerName, updates);
-          displayManagementResult(resultDiv, result, 'Trigger updated successfully');
-          showMessage(messageDiv, `Trigger "${triggerName}" updated successfully!`, "success");
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create trigger reference using Firebase-style API
+          const triggersRef = window.BasebaseSDK.triggers(db, projectId);
+          const triggerRef = triggersRef.trigger(triggerName);
+
+          const result = await window.BasebaseSDK.updateTrigger(
+            triggerRef,
+            updates
+          );
+          displayManagementResult(
+            resultDiv,
+            result,
+            "Trigger updated successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Trigger "${triggerName}" updated successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to update trigger: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to update trigger: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
         }
       };
 
       // Delete Trigger
       window.deleteTriggerTest = async function deleteTriggerTest() {
-        const triggerName = document.getElementById('triggerName').value.trim();
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const triggerName = document.getElementById("triggerName").value.trim();
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         if (!triggerName) {
           showMessage(messageDiv, "Please enter a trigger name.", "error");
           return;
         }
 
-        if (!confirm(`Are you sure you want to delete trigger "${triggerName}"?`)) {
+        if (
+          !confirm(`Are you sure you want to delete trigger "${triggerName}"?`)
+        ) {
           return;
         }
 
         try {
-          await window.BasebaseSDK.deleteTrigger(triggerName);
-          resultDiv.innerHTML = '';
-          showMessage(messageDiv, `Trigger "${triggerName}" deleted successfully!`, "success");
+          const db = getDbInstance();
+          const authState = window.BasebaseSDK.getAuthState();
+          const projectId = authState.project?.id || "test_project";
+
+          // Create trigger reference using Firebase-style API
+          const triggersRef = window.BasebaseSDK.triggers(db, projectId);
+          const triggerRef = triggersRef.trigger(triggerName);
+
+          await window.BasebaseSDK.deleteTrigger(triggerRef);
+          resultDiv.innerHTML = "";
+          showMessage(
+            messageDiv,
+            `Trigger "${triggerName}" deleted successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to delete trigger: ${error.message}`, "error");
+          showMessage(
+            messageDiv,
+            `Failed to delete trigger: ${error.message}`,
+            "error"
+          );
         }
       };
 
       // List Triggers
       window.listTriggersTest = async function listTriggersTest() {
-        const messageDiv = document.getElementById('function-management-message');
-        const resultDiv = document.getElementById('function-management-result');
+        const messageDiv = document.getElementById(
+          "function-management-message"
+        );
+        const resultDiv = document.getElementById("function-management-result");
 
         try {
           const triggers = await window.BasebaseSDK.listTriggers();
-          displayManagementResult(resultDiv, triggers, `Found ${triggers.length} triggers`);
-          showMessage(messageDiv, `Listed ${triggers.length} triggers successfully!`, "success");
+          displayManagementResult(
+            resultDiv,
+            triggers,
+            `Found ${triggers.length} triggers`
+          );
+          showMessage(
+            messageDiv,
+            `Listed ${triggers.length} triggers successfully!`,
+            "success"
+          );
         } catch (error) {
-          showMessage(messageDiv, `Failed to list triggers: ${error.message}`, "error");
-          resultDiv.innerHTML = '';
+          showMessage(
+            messageDiv,
+            `Failed to list triggers: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
+        }
+      };
+
+      // Do Task (Execute Task)
+      window.doTaskTest = async function doTaskTest() {
+        const taskName = document.getElementById("doTaskName").value.trim();
+        const taskParams = document.getElementById("doTaskParams").value.trim();
+        const messageDiv = document.getElementById("doTask-message");
+        const resultDiv = document.getElementById("doTask-result");
+
+        if (!taskName) {
+          showMessage(messageDiv, "Please enter a task name.", "error");
+          return;
+        }
+
+        try {
+          let params = {};
+          if (taskParams) {
+            try {
+              params = JSON.parse(taskParams);
+            } catch (e) {
+              showMessage(
+                messageDiv,
+                "Invalid JSON in task parameters.",
+                "error"
+              );
+              return;
+            }
+          }
+
+          const result = await window.BasebaseSDK.doTask(taskName, params);
+
+          // Format result for display (safely escape HTML and truncate if needed)
+          let displayText;
+          let contentType;
+
+          // Check if result has the expected structure with data field
+          if (result && typeof result === "object" && result.data) {
+            // Extract the actual content from result.data
+            const content = result.data;
+            contentType = "task result data";
+
+            if (typeof content === "string") {
+              displayText =
+                content.length > 1000
+                  ? content.substring(0, 1000) +
+                    "\n\n... (truncated, full length: " +
+                    content.length +
+                    " characters)"
+                  : content;
+            } else {
+              const jsonStr = JSON.stringify(content, null, 2);
+              displayText =
+                jsonStr.length > 1000
+                  ? jsonStr.substring(0, 1000) +
+                    "\n\n... (truncated, full length: " +
+                    jsonStr.length +
+                    " characters)"
+                  : jsonStr;
+            }
+          } else if (typeof result === "string") {
+            // For direct string results
+            contentType = "string result";
+            displayText =
+              result.length > 1000
+                ? result.substring(0, 1000) +
+                  "\n\n... (truncated, full length: " +
+                  result.length +
+                  " characters)"
+                : result;
+          } else {
+            // For other objects, show full JSON structure
+            contentType = "full response";
+            const jsonStr = JSON.stringify(result, null, 2);
+            displayText =
+              jsonStr.length > 1000
+                ? jsonStr.substring(0, 1000) +
+                  "\n\n... (truncated, full length: " +
+                  jsonStr.length +
+                  " characters)"
+                : jsonStr;
+          }
+
+          // Safely set text content (no HTML injection)
+          const resultPre = document.createElement("pre");
+          resultPre.style.cssText =
+            "white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto; max-height: 400px; overflow-y: auto;";
+          resultPre.textContent = displayText;
+
+          resultDiv.innerHTML = "";
+          resultDiv.appendChild(resultPre);
+
+          // Show success message with result info in separate div
+          let resultInfo;
+          if (
+            contentType === "task result data" &&
+            typeof result.data === "string"
+          ) {
+            resultInfo = `${result.data.length} characters from result.data`;
+          } else if (contentType === "string result") {
+            resultInfo = `${result.length} characters`;
+          } else if (result && typeof result === "object") {
+            resultInfo = `${
+              Object.keys(result).length
+            } properties (showing ${contentType})`;
+          } else {
+            resultInfo = `${typeof result} result`;
+          }
+          showMessage(
+            messageDiv,
+            `Task execution successful! (${resultInfo})`,
+            "success"
+          );
+        } catch (error) {
+          // Safely display error message (no HTML injection)
+          const errorPre = document.createElement("pre");
+          errorPre.style.cssText =
+            "white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #e53e3e; background: #fff5f5; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto;";
+          errorPre.textContent = error.message || "Unknown error occurred";
+
+          resultDiv.innerHTML = "";
+          resultDiv.appendChild(errorPre);
+          showMessage(messageDiv, "Task execution failed.", "error");
         }
       };
 
       // Display Management Result Helper
-      window.displayManagementResult = function displayManagementResult(resultDiv, data, title) {
-        const resultPre = document.createElement('pre');
-        resultPre.style.cssText = 'white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto; max-height: 400px; overflow-y: auto; margin-top: 10px;';
-        
+      window.displayManagementResult = function displayManagementResult(
+        resultDiv,
+        data,
+        title
+      ) {
+        const resultPre = document.createElement("pre");
+        resultPre.style.cssText =
+          "white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto; max-height: 400px; overflow-y: auto; margin-top: 10px;";
+
         const displayText = JSON.stringify(data, null, 2);
         resultPre.textContent = `${title}:\n\n${displayText}`;
-        
-        resultDiv.innerHTML = '';
+
+        resultDiv.innerHTML = "";
         resultDiv.appendChild(resultPre);
       };
 
       // Initialize on page load
       window.addEventListener("load", function () {
         // Restore saved server host from localStorage or use default
-        const savedServerHost = localStorage.getItem('basebase-server-host');
+        const savedServerHost = localStorage.getItem("basebase-server-host");
         if (savedServerHost) {
-          document.getElementById('serverHost').value = savedServerHost;
+          document.getElementById("serverHost").value = savedServerHost;
           window.customBaseUrl = savedServerHost;
           showMessage(
             document.getElementById("serverMessage"),
@@ -2189,9 +2772,10 @@
           );
         } else {
           // Set default value if nothing saved
-          document.getElementById('serverHost').value = 'https://api.basebase.us/';
+          document.getElementById("serverHost").value =
+            "https://api.basebase.us/";
         }
-        
+
         updateAuthStatus();
         clearDataDisplay();
         clearQueryResults();
