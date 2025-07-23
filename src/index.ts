@@ -49,6 +49,8 @@ export {
 // Task operations
 export {
   doTask,
+  task,
+  triggers,
   setTask,
   getTask,
   listTasks,
@@ -163,6 +165,13 @@ export type {
   TaskExecutionRequest,
   TaskExecutionResponse,
   CloudTask,
+  TaskReference,
+  TriggersReference,
+  TriggerReference,
+  SetTaskData,
+  UpdateTaskData,
+  CreateTriggerData,
+  UpdateTriggerData,
   SetTaskRequest,
   UpdateTaskRequest,
   TriggeredTask,
@@ -216,6 +225,8 @@ import { query, where, orderBy, limit } from "./query";
 
 import {
   doTask,
+  task,
+  triggers,
   setTask,
   getTask,
   listTasks,
@@ -259,6 +270,8 @@ export default {
 
   // Task operations
   doTask,
+  task,
+  triggers,
   setTask,
   getTask,
   listTasks,
@@ -314,6 +327,8 @@ if (typeof window !== "undefined") {
 
     // Task operations
     doTask,
+    task,
+    triggers,
     setTask,
     getTask,
     listTasks,

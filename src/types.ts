@@ -331,6 +331,72 @@ export interface SetOptions {
 // Task Types
 // ========================================
 
+// Task Reference Types (following document pattern)
+export interface TaskReference {
+  id: string;
+  path: string;
+  basebase: Basebase;
+  get(): Promise<CloudTask>;
+  set(data: SetTaskData): Promise<CloudTask>;
+  update(data: UpdateTaskData): Promise<CloudTask>;
+  delete(): Promise<void>;
+}
+
+export interface TriggersReference {
+  id: string;
+  path: string;
+  basebase: Basebase;
+  add(data: CreateTriggerData): Promise<TriggeredTask>;
+  trigger(triggerId: string): TriggerReference;
+}
+
+export interface TriggerReference {
+  id: string;
+  path: string;
+  basebase: Basebase;
+  get(): Promise<TriggeredTask>;
+  set(data: CreateTriggerData): Promise<TriggeredTask>;
+  update(data: UpdateTriggerData): Promise<TriggeredTask>;
+  delete(): Promise<void>;
+}
+
+// Task Data Types (user-friendly field names)
+export interface SetTaskData {
+  code: string;
+  description?: string;
+  timeout?: number;
+  memoryMB?: number;
+  runtime?: string;
+  environmentVariables?: Record<string, string>;
+}
+
+export interface UpdateTaskData {
+  code?: string;
+  description?: string;
+  timeout?: number;
+  memoryMB?: number;
+  runtime?: string;
+  environmentVariables?: Record<string, string>;
+}
+
+export interface CreateTriggerData {
+  taskName: string;
+  schedule: string;
+  name?: string;
+  timeZone?: string;
+  data?: Record<string, any>;
+  enabled?: boolean;
+}
+
+export interface UpdateTriggerData {
+  taskName?: string;
+  schedule?: string;
+  name?: string;
+  timeZone?: string;
+  data?: Record<string, any>;
+  enabled?: boolean;
+}
+
 // Task Management Types
 export interface CloudTask {
   id: string;

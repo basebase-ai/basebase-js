@@ -17,9 +17,316 @@ import {
   TriggerListResponse,
   BasebaseError,
   BASEBASE_ERROR_CODES,
+  TaskReference,
+  TriggersReference,
+  TriggerReference,
+  SetTaskData,
+  UpdateTaskData,
+  CreateTriggerData,
+  UpdateTriggerData,
 } from "./types";
-import { makeHttpRequest, buildTaskDoPath } from "./utils";
+import {
+  makeHttpRequest,
+  buildTaskDoPath,
+  validatePath,
+  validateProjectId,
+  parsePath,
+} from "./utils";
 import { getToken, getAuthState } from "./auth";
+
+// ========================================
+// Task and Trigger Reference Functions (Firebase-style)
+// ========================================
+
+/**
+ * Creates a task reference for a specific task in a project
+ */
+export function task(db: Basebase, path: string): TaskReference {
+  validatePath(path);
+
+  const pathSegments = path.split("/");
+
+  // Task paths need exactly 2 segments: projectName/taskName
+  if (pathSegments.length !== 2) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Task path must include project name and task name (e.g., 'myproject/myTask')"
+    );
+  }
+
+  const projectName = pathSegments[0];
+  const taskName = pathSegments[1];
+
+  if (!projectName || !taskName) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Project name and task name cannot be empty"
+    );
+  }
+
+  validateProjectId(projectName);
+
+  return new TaskReferenceImpl(db, path, taskName);
+}
+
+/**
+ * Creates a triggers reference for a specific project
+ */
+export function triggers(db: Basebase, projectPath: string): TriggersReference {
+  validatePath(projectPath);
+
+  // Project path should be just the project name
+  if (projectPath.includes("/")) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Triggers path should be just the project name (e.g., 'myproject')"
+    );
+  }
+
+  validateProjectId(projectPath);
+
+  return new TriggersReferenceImpl(db, projectPath);
+}
+
+// ========================================
+// Task Reference Implementation
+// ========================================
+
+class TaskReferenceImpl implements TaskReference {
+  public readonly id: string;
+  public readonly path: string;
+  public readonly basebase: Basebase;
+
+  constructor(basebase: Basebase, path: string, id: string) {
+    this.basebase = basebase;
+    this.path = path;
+    this.id = id;
+  }
+
+  async get(): Promise<CloudTask> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/tasks/${this.id}`;
+
+    const response = await makeHttpRequest<CloudTask>(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response;
+  }
+
+  async set(data: SetTaskData): Promise<CloudTask> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/tasks/${this.id}`;
+
+    const serverTaskData: SetTaskRequest = {
+      id: this.id,
+      implementationCode: data.code,
+      description: data.description || "A BaseBase task",
+      timeout: data.timeout,
+      memoryMB: data.memoryMB,
+      runtime: data.runtime,
+      environmentVariables: data.environmentVariables,
+    };
+
+    const response = await makeHttpRequest<CloudTask>(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: serverTaskData,
+    });
+
+    return response;
+  }
+
+  async update(data: UpdateTaskData): Promise<CloudTask> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/tasks/${this.id}`;
+
+    const serverUpdates: UpdateTaskRequest = {};
+    if (data.code !== undefined) serverUpdates.implementationCode = data.code;
+    if (data.description !== undefined)
+      serverUpdates.description = data.description;
+    if (data.timeout !== undefined) serverUpdates.timeout = data.timeout;
+    if (data.memoryMB !== undefined) serverUpdates.memoryMB = data.memoryMB;
+    if (data.runtime !== undefined) serverUpdates.runtime = data.runtime;
+    if (data.environmentVariables !== undefined)
+      serverUpdates.environmentVariables = data.environmentVariables;
+
+    const response = await makeHttpRequest<CloudTask>(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: serverUpdates,
+    });
+
+    return response;
+  }
+
+  async delete(): Promise<void> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/tasks/${this.id}`;
+
+    await makeHttpRequest<void>(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+}
+
+// ========================================
+// Triggers Reference Implementation
+// ========================================
+
+class TriggersReferenceImpl implements TriggersReference {
+  public readonly id: string;
+  public readonly path: string;
+  public readonly basebase: Basebase;
+
+  constructor(basebase: Basebase, projectId: string) {
+    this.basebase = basebase;
+    this.path = projectId;
+    this.id = projectId;
+  }
+
+  async add(data: CreateTriggerData): Promise<TriggeredTask> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/triggers`;
+
+    const serverTriggerData = {
+      taskId: data.taskName,
+      triggerType: "cron",
+      config: {
+        schedule: data.schedule,
+        timezone: data.timeZone || "UTC",
+      },
+      enabled: data.enabled !== undefined ? data.enabled : true,
+      ...(data.name && { description: data.name }),
+      ...(data.data && { taskParams: data.data }),
+    };
+
+    const response = await makeHttpRequest<TriggeredTask>(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: serverTriggerData,
+    });
+
+    return response;
+  }
+
+  trigger(triggerId: string): TriggerReference {
+    return new TriggerReferenceImpl(
+      this.basebase,
+      `${this.path}/${triggerId}`,
+      triggerId
+    );
+  }
+}
+
+// ========================================
+// Trigger Reference Implementation
+// ========================================
+
+class TriggerReferenceImpl implements TriggerReference {
+  public readonly id: string;
+  public readonly path: string;
+  public readonly basebase: Basebase;
+
+  constructor(basebase: Basebase, path: string, id: string) {
+    this.basebase = basebase;
+    this.path = path;
+    this.id = id;
+  }
+
+  async get(): Promise<TriggeredTask> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/triggers/${this.id}`;
+
+    const response = await makeHttpRequest<TriggeredTask>(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response;
+  }
+
+  async set(data: CreateTriggerData): Promise<TriggeredTask> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/triggers/${this.id}`;
+
+    const serverTriggerData = {
+      taskId: data.taskName,
+      triggerType: "cron",
+      config: {
+        schedule: data.schedule,
+        timezone: data.timeZone || "UTC",
+      },
+      enabled: data.enabled !== undefined ? data.enabled : true,
+      ...(data.name && { description: data.name }),
+      ...(data.data && { taskParams: data.data }),
+    };
+
+    const response = await makeHttpRequest<TriggeredTask>(url, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: serverTriggerData,
+    });
+
+    return response;
+  }
+
+  async update(data: UpdateTriggerData): Promise<TriggeredTask> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/triggers/${this.id}`;
+
+    const serverUpdates: any = {};
+    if (data.taskName !== undefined) serverUpdates.taskId = data.taskName;
+    if (data.schedule !== undefined || data.timeZone !== undefined) {
+      serverUpdates.config = {};
+      if (data.schedule !== undefined)
+        serverUpdates.config.schedule = data.schedule;
+      if (data.timeZone !== undefined)
+        serverUpdates.config.timezone = data.timeZone;
+    }
+    if (data.enabled !== undefined) serverUpdates.enabled = data.enabled;
+    if (data.name !== undefined) serverUpdates.description = data.name;
+    if (data.data !== undefined) serverUpdates.taskParams = data.data;
+
+    const response = await makeHttpRequest<TriggeredTask>(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: serverUpdates,
+    });
+
+    return response;
+  }
+
+  async delete(): Promise<void> {
+    const { token, baseUrl, projectId } = await getAuthContext(this.basebase);
+    const url = `${baseUrl}/v1/projects/${projectId}/triggers/${this.id}`;
+
+    await makeHttpRequest<void>(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+}
 
 // ========================================
 // Task Execution
@@ -181,88 +488,43 @@ export async function doTask(
 // ========================================
 
 /**
- * Sets a new cloud task with a specific name
+ * Sets a task with a specific task reference (Firebase-style)
  *
- * @param taskData - Task configuration with user-friendly field names
- * @param basebaseInstance - Optional BaseBase instance
+ * @param taskRef - Task reference created with task() function
+ * @param data - Task configuration with user-friendly field names
  * @returns Promise resolving to the created task
  *
  * @example
  * ```typescript
- * const task = await setTask({
- *   name: 'myTask',
+ * const taskRef = task(db, 'myproject/myTask');
+ * const task = await setTask(taskRef, {
  *   code: 'exports.handler = async (data) => { return { message: "Hello!" }; }',
  *   description: 'My custom task'
  * });
  * ```
  */
 export async function setTask(
-  functionData: {
-    name: string;
-    code: string;
-    description?: string;
-    timeout?: number;
-    memoryMB?: number;
-    runtime?: string;
-    environmentVariables?: Record<string, string>;
-  },
-  basebaseInstance?: Basebase
+  taskRef: TaskReference,
+  data: SetTaskData
 ): Promise<CloudTask> {
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/tasks`;
-
-  // Map user-friendly field names to server-expected field names
-  const serverTaskData: SetTaskRequest = {
-    id: functionData.name,
-    implementationCode: functionData.code,
-    description: functionData.description || "A BaseBase task", // Provide default if not specified
-    timeout: functionData.timeout,
-    memoryMB: functionData.memoryMB,
-    runtime: functionData.runtime,
-    environmentVariables: functionData.environmentVariables,
-  };
-
-  const response = await makeHttpRequest<CloudTask>(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: serverTaskData,
-  });
-
-  return response;
+  return taskRef.set(data);
 }
 
 /**
- * Retrieves a cloud task by name
+ * Retrieves a cloud task using a task reference (Firebase-style)
  *
- * @param taskName - Name of the task to retrieve
- * @param basebaseInstance - Optional BaseBase instance
+ * @param taskRef - Task reference created with task() function
  * @returns Promise resolving to the task details
  *
  * @example
  * ```typescript
- * const task = await getTask('myTask');
- * console.log(task.code);
+ * const taskRef = task(db, 'myproject/myTask');
+ * const task = await getTask(taskRef);
+ * console.log(task.implementationCode);
  * ```
  */
-export async function getTask(
-  taskName: string,
-  basebaseInstance?: Basebase
-): Promise<CloudTask> {
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/tasks/${taskName}`;
-
-  const response = await makeHttpRequest<CloudTask>(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return response;
+export async function getTask(taskRef: TaskReference): Promise<CloudTask> {
+  return taskRef.get();
 }
 
 /**
@@ -295,87 +557,43 @@ export async function listTasks(
 }
 
 /**
- * Updates an existing cloud task
+ * Updates an existing cloud task using a task reference (Firebase-style)
  *
- * @param taskName - Name of the task to update
+ * @param taskRef - Task reference created with task() function
  * @param updates - Fields to update with user-friendly field names
- * @param basebaseInstance - Optional BaseBase instance
  * @returns Promise resolving to the updated task
  *
  * @example
  * ```typescript
- * const updatedTask = await updateTask('myTask', {
+ * const taskRef = task(db, 'myproject/myTask');
+ * const updatedTask = await updateTask(taskRef, {
  *   code: 'exports.handler = async (data) => { return { message: "Updated!" }; }',
  *   timeout: 60
  * });
  * ```
  */
 export async function updateTask(
-  taskName: string,
-  updates: {
-    code?: string;
-    description?: string;
-    timeout?: number;
-    memoryMB?: number;
-    runtime?: string;
-    environmentVariables?: Record<string, string>;
-  },
-  basebaseInstance?: Basebase
+  taskRef: TaskReference,
+  updates: UpdateTaskData
 ): Promise<CloudTask> {
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/tasks/${taskName}`;
-
-  // Map user-friendly field names to server-expected field names
-  const serverUpdates: UpdateTaskRequest = {};
-  if (updates.code !== undefined)
-    serverUpdates.implementationCode = updates.code;
-  if (updates.description !== undefined)
-    serverUpdates.description = updates.description;
-  if (updates.timeout !== undefined) serverUpdates.timeout = updates.timeout;
-  if (updates.memoryMB !== undefined) serverUpdates.memoryMB = updates.memoryMB;
-  if (updates.runtime !== undefined) serverUpdates.runtime = updates.runtime;
-  if (updates.environmentVariables !== undefined)
-    serverUpdates.environmentVariables = updates.environmentVariables;
-
-  const response = await makeHttpRequest<CloudTask>(url, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: serverUpdates,
-  });
-
-  return response;
+  return taskRef.update(updates);
 }
 
 /**
- * Deletes a cloud task
+ * Deletes a cloud task using a task reference (Firebase-style)
  *
- * @param taskName - Name of the task to delete
- * @param basebaseInstance - Optional BaseBase instance
+ * @param taskRef - Task reference created with task() function
  * @returns Promise that resolves when deletion is complete
  *
  * @example
  * ```typescript
- * await deleteTask('myTask');
+ * const taskRef = task(db, 'myproject/myTask');
+ * await deleteTask(taskRef);
  * console.log('Task deleted successfully');
  * ```
  */
-export async function deleteTask(
-  taskName: string,
-  basebaseInstance?: Basebase
-): Promise<void> {
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/tasks/${taskName}`;
-
-  await makeHttpRequest<void>(url, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+export async function deleteTask(taskRef: TaskReference): Promise<void> {
+  return taskRef.delete();
 }
 
 // ========================================
@@ -383,15 +601,16 @@ export async function deleteTask(
 // ========================================
 
 /**
- * Adds a triggered task with cron syntax (server assigns ID)
+ * Adds a triggered task using a triggers reference (Firebase-style)
  *
- * @param triggerData - Trigger configuration
- * @param basebaseInstance - Optional BaseBase instance
+ * @param triggersRef - Triggers reference created with triggers() function
+ * @param data - Trigger configuration
  * @returns Promise resolving to the created trigger
  *
  * @example
  * ```typescript
- * const trigger = await addTrigger({
+ * const triggersRef = triggers(db, 'myproject');
+ * const trigger = await addTrigger(triggersRef, {
  *   name: 'dailyCleanup',
  *   taskName: 'cleanupTask',
  *   schedule: '0 2 * * *', // Daily at 2 AM
@@ -401,48 +620,24 @@ export async function deleteTask(
  * ```
  */
 export async function addTrigger(
-  triggerData: CreateTriggerRequest,
-  basebaseInstance?: Basebase
+  triggersRef: TriggersReference,
+  data: CreateTriggerData
 ): Promise<TriggeredTask> {
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/triggers`;
-
-  // Map user-friendly field names to server-expected structure
-  const serverTriggerData = {
-    taskId: triggerData.taskName,
-    triggerType: "cron",
-    config: {
-      schedule: triggerData.schedule,
-      timezone: triggerData.timeZone || "UTC",
-    },
-    enabled: triggerData.enabled !== undefined ? triggerData.enabled : true,
-    ...(triggerData.name && { description: triggerData.name }),
-    ...(triggerData.data && { taskParams: triggerData.data }),
-  };
-
-  const response = await makeHttpRequest<TriggeredTask>(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: serverTriggerData,
-  });
-
-  return response;
+  return triggersRef.add(data);
 }
 
 /**
- * Sets a triggered task with a custom ID using cron syntax
+ * Sets a triggered task using a trigger reference (Firebase-style)
  *
- * @param triggerId - Custom ID for the trigger
- * @param triggerData - Trigger configuration
- * @param basebaseInstance - Optional BaseBase instance
+ * @param triggerRef - Trigger reference created with triggers().trigger() function
+ * @param data - Trigger configuration
  * @returns Promise resolving to the created trigger
  *
  * @example
  * ```typescript
- * const trigger = await setTrigger('my-daily-cleanup', {
+ * const triggersRef = triggers(db, 'myproject');
+ * const triggerRef = triggersRef.trigger('my-daily-cleanup');
+ * const trigger = await setTrigger(triggerRef, {
  *   name: 'dailyCleanup',
  *   taskName: 'cleanupTask',
  *   schedule: '0 2 * * *', // Daily at 2 AM
@@ -452,74 +647,30 @@ export async function addTrigger(
  * ```
  */
 export async function setTrigger(
-  triggerId: string,
-  triggerData: CreateTriggerRequest,
-  basebaseInstance?: Basebase
+  triggerRef: TriggerReference,
+  data: CreateTriggerData
 ): Promise<TriggeredTask> {
-  if (!triggerId || typeof triggerId !== "string") {
-    throw new BasebaseError(
-      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Trigger ID must be a non-empty string"
-    );
-  }
-
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/triggers/${triggerId}`;
-
-  // Map user-friendly field names to server-expected structure
-  const serverTriggerData = {
-    taskId: triggerData.taskName,
-    triggerType: "cron",
-    config: {
-      schedule: triggerData.schedule,
-      timezone: triggerData.timeZone || "UTC",
-    },
-    enabled: triggerData.enabled !== undefined ? triggerData.enabled : true,
-    ...(triggerData.name && { description: triggerData.name }),
-    ...(triggerData.data && { taskParams: triggerData.data }),
-  };
-
-  const response = await makeHttpRequest<TriggeredTask>(url, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: serverTriggerData,
-  });
-
-  return response;
+  return triggerRef.set(data);
 }
 
 /**
- * Retrieves a triggered function by name
+ * Gets a triggered function using a trigger reference (Firebase-style)
  *
- * @param triggerName - Name of the trigger to retrieve
- * @param basebaseInstance - Optional BaseBase instance
+ * @param triggerRef - Trigger reference created with triggers().trigger() function
  * @returns Promise resolving to the trigger details
  *
  * @example
  * ```typescript
- * const trigger = await getTrigger('dailyCleanup');
+ * const triggersRef = triggers(db, 'myproject');
+ * const triggerRef = triggersRef.trigger('dailyCleanup');
+ * const trigger = await getTrigger(triggerRef);
  * console.log(`Next run: ${trigger.nextRun}`);
  * ```
  */
 export async function getTrigger(
-  triggerName: string,
-  basebaseInstance?: Basebase
+  triggerRef: TriggerReference
 ): Promise<TriggeredTask> {
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/triggers/${triggerName}`;
-
-  const response = await makeHttpRequest<TriggeredTask>(url, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return response;
+  return triggerRef.get();
 }
 
 /**
@@ -552,93 +703,47 @@ export async function listTriggers(
 }
 
 /**
- * Updates an existing triggered function
+ * Updates an existing triggered function using a trigger reference (Firebase-style)
  *
- * @param triggerName - Name of the trigger to update
+ * @param triggerRef - Trigger reference created with triggers().trigger() function
  * @param updates - Trigger updates to apply
- * @param basebaseInstance - Optional BaseBase instance
  * @returns Promise resolving to the updated trigger
  *
  * @example
  * ```typescript
- * const updatedTrigger = await updateTrigger('dailyCleanup', {
+ * const triggersRef = triggers(db, 'myproject');
+ * const triggerRef = triggersRef.trigger('dailyCleanup');
+ * const updatedTrigger = await updateTrigger(triggerRef, {
  *   schedule: '0 3 * * *', // Change to 3 AM
  *   enabled: false
  * });
  * ```
  */
 export async function updateTrigger(
-  triggerName: string,
-  updates: UpdateTriggerRequest,
-  basebaseInstance?: Basebase
+  triggerRef: TriggerReference,
+  updates: UpdateTriggerData
 ): Promise<TriggeredTask> {
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/triggers/${triggerName}`;
-
-  // Map user-friendly field names to server-expected structure
-  const serverUpdates: any = {};
-
-  if (updates.schedule || updates.timeZone) {
-    serverUpdates.config = {};
-    if (updates.schedule) {
-      serverUpdates.config.schedule = updates.schedule;
-    }
-    if (updates.timeZone) {
-      serverUpdates.config.timezone = updates.timeZone;
-    }
-  }
-
-  if (updates.enabled !== undefined) {
-    serverUpdates.enabled = updates.enabled;
-  }
-
-  if (updates.description) {
-    serverUpdates.description = updates.description;
-  }
-
-  if (updates.data) {
-    serverUpdates.taskParams = updates.data;
-  }
-
-  const response = await makeHttpRequest<TriggeredTask>(url, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    body: serverUpdates,
-  });
-
-  return response;
+  return triggerRef.update(updates);
 }
 
 /**
- * Deletes a triggered function
+ * Deletes a triggered function using a trigger reference (Firebase-style)
  *
- * @param triggerName - Name of the trigger to delete
- * @param basebaseInstance - Optional BaseBase instance
+ * @param triggerRef - Trigger reference created with triggers().trigger() function
  * @returns Promise that resolves when deletion is complete
  *
  * @example
  * ```typescript
- * await deleteTrigger('dailyCleanup');
+ * const triggersRef = triggers(db, 'myproject');
+ * const triggerRef = triggersRef.trigger('dailyCleanup');
+ * await deleteTrigger(triggerRef);
  * console.log('Trigger deleted successfully');
  * ```
  */
 export async function deleteTrigger(
-  triggerName: string,
-  basebaseInstance?: Basebase
+  triggerRef: TriggerReference
 ): Promise<void> {
-  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
-
-  const url = `${baseUrl}/v1/projects/${projectId}/triggers/${triggerName}`;
-
-  await makeHttpRequest<void>(url, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  return triggerRef.delete();
 }
 
 // ========================================
