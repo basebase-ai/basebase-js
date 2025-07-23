@@ -4,7 +4,7 @@ An SDK for BaseBase server interactions, patterned after the Firebase/Firestore 
 
 ## ⚠️ Early Development
 
-This SDK is currently in early development (0.1.x). The API may change between versions. Please use with caution in production environments.
+This SDK is currently in early development (0.2.x). The API may change between versions. Please use with caution in production environments.
 
 ## 🚀 Features
 
@@ -290,6 +290,8 @@ BaseBase supports creating, managing, and triggering cloud tasks with Firebase-l
 
 ```typescript
 import {
+  db,
+  task,
   setTask,
   getTask,
   listTasks,
@@ -297,9 +299,11 @@ import {
   deleteTask,
 } from "basebase-js";
 
+// Create a task reference (Firebase-style)
+const taskRef = task(db, "myproject/myTask");
+
 // Set a new task
-const newTask = await setTask({
-  name: "myTask",
+const newTask = await setTask(taskRef, {
   code: 'exports.handler = async (data) => { return { message: "Hello World!" }; }',
   description: "My custom task",
   timeout: 30,
@@ -307,27 +311,29 @@ const newTask = await setTask({
 });
 
 // Get task details
-const task = await getTask("myTask");
-console.log(task.implementationCode);
+const taskDetails = await getTask(taskRef);
+console.log(taskDetails.implementationCode);
 
 // List all tasks
 const tasks = await listTasks();
 tasks.forEach((task) => console.log(task.id));
 
 // Update a task
-const updatedTask = await updateTask("myTask", {
+const updatedTask = await updateTask(taskRef, {
   code: 'exports.handler = async (data) => { return { message: "Updated!" }; }',
   timeout: 60,
 });
 
 // Delete a task
-await deleteTask("myTask");
+await deleteTask(taskRef);
 ```
 
 #### Task Triggering with Cron
 
 ```typescript
 import {
+  db,
+  triggers,
   addTrigger,
   setTrigger,
   getTrigger,
@@ -336,8 +342,22 @@ import {
   deleteTrigger,
 } from "basebase-js";
 
-// Add a triggered task
-const trigger = await addTrigger({
+// Create triggers reference (Firebase-style)
+const triggersRef = triggers(db, "myproject");
+
+// Add a triggered task (server assigns random ID)
+const trigger = await addTrigger(triggersRef, {
+  name: "dailyCleanup",
+  taskName: "cleanupTask",
+  schedule: "0 2 * * *", // Daily at 2 AM
+  timeZone: "America/New_York",
+  data: { target: "temp_files" },
+  enabled: true,
+});
+
+// Set a triggered task with custom ID (recommended)
+const triggerRef = triggersRef.trigger("my-daily-cleanup");
+const customTrigger = await setTrigger(triggerRef, {
   name: "dailyCleanup",
   taskName: "cleanupTask",
   schedule: "0 2 * * *", // Daily at 2 AM
@@ -347,23 +367,23 @@ const trigger = await addTrigger({
 });
 
 // Get trigger details
-const triggerInfo = await getTrigger("dailyCleanup");
+const triggerInfo = await getTrigger(triggerRef);
 console.log(`Next run: ${triggerInfo.nextRun}`);
 
 // List all triggers
-const triggers = await listTriggers();
-triggers.forEach((trigger) =>
+const allTriggers = await listTriggers();
+allTriggers.forEach((trigger) =>
   console.log(`${trigger.name}: ${trigger.schedule}`)
 );
 
 // Update a trigger
-const updatedTrigger = await updateTrigger("dailyCleanup", {
+const updatedTrigger = await updateTrigger(triggerRef, {
   schedule: "0 3 * * *", // Change to 3 AM
   enabled: false,
 });
 
 // Delete a trigger
-await deleteTrigger("dailyCleanup");
+await deleteTrigger(triggerRef);
 ```
 
 #### Cron Expression Examples
@@ -712,13 +732,24 @@ const data = await doTask("project_id/processData", { input: "test" });
 
 #### Task Management
 
-##### `setTask(taskData, basebaseInstance?)`
+##### `task(db, path)`
 
-Set a new cloud task with a specific name.
+Create a task reference for a specific task in a project (Firebase-style).
 
 ```typescript
-const task = await setTask({
-  name: "myTask",
+import { task } from "basebase-js";
+
+// Create a task reference
+const taskRef = task(db, "myproject/myTask");
+```
+
+##### `setTask(taskRef, data)`
+
+Set a cloud task using a task reference.
+
+```typescript
+const taskRef = task(db, "myproject/myTask");
+const taskResult = await setTask(taskRef, {
   code: 'exports.handler = async (data) => { return { message: "Hello!" }; }',
   description: "My custom task",
   timeout: 30,
@@ -726,13 +757,14 @@ const task = await setTask({
 });
 ```
 
-##### `getTask(taskName, basebaseInstance?)`
+##### `getTask(taskRef)`
 
-Retrieve a cloud task by name.
+Retrieve a cloud task using a task reference.
 
 ```typescript
-const task = await getTask("myTask");
-console.log(task.implementationCode);
+const taskRef = task(db, "myproject/myTask");
+const taskDetails = await getTask(taskRef);
+console.log(taskDetails.implementationCode);
 ```
 
 ##### `listTasks(basebaseInstance?)`
@@ -744,33 +776,47 @@ const tasks = await listTasks();
 tasks.forEach((task) => console.log(task.id));
 ```
 
-##### `updateTask(taskName, updates, basebaseInstance?)`
+##### `updateTask(taskRef, updates)`
 
-Update an existing cloud task.
+Update an existing cloud task using a task reference.
 
 ```typescript
-const updatedTask = await updateTask("myTask", {
+const taskRef = task(db, "myproject/myTask");
+const updatedTask = await updateTask(taskRef, {
   code: 'exports.handler = async (data) => { return { message: "Updated!" }; }',
   timeout: 60,
 });
 ```
 
-##### `deleteTask(taskName, basebaseInstance?)`
+##### `deleteTask(taskRef)`
 
-Delete a cloud task.
+Delete a cloud task using a task reference.
 
 ```typescript
-await deleteTask("myTask");
+const taskRef = task(db, "myproject/myTask");
+await deleteTask(taskRef);
 ```
 
 #### Task Triggering
 
-##### `addTrigger(triggerData, basebaseInstance?)`
+##### `triggers(db, projectPath)`
 
-Add a triggered task with cron syntax (server assigns random ID).
+Create a triggers reference for a specific project (Firebase-style).
 
 ```typescript
-const trigger = await addTrigger({
+import { triggers } from "basebase-js";
+
+// Create a triggers reference
+const triggersRef = triggers(db, "myproject");
+```
+
+##### `addTrigger(triggersRef, data)`
+
+Add a triggered task using a triggers reference (server assigns random ID).
+
+```typescript
+const triggersRef = triggers(db, "myproject");
+const trigger = await addTrigger(triggersRef, {
   name: "dailyCleanup",
   taskName: "cleanupTask",
   schedule: "0 2 * * *", // Daily at 2 AM
@@ -780,12 +826,14 @@ const trigger = await addTrigger({
 });
 ```
 
-##### `setTrigger(triggerId, triggerData, basebaseInstance?)`
+##### `setTrigger(triggerRef, data)`
 
-Create a triggered task with a custom ID using cron syntax.
+Set a triggered task using a trigger reference with a custom ID.
 
 ```typescript
-const trigger = await setTrigger("my-daily-cleanup", {
+const triggersRef = triggers(db, "myproject");
+const triggerRef = triggersRef.trigger("my-daily-cleanup");
+const trigger = await setTrigger(triggerRef, {
   name: "dailyCleanup",
   taskName: "cleanupTask",
   schedule: "0 2 * * *", // Daily at 2 AM
@@ -801,12 +849,14 @@ const trigger = await setTrigger("my-daily-cleanup", {
 - **Idempotent**: Calling `setTrigger` with the same ID will update the existing trigger
 - **Predictable**: You know exactly what the trigger ID will be for future operations
 
-##### `getTrigger(triggerName, basebaseInstance?)`
+##### `getTrigger(triggerRef)`
 
-Retrieve a triggered task by name.
+Retrieve a triggered task using a trigger reference.
 
 ```typescript
-const trigger = await getTrigger("dailyCleanup");
+const triggersRef = triggers(db, "myproject");
+const triggerRef = triggersRef.trigger("my-daily-cleanup");
+const trigger = await getTrigger(triggerRef);
 console.log(`Next run: ${trigger.nextRun}`);
 ```
 
@@ -821,23 +871,27 @@ triggers.forEach((trigger) =>
 );
 ```
 
-##### `updateTrigger(triggerName, updates, basebaseInstance?)`
+##### `updateTrigger(triggerRef, updates)`
 
-Update an existing triggered task.
+Update an existing triggered task using a trigger reference.
 
 ```typescript
-const updatedTrigger = await updateTrigger("dailyCleanup", {
+const triggersRef = triggers(db, "myproject");
+const triggerRef = triggersRef.trigger("my-daily-cleanup");
+const updatedTrigger = await updateTrigger(triggerRef, {
   schedule: "0 3 * * *", // Change to 3 AM
   enabled: false,
 });
 ```
 
-##### `deleteTrigger(triggerName, basebaseInstance?)`
+##### `deleteTrigger(triggerRef)`
 
-Delete a triggered task.
+Delete a triggered task using a trigger reference.
 
 ```typescript
-await deleteTrigger("dailyCleanup");
+const triggersRef = triggers(db, "myproject");
+const triggerRef = triggersRef.trigger("my-daily-cleanup");
+await deleteTrigger(triggerRef);
 ```
 
 ## 🧪 Testing
