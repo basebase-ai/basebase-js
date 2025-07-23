@@ -11,10 +11,10 @@ import {
   CreateTaskRequest,
   UpdateTaskRequest,
   TaskListResponse,
-  ScheduledTask,
-  CreateScheduleRequest,
-  UpdateScheduleRequest,
-  ScheduleListResponse,
+  TriggeredTask,
+  CreateTriggerRequest,
+  UpdateTriggerRequest,
+  TriggerListResponse,
   BasebaseError,
   BASEBASE_ERROR_CODES,
 } from "./types";
@@ -379,19 +379,19 @@ export async function deleteTask(
 }
 
 // ========================================
-// Task Scheduling
+// Task Triggering
 // ========================================
 
 /**
- * Creates a scheduled task with cron syntax
+ * Adds a triggered task with cron syntax (server assigns ID)
  *
- * @param scheduleData - Schedule configuration
+ * @param triggerData - Trigger configuration
  * @param basebaseInstance - Optional BaseBase instance
- * @returns Promise resolving to the created schedule
+ * @returns Promise resolving to the created trigger
  *
  * @example
  * ```typescript
- * const schedule = await createSchedule({
+ * const trigger = await addTrigger({
  *   name: 'dailyCleanup',
  *   taskName: 'cleanupTask',
  *   schedule: '0 2 * * *', // Daily at 2 AM
@@ -400,47 +400,119 @@ export async function deleteTask(
  * });
  * ```
  */
-export async function createSchedule(
-  scheduleData: CreateScheduleRequest,
+export async function addTrigger(
+  triggerData: CreateTriggerRequest,
   basebaseInstance?: Basebase
-): Promise<ScheduledTask> {
+): Promise<TriggeredTask> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/schedules`;
+  const url = `${baseUrl}/v1/projects/${projectId}/triggers`;
 
-  const response = await makeHttpRequest<ScheduledTask>(url, {
+  // Map user-friendly field names to server-expected structure
+  const serverTriggerData = {
+    taskId: triggerData.taskName,
+    triggerType: "cron",
+    config: {
+      schedule: triggerData.schedule,
+      timezone: triggerData.timeZone || "UTC",
+    },
+    enabled: triggerData.enabled !== undefined ? triggerData.enabled : true,
+    ...(triggerData.name && { description: triggerData.name }),
+    ...(triggerData.data && { taskParams: triggerData.data }),
+  };
+
+  const response = await makeHttpRequest<TriggeredTask>(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    body: scheduleData,
+    body: serverTriggerData,
   });
 
   return response;
 }
 
 /**
- * Retrieves a scheduled function by name
+ * Sets a triggered task with a custom ID using cron syntax
  *
- * @param scheduleName - Name of the schedule to retrieve
+ * @param triggerId - Custom ID for the trigger
+ * @param triggerData - Trigger configuration
  * @param basebaseInstance - Optional BaseBase instance
- * @returns Promise resolving to the schedule details
+ * @returns Promise resolving to the created trigger
  *
  * @example
  * ```typescript
- * const schedule = await getSchedule('dailyCleanup');
- * console.log(`Next run: ${schedule.nextRun}`);
+ * const trigger = await setTrigger('my-daily-cleanup', {
+ *   name: 'dailyCleanup',
+ *   taskName: 'cleanupTask',
+ *   schedule: '0 2 * * *', // Daily at 2 AM
+ *   timeZone: 'America/New_York',
+ *   data: { target: 'temp_files' }
+ * });
  * ```
  */
-export async function getSchedule(
-  scheduleName: string,
+export async function setTrigger(
+  triggerId: string,
+  triggerData: CreateTriggerRequest,
   basebaseInstance?: Basebase
-): Promise<ScheduledTask> {
+): Promise<TriggeredTask> {
+  if (!triggerId || typeof triggerId !== "string") {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Trigger ID must be a non-empty string"
+    );
+  }
+
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/schedules/${scheduleName}`;
+  const url = `${baseUrl}/v1/projects/${projectId}/triggers/${triggerId}`;
 
-  const response = await makeHttpRequest<ScheduledTask>(url, {
+  // Map user-friendly field names to server-expected structure
+  const serverTriggerData = {
+    taskId: triggerData.taskName,
+    triggerType: "cron",
+    config: {
+      schedule: triggerData.schedule,
+      timezone: triggerData.timeZone || "UTC",
+    },
+    enabled: triggerData.enabled !== undefined ? triggerData.enabled : true,
+    ...(triggerData.name && { description: triggerData.name }),
+    ...(triggerData.data && { taskParams: triggerData.data }),
+  };
+
+  const response = await makeHttpRequest<TriggeredTask>(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: serverTriggerData,
+  });
+
+  return response;
+}
+
+/**
+ * Retrieves a triggered function by name
+ *
+ * @param triggerName - Name of the trigger to retrieve
+ * @param basebaseInstance - Optional BaseBase instance
+ * @returns Promise resolving to the trigger details
+ *
+ * @example
+ * ```typescript
+ * const trigger = await getTrigger('dailyCleanup');
+ * console.log(`Next run: ${trigger.nextRun}`);
+ * ```
+ */
+export async function getTrigger(
+  triggerName: string,
+  basebaseInstance?: Basebase
+): Promise<TriggeredTask> {
+  const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
+
+  const url = `${baseUrl}/v1/projects/${projectId}/triggers/${triggerName}`;
+
+  const response = await makeHttpRequest<TriggeredTask>(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -451,90 +523,115 @@ export async function getSchedule(
 }
 
 /**
- * Lists all scheduled functions in the project
+ * Lists all triggered functions in the project
  *
  * @param basebaseInstance - Optional BaseBase instance
- * @returns Promise resolving to the list of schedules
+ * @returns Promise resolving to the list of triggers
  *
  * @example
  * ```typescript
- * const schedules = await listSchedules();
- * schedules.forEach(schedule => console.log(`${schedule.name}: ${schedule.schedule}`));
+ * const triggers = await listTriggers();
+ * triggers.forEach(trigger => console.log(`${trigger.name}: ${trigger.schedule}`));
  * ```
  */
-export async function listSchedules(
+export async function listTriggers(
   basebaseInstance?: Basebase
-): Promise<ScheduledTask[]> {
+): Promise<TriggeredTask[]> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/schedules`;
+  const url = `${baseUrl}/v1/projects/${projectId}/triggers`;
 
-  const response = await makeHttpRequest<ScheduleListResponse>(url, {
+  const response = await makeHttpRequest<TriggerListResponse>(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
-  return response.schedules;
+  return response.triggers;
 }
 
 /**
- * Updates an existing scheduled function
+ * Updates an existing triggered function
  *
- * @param scheduleName - Name of the schedule to update
- * @param updates - Schedule updates to apply
+ * @param triggerName - Name of the trigger to update
+ * @param updates - Trigger updates to apply
  * @param basebaseInstance - Optional BaseBase instance
- * @returns Promise resolving to the updated schedule
+ * @returns Promise resolving to the updated trigger
  *
  * @example
  * ```typescript
- * const updatedSchedule = await updateSchedule('dailyCleanup', {
+ * const updatedTrigger = await updateTrigger('dailyCleanup', {
  *   schedule: '0 3 * * *', // Change to 3 AM
  *   enabled: false
  * });
  * ```
  */
-export async function updateSchedule(
-  scheduleName: string,
-  updates: UpdateScheduleRequest,
+export async function updateTrigger(
+  triggerName: string,
+  updates: UpdateTriggerRequest,
   basebaseInstance?: Basebase
-): Promise<ScheduledTask> {
+): Promise<TriggeredTask> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/schedules/${scheduleName}`;
+  const url = `${baseUrl}/v1/projects/${projectId}/triggers/${triggerName}`;
 
-  const response = await makeHttpRequest<ScheduledTask>(url, {
+  // Map user-friendly field names to server-expected structure
+  const serverUpdates: any = {};
+
+  if (updates.schedule || updates.timeZone) {
+    serverUpdates.config = {};
+    if (updates.schedule) {
+      serverUpdates.config.schedule = updates.schedule;
+    }
+    if (updates.timeZone) {
+      serverUpdates.config.timezone = updates.timeZone;
+    }
+  }
+
+  if (updates.enabled !== undefined) {
+    serverUpdates.enabled = updates.enabled;
+  }
+
+  if (updates.description) {
+    serverUpdates.description = updates.description;
+  }
+
+  if (updates.data) {
+    serverUpdates.taskParams = updates.data;
+  }
+
+  const response = await makeHttpRequest<TriggeredTask>(url, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    body: updates,
+    body: serverUpdates,
   });
 
   return response;
 }
 
 /**
- * Deletes a scheduled function
+ * Deletes a triggered function
  *
- * @param scheduleName - Name of the schedule to delete
+ * @param triggerName - Name of the trigger to delete
  * @param basebaseInstance - Optional BaseBase instance
  * @returns Promise that resolves when deletion is complete
  *
  * @example
  * ```typescript
- * await deleteSchedule('dailyCleanup');
- * console.log('Schedule deleted successfully');
+ * await deleteTrigger('dailyCleanup');
+ * console.log('Trigger deleted successfully');
  * ```
  */
-export async function deleteSchedule(
-  scheduleName: string,
+export async function deleteTrigger(
+  triggerName: string,
   basebaseInstance?: Basebase
 ): Promise<void> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/schedules/${scheduleName}`;
+  const url = `${baseUrl}/v1/projects/${projectId}/triggers/${triggerName}`;
 
   await makeHttpRequest<void>(url, {
     method: "DELETE",

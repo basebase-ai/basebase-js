@@ -54,11 +54,12 @@ export {
   listTasks,
   updateTask,
   deleteTask,
-  createSchedule,
-  getSchedule,
-  listSchedules,
-  updateSchedule,
-  deleteSchedule,
+  addTrigger,
+  setTrigger,
+  getTrigger,
+  listTriggers,
+  updateTrigger,
+  deleteTrigger,
 } from "./functions";
 
 // Document operations
@@ -164,10 +165,10 @@ export type {
   CloudTask,
   CreateTaskRequest,
   UpdateTaskRequest,
-  ScheduledTask,
-  CreateScheduleRequest,
-  UpdateScheduleRequest,
-  ScheduleListResponse,
+  TriggeredTask,
+  CreateTriggerRequest,
+  UpdateTriggerRequest,
+  TriggerListResponse,
   TaskListResponse,
 
   // API response types
@@ -220,11 +221,12 @@ import {
   listTasks,
   updateTask,
   deleteTask,
-  createSchedule,
-  getSchedule,
-  listSchedules,
-  updateSchedule,
-  deleteSchedule,
+  addTrigger,
+  setTrigger,
+  getTrigger,
+  listTriggers,
+  updateTrigger,
+  deleteTrigger,
 } from "./functions";
 
 export default {
@@ -262,11 +264,12 @@ export default {
   listTasks,
   updateTask,
   deleteTask,
-  createSchedule,
-  getSchedule,
-  listSchedules,
-  updateSchedule,
-  deleteSchedule,
+  addTrigger,
+  setTrigger,
+  getTrigger,
+  listTriggers,
+  updateTrigger,
+  deleteTrigger,
 };
 
 // ========================================
@@ -316,11 +319,12 @@ if (typeof window !== "undefined") {
     listTasks,
     updateTask,
     deleteTask,
-    createSchedule,
-    getSchedule,
-    listSchedules,
-    updateSchedule,
-    deleteSchedule,
+    addTrigger,
+    setTrigger,
+    getTrigger,
+    listTriggers,
+    updateTrigger,
+    deleteTrigger,
   };
 }
 

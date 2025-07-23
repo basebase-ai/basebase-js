@@ -282,9 +282,9 @@ const status = await doTask("getStatus");
 - 30-second execution timeout
 - Structured error responses
 
-### 7. Task Management (CRUD & Scheduling)
+### 7. Task Management (CRUD & Triggering)
 
-BaseBase supports creating, managing, and scheduling cloud tasks with Firebase-like syntax:
+BaseBase supports creating, managing, and triggering cloud tasks with Firebase-like syntax:
 
 #### Task CRUD Operations
 
@@ -324,45 +324,46 @@ const updatedTask = await updateTask("myTask", {
 await deleteTask("myTask");
 ```
 
-#### Task Scheduling with Cron
+#### Task Triggering with Cron
 
 ```typescript
 import {
-  createSchedule,
-  getSchedule,
-  listSchedules,
-  updateSchedule,
-  deleteSchedule,
+  addTrigger,
+  setTrigger,
+  getTrigger,
+  listTriggers,
+  updateTrigger,
+  deleteTrigger,
 } from "basebase-js";
 
-// Create a scheduled task
-const schedule = await createSchedule({
+// Add a triggered task
+const trigger = await addTrigger({
   name: "dailyCleanup",
-  functionName: "cleanupTask",
+  taskName: "cleanupTask",
   schedule: "0 2 * * *", // Daily at 2 AM
   timeZone: "America/New_York",
   data: { target: "temp_files" },
   enabled: true,
 });
 
-// Get schedule details
-const scheduleInfo = await getSchedule("dailyCleanup");
-console.log(`Next run: ${scheduleInfo.nextRun}`);
+// Get trigger details
+const triggerInfo = await getTrigger("dailyCleanup");
+console.log(`Next run: ${triggerInfo.nextRun}`);
 
-// List all schedules
-const schedules = await listSchedules();
-schedules.forEach((schedule) =>
-  console.log(`${schedule.name}: ${schedule.schedule}`)
+// List all triggers
+const triggers = await listTriggers();
+triggers.forEach((trigger) =>
+  console.log(`${trigger.name}: ${trigger.schedule}`)
 );
 
-// Update a schedule
-const updatedSchedule = await updateSchedule("dailyCleanup", {
+// Update a trigger
+const updatedTrigger = await updateTrigger("dailyCleanup", {
   schedule: "0 3 * * *", // Change to 3 AM
   enabled: false,
 });
 
-// Delete a schedule
-await deleteSchedule("dailyCleanup");
+// Delete a trigger
+await deleteTrigger("dailyCleanup");
 ```
 
 #### Cron Expression Examples
@@ -390,10 +391,10 @@ await deleteSchedule("dailyCleanup");
 **Task Management Requirements:**
 
 - Authentication required (JWT token)
-- Tasks and schedules are project-scoped
+- Tasks and triggers are project-scoped
 - Task code must export a `handler` function
 - Cron expressions use standard 5-field format
-- Timezone support for scheduling
+- Timezone support for triggering
 
 ## 📖 API Reference
 
@@ -762,16 +763,16 @@ Delete a cloud task.
 await deleteTask("myTask");
 ```
 
-#### Task Scheduling
+#### Task Triggering
 
-##### `createSchedule(scheduleData, basebaseInstance?)`
+##### `addTrigger(triggerData, basebaseInstance?)`
 
-Create a scheduled task with cron syntax.
+Add a triggered task with cron syntax (server assigns random ID).
 
 ```typescript
-const schedule = await createSchedule({
+const trigger = await addTrigger({
   name: "dailyCleanup",
-  functionName: "cleanupTask",
+  taskName: "cleanupTask",
   schedule: "0 2 * * *", // Daily at 2 AM
   timeZone: "America/New_York",
   data: { target: "temp_files" },
@@ -779,43 +780,64 @@ const schedule = await createSchedule({
 });
 ```
 
-##### `getSchedule(scheduleName, basebaseInstance?)`
+##### `setTrigger(triggerId, triggerData, basebaseInstance?)`
 
-Retrieve a scheduled task by name.
+Create a triggered task with a custom ID using cron syntax.
 
 ```typescript
-const schedule = await getSchedule("dailyCleanup");
-console.log(`Next run: ${schedule.nextRun}`);
+const trigger = await setTrigger("my-daily-cleanup", {
+  name: "dailyCleanup",
+  taskName: "cleanupTask",
+  schedule: "0 2 * * *", // Daily at 2 AM
+  timeZone: "America/New_York",
+  data: { target: "temp_files" },
+  enabled: true,
+});
 ```
 
-##### `listSchedules(basebaseInstance?)`
+**Why use `setTrigger` over `addTrigger`?**
 
-List all scheduled tasks in the project.
+- **Intuitive IDs**: Use meaningful names like `"daily-cleanup"` instead of random UUIDs
+- **Idempotent**: Calling `setTrigger` with the same ID will update the existing trigger
+- **Predictable**: You know exactly what the trigger ID will be for future operations
+
+##### `getTrigger(triggerName, basebaseInstance?)`
+
+Retrieve a triggered task by name.
 
 ```typescript
-const schedules = await listSchedules();
-schedules.forEach((schedule) =>
-  console.log(`${schedule.name}: ${schedule.schedule}`)
+const trigger = await getTrigger("dailyCleanup");
+console.log(`Next run: ${trigger.nextRun}`);
+```
+
+##### `listTriggers(basebaseInstance?)`
+
+List all triggered tasks in the project.
+
+```typescript
+const triggers = await listTriggers();
+triggers.forEach((trigger) =>
+  console.log(`${trigger.name}: ${trigger.schedule}`)
 );
 ```
 
-##### `updateSchedule(scheduleName, updates, basebaseInstance?)`
+##### `updateTrigger(triggerName, updates, basebaseInstance?)`
 
-Update an existing scheduled task.
+Update an existing triggered task.
 
 ```typescript
-const updatedSchedule = await updateSchedule("dailyCleanup", {
+const updatedTrigger = await updateTrigger("dailyCleanup", {
   schedule: "0 3 * * *", // Change to 3 AM
   enabled: false,
 });
 ```
 
-##### `deleteSchedule(scheduleName, basebaseInstance?)`
+##### `deleteTrigger(triggerName, basebaseInstance?)`
 
-Delete a scheduled task.
+Delete a triggered task.
 
 ```typescript
-await deleteSchedule("dailyCleanup");
+await deleteTrigger("dailyCleanup");
 ```
 
 ## 🧪 Testing

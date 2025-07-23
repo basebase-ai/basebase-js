@@ -369,7 +369,7 @@ export interface TaskListResponse {
 }
 
 // Function Scheduling Types
-export interface ScheduledTask {
+export interface TriggeredTask {
   name: string;
   taskName: string;
   schedule: string; // Cron expression
@@ -383,7 +383,7 @@ export interface ScheduledTask {
   nextRun?: string;
 }
 
-export interface CreateScheduleRequest {
+export interface CreateTriggerRequest {
   name: string;
   taskName: string;
   schedule: string; // Cron expression
@@ -392,7 +392,7 @@ export interface CreateScheduleRequest {
   enabled?: boolean;
 }
 
-export interface UpdateScheduleRequest {
+export interface UpdateTriggerRequest {
   schedule?: string;
   timeZone?: string;
   data?: Record<string, any>;
@@ -400,8 +400,8 @@ export interface UpdateScheduleRequest {
   enabled?: boolean;
 }
 
-export interface ScheduleListResponse {
-  schedules: ScheduledTask[];
+export interface TriggerListResponse {
+  triggers: TriggeredTask[];
   nextPageToken?: string;
 }
 
