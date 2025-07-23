@@ -49,7 +49,7 @@ export {
 // Task operations
 export {
   doTask,
-  createTask,
+  setTask,
   getTask,
   listTasks,
   updateTask,
@@ -163,7 +163,7 @@ export type {
   TaskExecutionRequest,
   TaskExecutionResponse,
   CloudTask,
-  CreateTaskRequest,
+  SetTaskRequest,
   UpdateTaskRequest,
   TriggeredTask,
   CreateTriggerRequest,
@@ -216,7 +216,7 @@ import { query, where, orderBy, limit } from "./query";
 
 import {
   doTask,
-  createTask,
+  setTask,
   getTask,
   listTasks,
   updateTask,
@@ -259,7 +259,7 @@ export default {
 
   // Task operations
   doTask,
-  createTask,
+  setTask,
   getTask,
   listTasks,
   updateTask,
@@ -314,7 +314,7 @@ if (typeof window !== "undefined") {
 
     // Task operations
     doTask,
-    createTask,
+    setTask,
     getTask,
     listTasks,
     updateTask,

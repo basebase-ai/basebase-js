@@ -8,7 +8,7 @@ import {
   TaskExecutionRequest,
   TaskExecutionResponse,
   CloudTask,
-  CreateTaskRequest,
+  SetTaskRequest,
   UpdateTaskRequest,
   TaskListResponse,
   TriggeredTask,
@@ -181,7 +181,7 @@ export async function doTask(
 // ========================================
 
 /**
- * Creates a new cloud task
+ * Sets a new cloud task with a specific name
  *
  * @param taskData - Task configuration with user-friendly field names
  * @param basebaseInstance - Optional BaseBase instance
@@ -189,14 +189,14 @@ export async function doTask(
  *
  * @example
  * ```typescript
- * const task = await createTask({
+ * const task = await setTask({
  *   name: 'myTask',
  *   code: 'exports.handler = async (data) => { return { message: "Hello!" }; }',
  *   description: 'My custom task'
  * });
  * ```
  */
-export async function createTask(
+export async function setTask(
   functionData: {
     name: string;
     code: string;
@@ -213,7 +213,7 @@ export async function createTask(
   const url = `${baseUrl}/v1/projects/${projectId}/tasks`;
 
   // Map user-friendly field names to server-expected field names
-  const serverTaskData: CreateTaskRequest = {
+  const serverTaskData: SetTaskRequest = {
     id: functionData.name,
     implementationCode: functionData.code,
     description: functionData.description || "A BaseBase task", // Provide default if not specified

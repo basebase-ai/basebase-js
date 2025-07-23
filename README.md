@@ -290,15 +290,15 @@ BaseBase supports creating, managing, and triggering cloud tasks with Firebase-l
 
 ```typescript
 import {
-  createTask,
+  setTask,
   getTask,
   listTasks,
   updateTask,
   deleteTask,
 } from "basebase-js";
 
-// Create a new task
-const newTask = await createTask({
+// Set a new task
+const newTask = await setTask({
   name: "myTask",
   code: 'exports.handler = async (data) => { return { message: "Hello World!" }; }',
   description: "My custom task",
@@ -712,12 +712,12 @@ const data = await doTask("project_id/processData", { input: "test" });
 
 #### Task Management
 
-##### `createTask(taskData, basebaseInstance?)`
+##### `setTask(taskData, basebaseInstance?)`
 
-Create a new cloud task.
+Set a new cloud task with a specific name.
 
 ```typescript
-const task = await createTask({
+const task = await setTask({
   name: "myTask",
   code: 'exports.handler = async (data) => { return { message: "Hello!" }; }',
   description: "My custom task",

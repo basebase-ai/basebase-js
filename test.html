@@ -349,7 +349,7 @@
               </div>
             </div>
 
-                      <button onclick="createTaskTest()">Create Task</button>
+                      <button onclick="setTaskTest()">Set Task</button>
           <button onclick="getTaskTest()">Get Task</button>
           <button onclick="updateTaskTest()">Update Task</button>
           <button onclick="deleteTaskTest()">Delete Task</button>
@@ -1849,7 +1849,7 @@
       // ========================================
 
       // Create Task
-      window.createTaskTest = async function createTaskTest() {
+      window.setTaskTest = async function setTaskTest() {
         const functionName = document.getElementById('functionNameCrud').value.trim();
         const functionCode = document.getElementById('functionCode').value.trim();
         const description = document.getElementById('functionDescription').value.trim() || 'A BaseBase function'; // Default description if empty
@@ -1872,7 +1872,7 @@
             ...(memoryMB && { memoryMB })
           };
 
-          const result = await window.BasebaseSDK.createTask(taskData);
+          const result = await window.BasebaseSDK.setTask(taskData);
           displayManagementResult(resultDiv, result, 'Task created successfully');
           showMessage(messageDiv, `Task "${functionName}" created successfully!`, "success");
         } catch (error) {

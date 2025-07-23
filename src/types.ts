@@ -344,7 +344,7 @@ export interface CloudTask {
   environmentVariables?: Record<string, string>;
 }
 
-export interface CreateTaskRequest {
+export interface SetTaskRequest {
   id: string;
   implementationCode: string;
   description?: string;
