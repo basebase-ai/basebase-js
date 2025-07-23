@@ -466,15 +466,15 @@ export function buildFirebaseApiPath(
 }
 
 /**
- * Builds Firebase-style API path for function calls
- * /v1/projects/{projectId}/functions/{functionName}:call
+ * Builds Firebase-style API path for task execution
+ * /v1/projects/{projectId}/tasks/{taskName}:do
  */
-export function buildFunctionCallPath(
+export function buildTaskDoPath(
   baseUrl: string,
   projectId: string,
-  functionName: string
+  taskName: string
 ): string {
-  return `${baseUrl}/${API_VERSION}/projects/${projectId}/functions/${functionName}:call`;
+  return `${baseUrl}/${API_VERSION}/projects/${projectId}/tasks/${taskName}:do`;
 }
 
 // ========================================

@@ -46,14 +46,14 @@ export {
   onAuthStateChanged,
 } from "./auth";
 
-// Function operations
+// Task operations
 export {
-  callFunction,
-  createFunction,
-  getFunction,
-  listFunctions,
-  updateFunction,
-  deleteFunction,
+  doTask,
+  createTask,
+  getTask,
+  listTasks,
+  updateTask,
+  deleteTask,
   createSchedule,
   getSchedule,
   listSchedules,
@@ -158,17 +158,17 @@ export type {
   BasebaseErrorInfo,
   BasebaseErrorCode,
 
-  // Function types
-  FunctionCallRequest,
-  FunctionCallResponse,
-  CloudFunction,
-  CreateFunctionRequest,
-  UpdateFunctionRequest,
-  FunctionListResponse,
-  ScheduledFunction,
+  // Task types
+  TaskExecutionRequest,
+  TaskExecutionResponse,
+  CloudTask,
+  CreateTaskRequest,
+  UpdateTaskRequest,
+  ScheduledTask,
   CreateScheduleRequest,
   UpdateScheduleRequest,
   ScheduleListResponse,
+  TaskListResponse,
 
   // API response types
   BasebaseApiResponse,
@@ -214,12 +214,12 @@ import {
 import { query, where, orderBy, limit } from "./query";
 
 import {
-  callFunction,
-  createFunction,
-  getFunction,
-  listFunctions,
-  updateFunction,
-  deleteFunction,
+  doTask,
+  createTask,
+  getTask,
+  listTasks,
+  updateTask,
+  deleteTask,
   createSchedule,
   getSchedule,
   listSchedules,
@@ -255,13 +255,13 @@ export default {
   limit,
   getDocs,
 
-  // Function operations
-  callFunction,
-  createFunction,
-  getFunction,
-  listFunctions,
-  updateFunction,
-  deleteFunction,
+  // Task operations
+  doTask,
+  createTask,
+  getTask,
+  listTasks,
+  updateTask,
+  deleteTask,
   createSchedule,
   getSchedule,
   listSchedules,
@@ -309,13 +309,13 @@ if (typeof window !== "undefined") {
     limit,
     getDocs,
 
-    // Function operations
-    callFunction,
-    createFunction,
-    getFunction,
-    listFunctions,
-    updateFunction,
-    deleteFunction,
+    // Task operations
+    doTask,
+    createTask,
+    getTask,
+    listTasks,
+    updateTask,
+    deleteTask,
     createSchedule,
     getSchedule,
     listSchedules,

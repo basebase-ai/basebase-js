@@ -4,22 +4,22 @@
  */
 
 // ========================================
-// Function Calling Types
+// Task Execution Types
 // ========================================
 
-export interface FunctionCallRequest {
+export interface TaskExecutionRequest {
   [parameterName: string]: any;
 }
 
-export interface FunctionCallResponse {
+export interface TaskExecutionResponse {
   result: any;
   error?: string;
   details?: string;
-  functionName?: string;
+  taskName?: string;
   suggestion?: string;
 }
 
-export interface BasebaseFunction {
+export interface BasebaseTask {
   name: string;
   description?: string;
   parameters?: Record<string, any>;
@@ -27,8 +27,8 @@ export interface BasebaseFunction {
   updatedAt?: string;
 }
 
-export interface ListFunctionsResponse {
-  functions: BasebaseFunction[];
+export interface ListTasksResponse {
+  tasks: BasebaseTask[];
 }
 
 // ========================================
@@ -328,50 +328,50 @@ export interface SetOptions {
 }
 
 // ========================================
-// Function Types
+// Task Types
 // ========================================
 
-// Function Management Types
-export interface CloudFunction {
+// Task Management Types
+export interface CloudTask {
   id: string;
-  implementationCode: string;
-  description: string; // Required by server
-  runtime?: string;
-  timeout?: number;
-  memoryMB?: number;
-  environmentVariables?: Record<string, string>;
+  description: string;
+  implementationCode?: string;
   createdAt?: string;
   updatedAt?: string;
+  timeout?: number;
+  memoryMB?: number;
+  runtime?: string;
+  environmentVariables?: Record<string, string>;
 }
 
-export interface CreateFunctionRequest {
+export interface CreateTaskRequest {
   id: string;
   implementationCode: string;
-  description: string; // Required by server
-  runtime?: string;
+  description?: string;
   timeout?: number;
   memoryMB?: number;
+  runtime?: string;
   environmentVariables?: Record<string, string>;
 }
 
-export interface UpdateFunctionRequest {
+export interface UpdateTaskRequest {
   implementationCode?: string;
   description?: string;
-  runtime?: string;
   timeout?: number;
   memoryMB?: number;
+  runtime?: string;
   environmentVariables?: Record<string, string>;
 }
 
-export interface FunctionListResponse {
-  functions: CloudFunction[];
+export interface TaskListResponse {
+  tasks: CloudTask[];
   nextPageToken?: string;
 }
 
 // Function Scheduling Types
-export interface ScheduledFunction {
+export interface ScheduledTask {
   name: string;
-  functionName: string;
+  taskName: string;
   schedule: string; // Cron expression
   timeZone?: string;
   data?: Record<string, any>;
@@ -385,11 +385,10 @@ export interface ScheduledFunction {
 
 export interface CreateScheduleRequest {
   name: string;
-  functionName: string;
-  schedule: string;
+  taskName: string;
+  schedule: string; // Cron expression
   timeZone?: string;
-  data?: Record<string, any>;
-  description?: string;
+  data?: any;
   enabled?: boolean;
 }
 
@@ -402,7 +401,7 @@ export interface UpdateScheduleRequest {
 }
 
 export interface ScheduleListResponse {
-  schedules: ScheduledFunction[];
+  schedules: ScheduledTask[];
   nextPageToken?: string;
 }
 

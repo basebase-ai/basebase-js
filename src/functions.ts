@@ -1,67 +1,67 @@
 /**
- * BaseBase Functions Module
- * Handles calling server-side functions and function management with BaseBase
+ * BaseBase Tasks Module
+ * Handles calling server-side tasks and task management with BaseBase
  */
 
 import {
   Basebase,
-  FunctionCallRequest,
-  FunctionCallResponse,
-  CloudFunction,
-  CreateFunctionRequest,
-  UpdateFunctionRequest,
-  FunctionListResponse,
-  ScheduledFunction,
+  TaskExecutionRequest,
+  TaskExecutionResponse,
+  CloudTask,
+  CreateTaskRequest,
+  UpdateTaskRequest,
+  TaskListResponse,
+  ScheduledTask,
   CreateScheduleRequest,
   UpdateScheduleRequest,
   ScheduleListResponse,
   BasebaseError,
   BASEBASE_ERROR_CODES,
 } from "./types";
-import { makeHttpRequest, buildFunctionCallPath } from "./utils";
+import { makeHttpRequest, buildTaskDoPath } from "./utils";
 import { getToken, getAuthState } from "./auth";
 
 // ========================================
-// Function Calling (Existing)
+// Task Execution
 // ========================================
 
 /**
- * Calls a server-side function with parameters
- * Supports calling functions from different projects using project/function syntax
+ * Executes a server-side task with parameters
+ * Supports executing tasks from different projects using project/task syntax
  *
- * @param functionName - The name of the function to call, optionally fully qualified (e.g., "basebase/getPage")
- * @param parameters - Object containing function parameters
+ * @param taskName - The name of the task to execute, optionally fully qualified (e.g., "basebase/getPage")
+ * @param parameters - Object containing task parameters
  * @param basebaseInstance - Optional BaseBase instance. If not provided, uses default authentication
- * @returns Promise resolving to the function result
+ * @returns Promise resolving to the task result
  *
  * @example
  * ```typescript
- * // Call function from your project
- * const result = await callFunction('myFunction', { param: 'value' });
+ * // Execute task from your project
+ * const result = await doTask('myTask', { param: 'value' });
  *
- * // Call system function from basebase project
- * const page = await callFunction('basebase/getPage', {
+ * // Execute system task from basebase project
+ * const page = await doTask('basebase/getPage', {
  *   url: 'https://example.com',
  *   selector: 'h1'
  * });
  *
- * // Call function from specific project
- * const result = await callFunction('test_project/helloWorld', { name: 'World' });
+ * // Execute task from specific project
+ * const result = await doTask('test_project/helloWorld', { name: 'World' });
  *
  * // Using with custom BaseBase instance
  * const db = getDatabase('your_jwt_token');
- * const result = await callFunction('processData', { data: 'test' }, db);
+ * const result = await doTask('processData', { data: 'test' }, db);
  * ```
  */
-export async function callFunction(
-  functionName: string,
-  parameters: FunctionCallRequest = {},
+export async function doTask(
+  taskName: string,
+  parameters: TaskExecutionRequest = {},
   basebaseInstance?: Basebase
 ): Promise<any> {
-  if (!functionName || typeof functionName !== "string") {
+  if (!taskName || typeof taskName !== "string") {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Function name must be a non-empty string"
+      "Task name must be a non-empty string"
     );
   }
 
@@ -72,23 +72,23 @@ export async function callFunction(
     );
   }
 
-  // Parse function name for project prefix (e.g., "basebase/getPage")
+  // Parse task name for project prefix (e.g., "basebase/getPage")
   let targetProjectId: string;
-  let actualFunctionName: string;
+  let actualTaskName: string;
 
-  if (functionName.includes("/")) {
-    const parts = functionName.split("/");
+  if (taskName.includes("/")) {
+    const parts = taskName.split("/");
     if (parts.length !== 2) {
       throw new BasebaseError(
         BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-        "Function name must be either 'functionName' or 'projectId/functionName'"
+        "Task name must be either 'taskName' or 'projectId/taskName'"
       );
     }
     targetProjectId = parts[0]!; // Safe because we validated length === 2
-    actualFunctionName = parts[1]!; // Safe because we validated length === 2
+    actualTaskName = parts[1]!; // Safe because we validated length === 2
   } else {
     // No prefix - use authenticated user's project
-    actualFunctionName = functionName;
+    actualTaskName = taskName;
     targetProjectId = "";
   }
 
@@ -136,11 +136,11 @@ export async function callFunction(
     }
   }
 
-  // Build the function call URL
-  const url = buildFunctionCallPath(baseUrl, projectId, actualFunctionName);
+  // Build the task execution URL
+  const url = buildTaskDoPath(baseUrl, projectId, actualTaskName);
 
   try {
-    const response = await makeHttpRequest<FunctionCallResponse>(url, {
+    const response = await makeHttpRequest<TaskExecutionResponse>(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -169,7 +169,7 @@ export async function callFunction(
     // Wrap other errors
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INTERNAL,
-      `Function call failed: ${
+      `Task execution failed: ${
         error instanceof Error ? error.message : "Unknown error"
       }`
     );
@@ -177,26 +177,26 @@ export async function callFunction(
 }
 
 // ========================================
-// Function Management (CRUD)
+// Task Management (CRUD)
 // ========================================
 
 /**
- * Creates a new cloud function
+ * Creates a new cloud task
  *
- * @param functionData - Function configuration with user-friendly field names
+ * @param taskData - Task configuration with user-friendly field names
  * @param basebaseInstance - Optional BaseBase instance
- * @returns Promise resolving to the created function
+ * @returns Promise resolving to the created task
  *
  * @example
  * ```typescript
- * const func = await createFunction({
- *   name: 'myFunction',
+ * const task = await createTask({
+ *   name: 'myTask',
  *   code: 'exports.handler = async (data) => { return { message: "Hello!" }; }',
- *   description: 'My custom function'
+ *   description: 'My custom task'
  * });
  * ```
  */
-export async function createFunction(
+export async function createTask(
   functionData: {
     name: string;
     code: string;
@@ -207,55 +207,55 @@ export async function createFunction(
     environmentVariables?: Record<string, string>;
   },
   basebaseInstance?: Basebase
-): Promise<CloudFunction> {
+): Promise<CloudTask> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/functions`;
+  const url = `${baseUrl}/v1/projects/${projectId}/tasks`;
 
   // Map user-friendly field names to server-expected field names
-  const serverFunctionData: CreateFunctionRequest = {
+  const serverTaskData: CreateTaskRequest = {
     id: functionData.name,
     implementationCode: functionData.code,
-    description: functionData.description || "A BaseBase function", // Provide default if not specified
+    description: functionData.description || "A BaseBase task", // Provide default if not specified
     timeout: functionData.timeout,
     memoryMB: functionData.memoryMB,
     runtime: functionData.runtime,
     environmentVariables: functionData.environmentVariables,
   };
 
-  const response = await makeHttpRequest<CloudFunction>(url, {
+  const response = await makeHttpRequest<CloudTask>(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    body: serverFunctionData,
+    body: serverTaskData,
   });
 
   return response;
 }
 
 /**
- * Retrieves a cloud function by name
+ * Retrieves a cloud task by name
  *
- * @param functionName - Name of the function to retrieve
+ * @param taskName - Name of the task to retrieve
  * @param basebaseInstance - Optional BaseBase instance
- * @returns Promise resolving to the function details
+ * @returns Promise resolving to the task details
  *
  * @example
  * ```typescript
- * const func = await getFunction('myFunction');
- * console.log(func.code);
+ * const task = await getTask('myTask');
+ * console.log(task.code);
  * ```
  */
-export async function getFunction(
-  functionName: string,
+export async function getTask(
+  taskName: string,
   basebaseInstance?: Basebase
-): Promise<CloudFunction> {
+): Promise<CloudTask> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/functions/${functionName}`;
+  const url = `${baseUrl}/v1/projects/${projectId}/tasks/${taskName}`;
 
-  const response = await makeHttpRequest<CloudFunction>(url, {
+  const response = await makeHttpRequest<CloudTask>(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -266,52 +266,52 @@ export async function getFunction(
 }
 
 /**
- * Lists all cloud functions in the project
+ * Lists all cloud tasks in the project
  *
  * @param basebaseInstance - Optional BaseBase instance
- * @returns Promise resolving to the list of functions
+ * @returns Promise resolving to the list of tasks
  *
  * @example
  * ```typescript
- * const functions = await listFunctions();
- * functions.forEach(func => console.log(func.name));
+ * const tasks = await listTasks();
+ * tasks.forEach(task => console.log(task.name));
  * ```
  */
-export async function listFunctions(
+export async function listTasks(
   basebaseInstance?: Basebase
-): Promise<CloudFunction[]> {
+): Promise<CloudTask[]> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/functions`;
+  const url = `${baseUrl}/v1/projects/${projectId}/tasks`;
 
-  const response = await makeHttpRequest<FunctionListResponse>(url, {
+  const response = await makeHttpRequest<TaskListResponse>(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
-  return response.functions;
+  return response.tasks;
 }
 
 /**
- * Updates an existing cloud function
+ * Updates an existing cloud task
  *
- * @param functionName - Name of the function to update
+ * @param taskName - Name of the task to update
  * @param updates - Fields to update with user-friendly field names
  * @param basebaseInstance - Optional BaseBase instance
- * @returns Promise resolving to the updated function
+ * @returns Promise resolving to the updated task
  *
  * @example
  * ```typescript
- * const updatedFunc = await updateFunction('myFunction', {
+ * const updatedTask = await updateTask('myTask', {
  *   code: 'exports.handler = async (data) => { return { message: "Updated!" }; }',
  *   timeout: 60
  * });
  * ```
  */
-export async function updateFunction(
-  functionName: string,
+export async function updateTask(
+  taskName: string,
   updates: {
     code?: string;
     description?: string;
@@ -321,13 +321,13 @@ export async function updateFunction(
     environmentVariables?: Record<string, string>;
   },
   basebaseInstance?: Basebase
-): Promise<CloudFunction> {
+): Promise<CloudTask> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/functions/${functionName}`;
+  const url = `${baseUrl}/v1/projects/${projectId}/tasks/${taskName}`;
 
   // Map user-friendly field names to server-expected field names
-  const serverUpdates: UpdateFunctionRequest = {};
+  const serverUpdates: UpdateTaskRequest = {};
   if (updates.code !== undefined)
     serverUpdates.implementationCode = updates.code;
   if (updates.description !== undefined)
@@ -338,7 +338,7 @@ export async function updateFunction(
   if (updates.environmentVariables !== undefined)
     serverUpdates.environmentVariables = updates.environmentVariables;
 
-  const response = await makeHttpRequest<CloudFunction>(url, {
+  const response = await makeHttpRequest<CloudTask>(url, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -350,25 +350,25 @@ export async function updateFunction(
 }
 
 /**
- * Deletes a cloud function
+ * Deletes a cloud task
  *
- * @param functionName - Name of the function to delete
+ * @param taskName - Name of the task to delete
  * @param basebaseInstance - Optional BaseBase instance
  * @returns Promise that resolves when deletion is complete
  *
  * @example
  * ```typescript
- * await deleteFunction('myFunction');
- * console.log('Function deleted successfully');
+ * await deleteTask('myTask');
+ * console.log('Task deleted successfully');
  * ```
  */
-export async function deleteFunction(
-  functionName: string,
+export async function deleteTask(
+  taskName: string,
   basebaseInstance?: Basebase
 ): Promise<void> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
-  const url = `${baseUrl}/v1/projects/${projectId}/functions/${functionName}`;
+  const url = `${baseUrl}/v1/projects/${projectId}/tasks/${taskName}`;
 
   await makeHttpRequest<void>(url, {
     method: "DELETE",
@@ -379,11 +379,11 @@ export async function deleteFunction(
 }
 
 // ========================================
-// Function Scheduling
+// Task Scheduling
 // ========================================
 
 /**
- * Creates a scheduled function with cron syntax
+ * Creates a scheduled task with cron syntax
  *
  * @param scheduleData - Schedule configuration
  * @param basebaseInstance - Optional BaseBase instance
@@ -393,7 +393,7 @@ export async function deleteFunction(
  * ```typescript
  * const schedule = await createSchedule({
  *   name: 'dailyCleanup',
- *   functionName: 'cleanupFunction',
+ *   taskName: 'cleanupTask',
  *   schedule: '0 2 * * *', // Daily at 2 AM
  *   timeZone: 'America/New_York',
  *   data: { target: 'temp_files' }
@@ -403,12 +403,12 @@ export async function deleteFunction(
 export async function createSchedule(
   scheduleData: CreateScheduleRequest,
   basebaseInstance?: Basebase
-): Promise<ScheduledFunction> {
+): Promise<ScheduledTask> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
   const url = `${baseUrl}/v1/projects/${projectId}/schedules`;
 
-  const response = await makeHttpRequest<ScheduledFunction>(url, {
+  const response = await makeHttpRequest<ScheduledTask>(url, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -435,12 +435,12 @@ export async function createSchedule(
 export async function getSchedule(
   scheduleName: string,
   basebaseInstance?: Basebase
-): Promise<ScheduledFunction> {
+): Promise<ScheduledTask> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
   const url = `${baseUrl}/v1/projects/${projectId}/schedules/${scheduleName}`;
 
-  const response = await makeHttpRequest<ScheduledFunction>(url, {
+  const response = await makeHttpRequest<ScheduledTask>(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -464,7 +464,7 @@ export async function getSchedule(
  */
 export async function listSchedules(
   basebaseInstance?: Basebase
-): Promise<ScheduledFunction[]> {
+): Promise<ScheduledTask[]> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
   const url = `${baseUrl}/v1/projects/${projectId}/schedules`;
@@ -499,12 +499,12 @@ export async function updateSchedule(
   scheduleName: string,
   updates: UpdateScheduleRequest,
   basebaseInstance?: Basebase
-): Promise<ScheduledFunction> {
+): Promise<ScheduledTask> {
   const { token, baseUrl, projectId } = await getAuthContext(basebaseInstance);
 
   const url = `${baseUrl}/v1/projects/${projectId}/schedules/${scheduleName}`;
 
-  const response = await makeHttpRequest<ScheduledFunction>(url, {
+  const response = await makeHttpRequest<ScheduledTask>(url, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
