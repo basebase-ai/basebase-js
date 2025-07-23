@@ -4,7 +4,9 @@ An SDK for BaseBase server interactions, patterned after the Firebase/Firestore 
 
 ## ⚠️ Early Development
 
-This SDK is currently in early development (0.2.x). The API may change between versions. Please use with caution in production environments.
+This SDK is currently in early development (0.1.x). The API may change between versions. Please use with caution in production environments.
+
+> **⚠️ API Change in v0.1.8**: Task and trigger functions now use Firebase-style references for consistency with document operations. See the examples below for the new patterns.
 
 ## 🚀 Features
 
