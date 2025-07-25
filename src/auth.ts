@@ -366,10 +366,47 @@ export async function verifyCode(
   projectId: string,
   baseUrl?: string
 ): Promise<VerifyCodeResponse> {
-  if (!phone || !code || !projectId) {
+  // Check for missing or invalid parameters with specific error messages
+  if (phone === undefined || phone === null) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Phone number, verification code, and project ID are required"
+      "Phone number is required (parameter missing)"
+    );
+  }
+
+  if (code === undefined || code === null) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Verification code is required (parameter missing)"
+    );
+  }
+
+  if (projectId === undefined || projectId === null) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Project ID is required (parameter missing)"
+    );
+  }
+
+  // Check for empty string parameters
+  if (!phone.trim()) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Phone number cannot be empty"
+    );
+  }
+
+  if (!code.trim()) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Verification code cannot be empty"
+    );
+  }
+
+  if (!projectId.trim()) {
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
+      "Project ID cannot be empty"
     );
   }
 
