@@ -363,20 +363,20 @@ export async function requestCode(
 export async function verifyCode(
   phone: string,
   code: string,
-  projectApiKey: string,
+  projectId: string,
   baseUrl?: string
 ): Promise<VerifyCodeResponse> {
-  if (!phone || !code || !projectApiKey) {
+  if (!phone || !code || !projectId) {
     throw new BasebaseError(
       BASEBASE_ERROR_CODES.INVALID_ARGUMENT,
-      "Phone number, verification code, and project API key are required"
+      "Phone number, verification code, and project ID are required"
     );
   }
 
   const request: VerifyCodeRequest = {
     phone: phone.trim(),
     code: code.trim(),
-    projectApiKey: projectApiKey.trim(),
+    projectId: projectId.trim(),
   };
 
   try {
@@ -388,7 +388,7 @@ export async function verifyCode(
       request: request,
       phone: phone.trim(),
       code: code.trim(),
-      projectApiKey: projectApiKey.trim(),
+      projectId: projectId.trim(),
     });
 
     const rawResponse = await makeHttpRequest<RawVerifyCodeResponse>(

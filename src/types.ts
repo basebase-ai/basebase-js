@@ -84,7 +84,7 @@ export interface RequestCodeResponse {
 export interface VerifyCodeRequest {
   phone: string;
   code: string;
-  projectApiKey: string;
+  projectId: string;
 }
 
 export interface BasebaseUser {

@@ -430,12 +430,12 @@ Request an SMS verification code. Username must be alphanumeric characters only 
 const response = await requestCode("john_doe", "+1234567890");
 ```
 
-#### `verifyCode(phone, code, projectApiKey, baseUrl?)`
+#### `verifyCode(phone, code, projectId, baseUrl?)`
 
 Verify SMS code and get authentication token.
 
 ```typescript
-const result = await verifyCode("+1234567890", "123456", "bb_your_api_key");
+const result = await verifyCode("+1234567890", "123456", "your_project_id");
 ```
 
 #### `getAuthState()`
@@ -933,7 +933,7 @@ A simple test webapp is included at `test.html` to demonstrate SDK functionality
 import { requestCode, verifyCode, doc, getDoc, setDoc } from "basebase-js";
 
 // 1. Authenticate first
-await verifyCode("+1234567890", "123456", "bb_your_api_key");
+await verifyCode("+1234567890", "123456", "your_project_id");
 
 // 2. Then use database - no setup required
 const userRef = doc(db, "myproject/users/user123");
@@ -1019,7 +1019,7 @@ const userSnap = await getDoc(userRef);
 import { verifyCode, db, doc, getDoc } from "basebase-js";
 
 // Authenticate first
-await verifyCode("+1234567890", "123456", "bb_your_api_key");
+await verifyCode("+1234567890", "123456", "your_project_id");
 
 // Then use database - no initialization needed!
 const userRef = doc(db, "myproject/users/user123");
