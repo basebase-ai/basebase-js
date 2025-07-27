@@ -42,11 +42,7 @@ import { requestCode, verifyCode } from "basebase-js";
 const response = await requestCode("john_doe", "+1234567890");
 
 // Verify the code and get JWT token
-const authResult = await verifyCode(
-  "+1234567890",
-  "123456",
-  "bb_your_api_key_here"
-);
+const authResult = await verifyCode("+1234567890", "123456", "your_project_id");
 console.log("User:", authResult.user);
 console.log("Token:", authResult.token);
 
