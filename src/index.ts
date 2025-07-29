@@ -104,6 +104,7 @@ export {
   deepClone,
   isBrowser,
   getNestedProperty,
+  convertToJsObject,
 } from "./utils";
 
 // ========================================
@@ -292,7 +293,7 @@ export default {
 // Version Information
 // ========================================
 
-export const VERSION = "0.1.14";
+export const VERSION = "0.1.15";
 
 // ========================================
 // Browser Global Registration

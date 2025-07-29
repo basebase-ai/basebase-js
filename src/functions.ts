@@ -34,7 +34,7 @@ import {
   validatePath,
   validateProjectId,
   parsePath,
-  parseProjectFromFields,
+  convertToJsObject,
 } from "./utils";
 import { getToken, getAuthState } from "./auth";
 
@@ -807,8 +807,8 @@ export async function getProjects(
 
     // Convert each raw project to a proper BasebaseProject object
     const projects = (response.projects || []).map((rawProject) =>
-      parseProjectFromFields(rawProject)
-    );
+      convertToJsObject(rawProject)
+    ) as BasebaseProject[];
 
     return projects;
   } catch (error) {

@@ -574,6 +574,44 @@ export function parseUserFromFields(rawUser: {
 }
 
 /**
+ * Converts a raw BaseBase document to a JavaScript object
+ * Handles the standard BaseBase API response format with name and fields
+ *
+ * @param rawDoc - Raw document from BaseBase API with name and fields properties
+ * @returns JavaScript object with id extracted from name and all fields converted
+ *
+ * @example
+ * ```typescript
+ * const rawProject = {
+ *   name: "projects/my_project_123",
+ *   fields: {
+ *     displayName: { stringValue: "My Project" },
+ *     isActive: { booleanValue: true }
+ *   }
+ * };
+ *
+ * const jsObject = convertToJsObject(rawProject);
+ * // Result: { id: "my_project_123", displayName: "My Project", isActive: true }
+ * ```
+ */
+export function convertToJsObject(rawDoc: {
+  name: string;
+  fields: Record<string, BasebaseValue>;
+}): Record<string, any> {
+  // Convert fields from BaseBase format to JavaScript values
+  const fields = fromBasebaseDocument({ fields: rawDoc.fields });
+
+  // Extract ID from the name field (e.g., "projects/project_id" -> "project_id")
+  const id = rawDoc.name.split("/").pop() || "";
+
+  // Return the converted object with id and all field properties
+  return {
+    id,
+    ...fields,
+  };
+}
+
+/**
  * Parses a Firebase-like project object to BasebaseProject
  */
 export function parseProjectFromFields(rawProject: {

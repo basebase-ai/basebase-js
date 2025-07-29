@@ -100,7 +100,13 @@ export interface BasebaseProject {
   name: string;
   displayName?: string;
   description?: string;
+  githubUrl?: string;
+  productionUrl?: string;
+  categories?: string[];
   ownerId?: string;
+  users?: number;
+  contributors?: number;
+  forks?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
