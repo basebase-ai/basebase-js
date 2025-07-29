@@ -443,7 +443,7 @@ export async function doTask(
     if (typeof window !== "undefined" && (window as any).customBaseUrl) {
       baseUrl = (window as any).customBaseUrl;
     } else {
-      baseUrl = "https://api.basebase.us"; // Default base URL
+      baseUrl = "https://db.basebase.ai"; // Default base URL
     }
 
     // Get project ID from auth state or use specified project
@@ -800,7 +800,7 @@ async function getAuthContext(basebaseInstance?: Basebase): Promise<{
     if (typeof window !== "undefined" && (window as any).customBaseUrl) {
       baseUrl = (window as any).customBaseUrl;
     } else {
-      baseUrl = "https://api.basebase.us";
+      baseUrl = "https://db.basebase.ai";
     }
 
     // Get project ID from auth state
@@ -846,7 +846,7 @@ async function getAuthContextBasic(basebaseInstance?: Basebase): Promise<{
     if (typeof window !== "undefined" && (window as any).customBaseUrl) {
       baseUrl = (window as any).customBaseUrl;
     } else {
-      baseUrl = "https://api.basebase.us";
+      baseUrl = "https://db.basebase.ai";
     }
   }
 

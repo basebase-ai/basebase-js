@@ -520,7 +520,7 @@ export type PartialWithFieldValue<T> =
 // ========================================
 
 // Global base URL that can be updated
-let GLOBAL_BASE_URL = "https://api.basebase.us";
+let GLOBAL_BASE_URL = "https://db.basebase.ai";
 
 // API version for path prefixing
 export const API_VERSION = "v1";

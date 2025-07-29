@@ -13,7 +13,7 @@ import {
 import { getProject, getToken, getAuthState, setDirectToken } from "./auth";
 
 // Constants
-export const DEFAULT_BASE_URL = "https://api.basebase.us";
+export const DEFAULT_BASE_URL = "https://db.basebase.ai";
 
 /**
  * Database initialization for server environments

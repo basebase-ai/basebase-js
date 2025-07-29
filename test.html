@@ -234,7 +234,7 @@
               type="text"
               id="serverHost"
               class="config-input"
-              placeholder="https://api.basebase.us/"
+              placeholder="https://db.basebase.ai/"
             />
           </div>
           <button onclick="updateServerHost()">Update Server Host</button>
@@ -1482,7 +1482,7 @@
         } catch (error) {
           showMessage(
             document.getElementById("serverMessage"),
-            "Please enter a valid URL (e.g., https://api.basebase.us/)",
+            "Please enter a valid URL (e.g., https://db.basebase.ai/)",
             "error"
           );
           return;
@@ -2773,7 +2773,7 @@
         } else {
           // Set default value if nothing saved
           document.getElementById("serverHost").value =
-            "https://api.basebase.us/";
+            "https://db.basebase.ai/";
         }
 
         updateAuthStatus();

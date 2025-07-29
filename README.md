@@ -917,7 +917,7 @@ A simple test webapp is included at `test.html` to demonstrate SDK functionality
    - Add/view/update/delete documents
    - Test sign out functionality
 
-> **Note:** The test webapp uses the UMD build (`dist/index.umd.js`) for browser compatibility and loads js-cookie from CDN. It defaults to `https://api.basebase.us`. Adjust the configuration for your BaseBase server instance.
+> **Note:** The test webapp uses the UMD build (`dist/index.umd.js`) for browser compatibility and loads js-cookie from CDN. It defaults to `https://db.basebase.ai`. Adjust the configuration for your BaseBase server instance.
 
 ## 🔧 Configuration
 
