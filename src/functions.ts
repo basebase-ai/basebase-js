@@ -34,6 +34,7 @@ import {
   validatePath,
   validateProjectId,
   parsePath,
+  parseProjectFromFields,
 } from "./utils";
 import { getToken, getAuthState } from "./auth";
 
@@ -793,15 +794,23 @@ export async function getProjects(
 
     console.log("Fetching projects from:", url);
 
-    const response = await makeHttpRequest<{ projects: BasebaseProject[] }>(
-      url,
-      {
-        method: "GET",
-        timeout: 10000,
-      }
+    // The server returns projects in raw BaseBase format with fields
+    const response = await makeHttpRequest<{
+      projects: Array<{
+        name: string;
+        fields: Record<string, any>;
+      }>;
+    }>(url, {
+      method: "GET",
+      timeout: 10000,
+    });
+
+    // Convert each raw project to a proper BasebaseProject object
+    const projects = (response.projects || []).map((rawProject) =>
+      parseProjectFromFields(rawProject)
     );
 
-    return response.projects || [];
+    return projects;
   } catch (error) {
     if (error instanceof BasebaseError) {
       throw error;
