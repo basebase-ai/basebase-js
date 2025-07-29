@@ -24,6 +24,9 @@ import {
   UpdateTaskData,
   CreateTriggerData,
   UpdateTriggerData,
+  BasebaseProject,
+  getGlobalBaseUrl,
+  API_VERSION,
 } from "./types";
 import {
   makeHttpRequest,
@@ -762,6 +765,55 @@ export async function deleteTrigger(
   triggerRef: TriggerReference
 ): Promise<void> {
   return triggerRef.delete();
+}
+
+/**
+ * Gets a list of all available projects (unauthenticated)
+ * This route does not require authentication and can be used to discover available projects
+ *
+ * @param baseUrl - Optional base URL for the request
+ * @returns Promise resolving to the list of projects
+ *
+ * @example
+ * ```typescript
+ * // Get list of projects without authentication
+ * const projects = await getProjects();
+ * console.log('Available projects:', projects);
+ *
+ * // Using with custom base URL
+ * const projects = await getProjects('https://custom.basebase.ai');
+ * ```
+ */
+export async function getProjects(
+  baseUrl?: string
+): Promise<BasebaseProject[]> {
+  try {
+    const effectiveBaseUrl = baseUrl || getGlobalBaseUrl();
+    const url = `${effectiveBaseUrl}/v1/projects`;
+
+    console.log("Fetching projects from:", url);
+
+    const response = await makeHttpRequest<{ projects: BasebaseProject[] }>(
+      url,
+      {
+        method: "GET",
+        timeout: 10000,
+      }
+    );
+
+    return response.projects || [];
+  } catch (error) {
+    if (error instanceof BasebaseError) {
+      throw error;
+    }
+
+    throw new BasebaseError(
+      BASEBASE_ERROR_CODES.NETWORK_ERROR,
+      `Failed to fetch projects: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
 }
 
 // ========================================

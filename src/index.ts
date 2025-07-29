@@ -62,6 +62,7 @@ export {
   listTriggers,
   updateTrigger,
   deleteTrigger,
+  getProjects,
 } from "./functions";
 
 // Document operations
@@ -238,6 +239,7 @@ import {
   listTriggers,
   updateTrigger,
   deleteTrigger,
+  getProjects,
 } from "./functions";
 
 export default {
@@ -283,13 +285,14 @@ export default {
   listTriggers,
   updateTrigger,
   deleteTrigger,
+  getProjects,
 };
 
 // ========================================
 // Version Information
 // ========================================
 
-export const VERSION = "0.1.5";
+export const VERSION = "0.1.13";
 
 // ========================================
 // Browser Global Registration
@@ -340,6 +343,7 @@ if (typeof window !== "undefined") {
     listTriggers,
     updateTrigger,
     deleteTrigger,
+    getProjects,
   };
 }
 

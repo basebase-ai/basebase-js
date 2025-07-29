@@ -280,6 +280,12 @@
             </div>
             <button onclick="verifyCode()">Verify Code</button>
             <button onclick="signOut()">Sign Out</button>
+            <button
+              onclick="testGetProjects()"
+              style="background: #38a169; margin-top: 10px"
+            >
+              🚀 Test Get Projects (No Auth)
+            </button>
           </div>
 
           <div id="authMessage"></div>
@@ -2756,6 +2762,69 @@
 
         resultDiv.innerHTML = "";
         resultDiv.appendChild(resultPre);
+      };
+
+      // ========================================
+      // Projects Test Function
+      // ========================================
+
+      // Test getProjects function (unauthenticated)
+      window.testGetProjects = async function testGetProjects() {
+        try {
+          // Use custom base URL if set
+          const baseUrl = window.customBaseUrl;
+          const projects = await window.BasebaseSDK.getProjects(baseUrl);
+
+          const authMessageDiv = document.getElementById("authMessage");
+
+          if (projects && projects.length > 0) {
+            // Display projects in a readable format
+            let projectsText = `Found ${projects.length} projects:\n\n`;
+            projects.forEach((project, index) => {
+              projectsText += `${index + 1}. ${
+                project.displayName || project.name
+              } (ID: ${project.id})\n`;
+              if (project.description) {
+                projectsText += `   Description: ${project.description}\n`;
+              }
+              projectsText += "\n";
+            });
+
+            // Create a result display element
+            const resultPre = document.createElement("pre");
+            resultPre.style.cssText =
+              "white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 12px; border-radius: 6px; margin-top: 10px; max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0;";
+            resultPre.textContent = projectsText;
+
+            // Clear previous results and add new ones
+            const existingResult =
+              authMessageDiv.parentElement.querySelector(".projects-result");
+            if (existingResult) {
+              existingResult.remove();
+            }
+
+            resultPre.className = "projects-result";
+            authMessageDiv.parentElement.appendChild(resultPre);
+
+            showMessage(
+              authMessageDiv,
+              `Successfully retrieved ${projects.length} projects! 🎉`,
+              "success"
+            );
+          } else {
+            showMessage(
+              authMessageDiv,
+              "No projects found or empty response",
+              "error"
+            );
+          }
+        } catch (error) {
+          showMessage(
+            document.getElementById("authMessage"),
+            `Failed to get projects: ${error.message}`,
+            "error"
+          );
+        }
       };
 
       // Initialize on page load
