@@ -1,6 +1,6 @@
 {
   "name": "basebase-js",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "BaseBase SDK for Javascript/Typescript - Firebase-like API for BaseBase server",
   "type": "module",
   "main": "dist/index.cjs",
