@@ -793,6 +793,93 @@
           <div id="function-management-message"></div>
           <div id="function-management-result"></div>
         </div>
+
+        <!-- Project Creation Section -->
+        <div class="section">
+          <h2>🚀 Project Creation</h2>
+          <p style="margin-bottom: 15px; color: #4a5568; font-size: 14px">
+            Create new projects, repositories, and services with BaseBase.
+          </p>
+
+          <!-- Project Creation Form -->
+          <div
+            style="
+              background: white;
+              padding: 15px;
+              border-radius: 6px;
+              margin-bottom: 15px;
+              border: 1px solid #cbd5e0;
+            "
+          >
+            <h4 style="margin: 0 0 10px 0; color: #2d3748">
+              📝 Create Project
+            </h4>
+
+            <div class="form-group">
+              <label for="projectId">Project ID:</label>
+              <input type="text" id="projectId" placeholder="my-app" value="" />
+              <small style="color: #718096; font-size: 12px">
+                Must be lowercase, alphanumeric with hyphens only
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="projectName">Project Name:</label>
+              <input
+                type="text"
+                id="projectName"
+                placeholder="My App"
+                value=""
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="projectDescription">Description (optional):</label>
+              <textarea
+                id="projectDescription"
+                placeholder="A cool new app"
+                style="
+                  height: 60px;
+                  font-family: monospace;
+                  font-size: 13px;
+                  width: 100%;
+                  padding: 10px;
+                  border: 1px solid #cbd5e0;
+                  border-radius: 6px;
+                  resize: vertical;
+                "
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="projectCategories">Categories (optional):</label>
+              <input
+                type="text"
+                id="projectCategories"
+                placeholder="web,saas"
+                value=""
+              />
+              <small style="color: #718096; font-size: 12px">
+                Comma-separated list of categories
+              </small>
+            </div>
+
+            <button onclick="createProjectTest()">
+              Create Project Document
+            </button>
+            <button onclick="createRepositoryTest()">Create Repository</button>
+            <button onclick="createServiceTest()">Create Service</button>
+            <button
+              onclick="createCompleteProjectTest()"
+              style="background: #38a169"
+            >
+              🚀 Create Complete Project
+            </button>
+          </div>
+
+          <div id="project-creation-message"></div>
+          <div id="project-creation-result"></div>
+        </div>
       </div>
     </div>
 
@@ -2825,6 +2912,276 @@
             "error"
           );
         }
+      };
+
+      // ========================================
+      // Project Creation Test Functions
+      // ========================================
+
+      // Create Project Document
+      window.createProjectTest = async function createProjectTest() {
+        const projectId = document.getElementById("projectId").value.trim();
+        const projectName = document.getElementById("projectName").value.trim();
+        const projectDescription = document
+          .getElementById("projectDescription")
+          .value.trim();
+        const projectCategories = document
+          .getElementById("projectCategories")
+          .value.trim();
+        const messageDiv = document.getElementById("project-creation-message");
+        const resultDiv = document.getElementById("project-creation-result");
+
+        if (!projectId || !projectName) {
+          showMessage(messageDiv, "Please enter project ID and name.", "error");
+          return;
+        }
+
+        try {
+          const request = {
+            projectId: projectId,
+            name: projectName,
+            ...(projectDescription && { description: projectDescription }),
+            ...(projectCategories && {
+              categories: projectCategories.split(",").map((c) => c.trim()),
+            }),
+          };
+
+          // Get custom basebase instance if custom base URL is set
+          let basebaseInstance;
+          if (window.customBaseUrl) {
+            const authState = window.BasebaseSDK.getAuthState();
+            if (!authState.isAuthenticated || !authState.token) {
+              throw new Error(
+                "Must be authenticated to use custom base URL for project creation"
+              );
+            }
+            basebaseInstance = window.BasebaseSDK.getDatabase({
+              token: authState.token,
+              baseUrl: window.customBaseUrl,
+            });
+          }
+
+          const result = await window.BasebaseSDK.createProject(
+            request,
+            basebaseInstance
+          );
+          displayProjectResult(
+            resultDiv,
+            result,
+            "Project created successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Project "${projectId}" created successfully!`,
+            "success"
+          );
+        } catch (error) {
+          showMessage(
+            messageDiv,
+            `Failed to create project: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
+        }
+      };
+
+      // Create Repository
+      window.createRepositoryTest = async function createRepositoryTest() {
+        const projectId = document.getElementById("projectId").value.trim();
+        const messageDiv = document.getElementById("project-creation-message");
+        const resultDiv = document.getElementById("project-creation-result");
+
+        if (!projectId) {
+          showMessage(messageDiv, "Please enter project ID.", "error");
+          return;
+        }
+
+        try {
+          const request = { projectId: projectId };
+
+          // Get custom basebase instance if custom base URL is set
+          let basebaseInstance;
+          if (window.customBaseUrl) {
+            const authState = window.BasebaseSDK.getAuthState();
+            if (!authState.isAuthenticated || !authState.token) {
+              throw new Error(
+                "Must be authenticated to use custom base URL for repository creation"
+              );
+            }
+            basebaseInstance = window.BasebaseSDK.getDatabase({
+              token: authState.token,
+              baseUrl: window.customBaseUrl,
+            });
+          }
+
+          const result = await window.BasebaseSDK.createRepository(
+            request,
+            basebaseInstance
+          );
+          displayProjectResult(
+            resultDiv,
+            result,
+            "Repository created successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Repository for "${projectId}" created successfully!`,
+            "success"
+          );
+        } catch (error) {
+          showMessage(
+            messageDiv,
+            `Failed to create repository: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
+        }
+      };
+
+      // Create Service
+      window.createServiceTest = async function createServiceTest() {
+        const projectId = document.getElementById("projectId").value.trim();
+        const messageDiv = document.getElementById("project-creation-message");
+        const resultDiv = document.getElementById("project-creation-result");
+
+        if (!projectId) {
+          showMessage(messageDiv, "Please enter project ID.", "error");
+          return;
+        }
+
+        try {
+          const request = { projectId: projectId };
+
+          // Get custom basebase instance if custom base URL is set
+          let basebaseInstance;
+          if (window.customBaseUrl) {
+            const authState = window.BasebaseSDK.getAuthState();
+            if (!authState.isAuthenticated || !authState.token) {
+              throw new Error(
+                "Must be authenticated to use custom base URL for service creation"
+              );
+            }
+            basebaseInstance = window.BasebaseSDK.getDatabase({
+              token: authState.token,
+              baseUrl: window.customBaseUrl,
+            });
+          }
+
+          const result = await window.BasebaseSDK.createService(
+            request,
+            basebaseInstance
+          );
+          displayProjectResult(
+            resultDiv,
+            result,
+            "Service created successfully"
+          );
+          showMessage(
+            messageDiv,
+            `Service for "${projectId}" created successfully!`,
+            "success"
+          );
+        } catch (error) {
+          showMessage(
+            messageDiv,
+            `Failed to create service: ${error.message}`,
+            "error"
+          );
+          resultDiv.innerHTML = "";
+        }
+      };
+
+      // Create Complete Project
+      window.createCompleteProjectTest =
+        async function createCompleteProjectTest() {
+          const projectId = document.getElementById("projectId").value.trim();
+          const projectName = document
+            .getElementById("projectName")
+            .value.trim();
+          const projectDescription = document
+            .getElementById("projectDescription")
+            .value.trim();
+          const projectCategories = document
+            .getElementById("projectCategories")
+            .value.trim();
+          const messageDiv = document.getElementById(
+            "project-creation-message"
+          );
+          const resultDiv = document.getElementById("project-creation-result");
+
+          if (!projectId || !projectName) {
+            showMessage(
+              messageDiv,
+              "Please enter project ID and name.",
+              "error"
+            );
+            return;
+          }
+
+          try {
+            const projectData = {
+              projectId: projectId,
+              name: projectName,
+              ...(projectDescription && { description: projectDescription }),
+              ...(projectCategories && {
+                categories: projectCategories.split(",").map((c) => c.trim()),
+              }),
+            };
+
+            // Get custom basebase instance if custom base URL is set
+            let basebaseInstance;
+            if (window.customBaseUrl) {
+              const authState = window.BasebaseSDK.getAuthState();
+              if (!authState.isAuthenticated || !authState.token) {
+                throw new Error(
+                  "Must be authenticated to use custom base URL for complete project creation"
+                );
+              }
+              basebaseInstance = window.BasebaseSDK.getDatabase({
+                token: authState.token,
+                baseUrl: window.customBaseUrl,
+              });
+            }
+
+            const result = await window.BasebaseSDK.createCompleteProject(
+              projectData,
+              basebaseInstance
+            );
+            displayProjectResult(
+              resultDiv,
+              result,
+              "Complete project setup created successfully"
+            );
+            showMessage(
+              messageDiv,
+              `Complete project "${projectId}" setup created successfully!`,
+              "success"
+            );
+          } catch (error) {
+            showMessage(
+              messageDiv,
+              `Failed to create complete project: ${error.message}`,
+              "error"
+            );
+            resultDiv.innerHTML = "";
+          }
+        };
+
+      // Display Project Result Helper
+      window.displayProjectResult = function displayProjectResult(
+        resultDiv,
+        data,
+        title
+      ) {
+        const resultPre = document.createElement("pre");
+        resultPre.style.cssText =
+          "white-space: pre-wrap; font-family: monospace; font-size: 12px; color: #4a5568; background: #f7fafc; padding: 8px; border-radius: 4px; width: 100%; overflow-x: auto; max-height: 400px; overflow-y: auto; margin-top: 10px;";
+
+        const displayText = JSON.stringify(data, null, 2);
+        resultPre.textContent = `${title}:\n\n${displayText}`;
+
+        resultDiv.innerHTML = "";
+        resultDiv.appendChild(resultPre);
       };
 
       // Initialize on page load

@@ -478,6 +478,62 @@ export interface TriggerListResponse {
 }
 
 // ========================================
+// Project Creation Types
+// ========================================
+
+export interface CreateProjectRequest {
+  projectId: string;
+  name: string;
+  description?: string;
+  categories?: string[];
+}
+
+export interface CreateProjectResponse {
+  success: boolean;
+  project: {
+    id: string;
+    name: string;
+    description?: string;
+    categories?: string[];
+    githubUrl?: string;
+    productionUrl?: string;
+    apiKey?: string;
+  };
+}
+
+export interface CreateRepositoryRequest {
+  projectId: string;
+}
+
+export interface CreateRepositoryResponse {
+  success: boolean;
+  repository: {
+    name: string;
+    fullName: string;
+    url: string;
+    cloneUrl: string;
+    defaultBranch: string;
+  };
+}
+
+export interface CreateServiceRequest {
+  projectId: string;
+}
+
+export interface CreateServiceResponse {
+  success: boolean;
+  service: {
+    id: string;
+    name: string;
+    projectId: string;
+    environmentId: string;
+    deploymentId: string;
+    domain: string;
+    deploymentUrl: string;
+  };
+}
+
+// ========================================
 // Error Types
 // ========================================
 

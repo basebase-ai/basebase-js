@@ -65,6 +65,14 @@ export {
   getProjects,
 } from "./functions";
 
+// Project creation operations
+export {
+  createProject,
+  createRepository,
+  createService,
+  createCompleteProject,
+} from "./projects";
+
 // Document operations
 export {
   doc,
@@ -182,6 +190,14 @@ export type {
   TriggerListResponse,
   TaskListResponse,
 
+  // Project creation types
+  CreateProjectRequest,
+  CreateProjectResponse,
+  CreateRepositoryRequest,
+  CreateRepositoryResponse,
+  CreateServiceRequest,
+  CreateServiceResponse,
+
   // API response types
   BasebaseApiResponse,
   BasebaseListResponse,
@@ -243,6 +259,13 @@ import {
   getProjects,
 } from "./functions";
 
+import {
+  createProject,
+  createRepository,
+  createService,
+  createCompleteProject,
+} from "./projects";
+
 export default {
   // Core functionality
   getDatabase,
@@ -287,13 +310,19 @@ export default {
   updateTrigger,
   deleteTrigger,
   getProjects,
+
+  // Project creation operations
+  createProject,
+  createRepository,
+  createService,
+  createCompleteProject,
 };
 
 // ========================================
 // Version Information
 // ========================================
 
-export const VERSION = "0.1.15";
+export const VERSION = "0.1.16";
 
 // ========================================
 // Browser Global Registration
@@ -345,6 +374,12 @@ if (typeof window !== "undefined") {
     updateTrigger,
     deleteTrigger,
     getProjects,
+
+    // Project creation operations
+    createProject,
+    createRepository,
+    createService,
+    createCompleteProject,
   };
 }
 

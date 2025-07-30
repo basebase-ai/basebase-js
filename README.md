@@ -892,6 +892,77 @@ const triggerRef = triggersRef.trigger("my-daily-cleanup");
 await deleteTrigger(triggerRef);
 ```
 
+#### Project Creation
+
+The SDK provides functions to create new projects, repositories, and services in BaseBase.
+
+##### `createProject(request)`
+
+Creates a new project document in the database.
+
+```typescript
+import { createProject } from "basebase-js";
+
+const result = await createProject({
+  projectId: "my-app",
+  name: "My App",
+  description: "A cool new app",
+  categories: ["web", "saas"],
+});
+
+console.log(result.project.id); // "my-app"
+console.log(result.project.apiKey); // "bbs_abc123..."
+```
+
+##### `createRepository(request)`
+
+Creates a GitHub repository for an existing project by forking the starter template.
+
+```typescript
+import { createRepository } from "basebase-js";
+
+const result = await createRepository({
+  projectId: "my-app",
+});
+
+console.log(result.repository.url); // "https://github.com/basebase-ai/my-app"
+console.log(result.repository.cloneUrl); // "https://github.com/basebase-ai/my-app.git"
+```
+
+##### `createService(request)`
+
+Creates a Railway service, triggers deployment, and sets up custom domain.
+
+```typescript
+import { createService } from "basebase-js";
+
+const result = await createService({
+  projectId: "my-app",
+});
+
+console.log(result.service.domain); // "my-app.basebase.ai"
+console.log(result.service.deploymentUrl); // "https://my-app.basebase.ai/"
+```
+
+##### `createCompleteProject(projectData)`
+
+Convenience function to create a complete project setup (project document, repository, and service) in sequence.
+
+```typescript
+import { createCompleteProject } from "basebase-js";
+
+const result = await createCompleteProject({
+  projectId: "my-app",
+  name: "My App",
+  description: "A cool new app",
+  categories: ["web", "saas"],
+});
+
+console.log(result.project.id); // "my-app"
+console.log(result.repository.url); // "https://github.com/basebase-ai/my-app"
+console.log(result.service.domain); // "my-app.basebase.ai"
+```
+
 ## 🧪 Testing
 
 A simple test webapp is included at `test.html` to demonstrate SDK functionality:
